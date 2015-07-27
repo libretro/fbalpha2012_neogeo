@@ -10,16 +10,13 @@
 #if ISOPAQUE == 0
  #define OPACITY _TRANS
  #define TESTCOLOUR(x) x
+#define PLOTPIXEL(a,b) if (TESTCOLOUR(b)) *((UINT16*)pPixel) = (UINT16)pTilePalette[b];
 #elif ISOPAQUE == 1
  #define OPACITY _OPAQUE
  #define TESTCOLOUR(x) 1
-#else
- #error illegal isopaque value
+#define PLOTPIXEL(a,b) *((UINT16*)pPixel) = (UINT16)pTilePalette[b];
 #endif
 
-#define PLOTPIXEL(a,b) if (TESTCOLOUR(b)) {						\
-   *((UINT16*)pPixel) = (UINT16)pTilePalette[b];	\
-}
 
 static void FUNCTIONNAME(BPP)()
 {
