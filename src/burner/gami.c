@@ -15,8 +15,8 @@ INT32 nAnalogSpeed;
 
 INT32 nFireButtons = 0;
 
-bool bStreetFighterLayout = false;
-bool bLeftAltkeyMapped = false;
+BOOL bStreetFighterLayout = FALSE;
+BOOL bLeftAltkeyMapped = FALSE;
 
 // ---------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ void GameInpCheckLeftAlt()
 	struct GameInp* pgi;
 	UINT32 i;
 
-	bLeftAltkeyMapped = false;
+	bLeftAltkeyMapped = FALSE;
 
 	for (i = 0, pgi = GameInp; i < (nGameInpCount + nMacroCount); i++, pgi++) {
 
@@ -38,14 +38,14 @@ void GameInpCheckLeftAlt()
 		switch (pgi->nInput) {
 			case GIT_SWITCH:
 				if (pgi->Input.Switch.nCode == FBK_LALT) {
-					bLeftAltkeyMapped = true;
+					bLeftAltkeyMapped = TRUE;
 				}
 				break;
 			case GIT_MACRO_AUTO:
 			case GIT_MACRO_CUSTOM:
 				if (pgi->Macro.nMode) {
 					if (pgi->Macro.Switch.nCode == FBK_LALT) {
-						bLeftAltkeyMapped = true;
+						bLeftAltkeyMapped = TRUE;
 					}
 				}
 				break;
@@ -59,7 +59,7 @@ void GameInpCheckLeftAlt()
 // Check if the sytem mouse is mapped and set the cooperative level apropriately
 void GameInpCheckMouse()
 {
-	bool bMouseMapped = false;
+	BOOL bMouseMapped = FALSE;
 	struct GameInp* pgi;
 	UINT32 i;
 
@@ -72,19 +72,19 @@ void GameInpCheckMouse()
 		switch (pgi->nInput) {
 			case GIT_SWITCH:
 				if ((pgi->Input.Switch.nCode & 0xFF00) == 0x8000) {
-					bMouseMapped = true;
+					bMouseMapped = TRUE;
 				}
 				break;
 			case GIT_MOUSEAXIS:
 				if (pgi->Input.MouseAxis.nMouse == 0) {
-					bMouseMapped = true;
+					bMouseMapped = TRUE;
 				}
 				break;
 			case GIT_MACRO_AUTO:
 			case GIT_MACRO_CUSTOM:
 				if (pgi->Macro.nMode) {
 					if ((pgi->Macro.Switch.nCode & 0xFF00) == 0x8000) {
-						bMouseMapped = true;
+						bMouseMapped = TRUE;
 					}
 				}
 				break;
@@ -98,10 +98,10 @@ void GameInpCheckMouse()
 		if (!bRunPause) {
 			InputSetCooperativeLevel(bMouseMapped, bAlwaysProcessKeyboardInput);
 		} else {
-			InputSetCooperativeLevel(false, bAlwaysProcessKeyboardInput);
+			InputSetCooperativeLevel(FALSE, bAlwaysProcessKeyboardInput);
 		}
 	} else {
-		InputSetCooperativeLevel(false, false);
+		InputSetCooperativeLevel(FALSE, FALSE);
 	}
 }
 #endif
@@ -145,7 +145,7 @@ INT32 GameInpBlank(INT32 bDipSwitch)
 		}
 	}
 
-	bLeftAltkeyMapped = false;
+	bLeftAltkeyMapped = FALSE;
 
 	return 0;
 }
@@ -163,7 +163,7 @@ static void GameInpInitMacros()
 	INT32 nNeogeoButtons[4][4];
 	INT32 nPgmButtons[4][4];
 
-	bStreetFighterLayout = false;
+	bStreetFighterLayout = FALSE;
 	nMacroCount = 0;
 
 	nFireButtons = 0;
@@ -603,10 +603,10 @@ static void GameInpInitMacros()
 	}
 
 	if ((nPunchx3[0] == 7) && (nKickx3[0] == 7)) {
-		bStreetFighterLayout = true;
+		bStreetFighterLayout = TRUE;
 	}
 	if (nFireButtons >= 5 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_CAPCOM_CPS2) {
-		bStreetFighterLayout = true;
+		bStreetFighterLayout = TRUE;
 	}
 }
 
@@ -657,8 +657,8 @@ INT32 GameInpExit()
 
 	nFireButtons = 0;
 
-	bStreetFighterLayout = false;
-	bLeftAltkeyMapped = false;
+	bStreetFighterLayout = FALSE;
+	bLeftAltkeyMapped = FALSE;
 
 	return 0;
 }
@@ -1336,7 +1336,7 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi)
 	return 0;
 }
 
-static INT32 AddCustomMacro(TCHAR* szValue, bool bOverWrite)
+static INT32 AddCustomMacro(TCHAR* szValue, BOOL bOverWrite)
 {
 	TCHAR* szQuote = NULL;
 	TCHAR* szEnd = NULL;
@@ -1347,7 +1347,7 @@ static INT32 AddCustomMacro(TCHAR* szValue, bool bOverWrite)
 
 	INT32 nMode = -1;
 	INT32 nInput = -1;
-	bool bCreateNew = false;
+	BOOL bCreateNew = FALSE;
 	struct BurnInputInfo bii;
 
 	for (UINT32 j = nGameInpCount; j < nGameInpCount + nMacroCount; j++) {
@@ -1364,7 +1364,7 @@ static INT32 AddCustomMacro(TCHAR* szValue, bool bOverWrite)
 			return 1;
 		}
 		nInput = nGameInpCount + nMacroCount;
-		bCreateNew = true;
+		bCreateNew = TRUE;
 	}
 
 	_tcscpy(szQuote, ANSIToTCHAR(GameInp[nInput].Macro.szName, NULL, 0));
@@ -1434,7 +1434,7 @@ static INT32 AddCustomMacro(TCHAR* szValue, bool bOverWrite)
 	return 1;
 }
 
-INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, bool bOverWrite)
+INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, BOOL bOverWrite)
 {
 	TCHAR szLine[1024];
 	INT32 nFileVersion = 0;
@@ -1556,7 +1556,7 @@ INT32 ConfigGameLoadHardwareDefaults()
 	
 	if (nApplyHardwareDefaults) {
 		for (INT32 nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++) {
-			GameInputAutoIni(nPlayer, szFileName, true);
+			GameInputAutoIni(nPlayer, szFileName, TRUE);
 		}
 	}
 
@@ -1576,7 +1576,7 @@ INT32 GameInpDefault()
 			continue;
 		}
 
-		GameInputAutoIni(nPlayer, szPlayerDefaultIni[nPlayer], false);
+		GameInputAutoIni(nPlayer, szPlayerDefaultIni[nPlayer], FALSE);
 	}
 
 	// Fill all inputs still undefined
@@ -1666,7 +1666,7 @@ INT32 GameInpWrite(FILE* h)
 // ---------------------------------------------------------------------------
 
 // Read a GameInp in
-INT32 GameInpRead(TCHAR* szVal, bool bOverWrite)
+INT32 GameInpRead(TCHAR* szVal, BOOL bOverWrite)
 {
 	INT32 nRet;
 	TCHAR* szQuote = NULL;
@@ -1692,7 +1692,7 @@ INT32 GameInpRead(TCHAR* szVal, bool bOverWrite)
 	return 0;
 }
 
-INT32 GameInpMacroRead(TCHAR* szVal, bool bOverWrite)
+INT32 GameInpMacroRead(TCHAR* szVal, BOOL bOverWrite)
 {
 	INT32 nRet;
 	TCHAR* szQuote = NULL;
@@ -1715,7 +1715,7 @@ INT32 GameInpMacroRead(TCHAR* szVal, bool bOverWrite)
 	return 0;
 }
 
-INT32 GameInpCustomRead(TCHAR* szVal, bool bOverWrite)
+INT32 GameInpCustomRead(TCHAR* szVal, BOOL bOverWrite)
 {
 	return AddCustomMacro(szVal, bOverWrite);
 }

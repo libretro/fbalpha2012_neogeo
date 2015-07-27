@@ -1,4 +1,3 @@
-
 #define LED_COLOR_RED			0xff0000
 #define LED_COLOR_GREEN			0x00ff00
 #define LED_COLOR_BLUE			0x0000ff
@@ -18,13 +17,21 @@
 #define LED_POSITION_BOTTOM_LEFT	2
 #define LED_POSITION_BOTTOM_RIGHT	3
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // transparency is a percentage 0 - 100
 void BurnLEDInit(INT32 num, INT32 position, INT32 size, INT32 color, INT32 transparency);
 
-void BurnLEDReset();
+void BurnLEDReset(void);
 void BurnLEDSetStatus(INT32 led, UINT32 status);
 void BurnLEDSetFlipscreen(INT32 flip);
-void BurnLEDRender();
-void BurnLEDExit();
+void BurnLEDRender(void);
+void BurnLEDExit(void);
 
 INT32 BurnLEDScan(INT32 nAction, INT32 *pnMin);
+
+#ifdef __cplusplus
+}
+#endif

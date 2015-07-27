@@ -1,12 +1,10 @@
 // burn_ym2610.h
 #include "driver.h"
-extern "C" {
- #include "ay8910.h"
- #include "fm.h"
-}
+#include "ay8910.h"
+#include "fm.h"
 #include "timer.h"
 
-extern "C" void BurnYM2610UpdateRequest();
+void BurnYM2610UpdateRequest();
 
 void BurnYM2610MapADPCMROM(UINT8* YM2610ADPCMAROM, INT32 nYM2610ADPCMASize, UINT8* YM2610ADPCMBROM, INT32 nYM2610ADPCMBSize);
 INT32 BurnYM2610Init(INT32 nClockFrequency, UINT8* YM2610ADPCMAROM, INT32* nYM2610ADPCMASize, UINT8* YM2610ADPCMBROM, INT32* nYM2610ADPCMBSize, FM_IRQHANDLER IRQCallback, INT32 (*StreamCallback)(INT32), double (*GetTimeCallback)(), INT32 bAddSignal);

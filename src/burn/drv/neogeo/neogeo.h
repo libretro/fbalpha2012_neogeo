@@ -1,6 +1,7 @@
 #include "burnint.h"
 #include "m68000_intf.h"
 #include "z80_intf.h"
+#include <boolean.h>
 
 // Uncomment the following line to make the display the full 320 pixels wide
 #define NEO_DISPLAY_OVERSCAN
@@ -36,8 +37,8 @@ struct NEO_CALLBACK {
 	INT32 (*pScan)(INT32, INT32*);
 };
 
-extern NEO_CALLBACK  NeoCallback[MAX_SLOT];
-extern NEO_CALLBACK* NeoCallbackActive;
+extern struct NEO_CALLBACK  NeoCallback[MAX_SLOT];
+extern struct NEO_CALLBACK* NeoCallbackActive;
 
 // neogeo.cpp
 void NeoClearScreen();

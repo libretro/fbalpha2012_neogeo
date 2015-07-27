@@ -10,7 +10,7 @@ struct NGCDGAME
 	unsigned int id;				// Game ID
 };
 
-NGCDGAME*	GetNeoGeoCDInfo(unsigned int nID);
+struct NGCDGAME*	GetNeoGeoCDInfo(unsigned int nID);
 int			GetNeoCDTitle(unsigned int nGameID);
 void		SetNeoCDTitle(TCHAR* pszTitle); 
 int			GetNeoGeoCD_Identifier();
@@ -57,7 +57,7 @@ struct iso9660_DirectoryRecord
     unsigned char ext_attr_rec_len;			// [1] Extended Attribute Record Length (bytes)
     unsigned char location_of_extent[8];	// [8] [LEF / BEF] LBN / Sector location of the file data
     unsigned char data_lenth[8];			// [8] [LEF / BEF] Length of the file section (bytes)
-	iso9660_date rec_date_time;				// [7] Recording Date and Time
+    struct iso9660_date rec_date_time;				// [7] Recording Date and Time
 	unsigned char file_flags;				// [1] 8-bit flags 
 												// [bit 0] File is Hidden if this bit is 1
 												// [bit 1] Entry is a Directory if this bit is 1
@@ -115,7 +115,7 @@ struct iso9660_PVD
 	unsigned char opt_type_l_path_table[4];
 	unsigned char type_m_path_table[4];
 	unsigned char opt_type_m_path_table[4];
-	iso9660_DirectoryRecord root_directory_record;
+	struct iso9660_DirectoryRecord root_directory_record;
 	unsigned char volume_set_id[128]; 
 	unsigned char publisher_id[128];
 	unsigned char preparer_id[128];
@@ -124,10 +124,10 @@ struct iso9660_PVD
 	unsigned char abstract_file_id[37]; 
 	unsigned char bibliographic_file_id[37];
 
-	iso9660_bcd_date creation_date;		// [17]
-	iso9660_bcd_date modification_date;	// [17]
-	iso9660_bcd_date expiration_date;	// [17]
-	iso9660_bcd_date effective_date;	// [17]
+	struct iso9660_bcd_date creation_date;		// [17]
+	struct iso9660_bcd_date modification_date;	// [17]
+	struct iso9660_bcd_date expiration_date;	// [17]
+	struct iso9660_bcd_date effective_date;	// [17]
 
 	char file_structure_version;
 	char unused4;

@@ -16,7 +16,7 @@ static INT32 YMF278BRouteDirs[2];
 // ----------------------------------------------------------------------------
 // Dummy functions
 
-static INT32 YMF278BStreamCallbackDummy(INT32 /* nSoundRate */)
+static INT32 YMF278BStreamCallbackDummy(INT32 nSoundRate)
 {
 	return 0;
 }
@@ -210,7 +210,7 @@ void BurnYMF278BExit()
 	DebugSnd_YMF278BInitted = 0;
 }
 
-INT32 BurnYMF278BInit(INT32 /* nClockFrequency */, UINT8* YMF278BROM, void (*IRQCallback)(INT32, INT32), INT32 (*StreamCallback)(INT32))
+INT32 BurnYMF278BInit(INT32 nClockFrequency, UINT8* YMF278BROM, void (*IRQCallback)(INT32, INT32), INT32 (*StreamCallback)(INT32))
 {
 	DebugSnd_YMF278BInitted = 1;
 	BurnYMF278BExit();	

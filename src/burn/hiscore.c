@@ -23,7 +23,7 @@ struct _HiscoreMemRange
 	UINT8 *Data;
 };
 
-_HiscoreMemRange HiscoreMemRange[HISCORE_MAX_RANGES];
+struct _HiscoreMemRange HiscoreMemRange[HISCORE_MAX_RANGES];
 
 INT32 EnableHiscores;
 static INT32 HiscoresInUse;
@@ -31,20 +31,12 @@ static INT32 HiscoresInUse;
 static INT32 nCpuType;
 extern INT32 nSekCount;
 
-static void set_cpu_type()
+static void set_cpu_type(void)
 {
 	if (nSekCount > -1)
-	{
 		nCpuType = 1;			// Motorola 68000
-	}
 	else if (nHasZet > -1)
-	{
 		nCpuType = 5;			// Zilog Z80
-	}
-	else if (nM6800Count)
-	{
-		nCpuType = 8;			// M6800 & Family
-	}
 	else
 	{
 		nCpuType = 0;			// Unknown (don't use cheats)
@@ -62,13 +54,10 @@ static void cpu_open(INT32 nCpu)
 		case 5:
 			ZetOpen(nCpu);
 		break;
-			
-		case 8:
-		break;
 	}
 }
 
-static void cpu_close()
+static void cpu_close(void)
 {
 	switch (nCpuType)
 	{
@@ -78,9 +67,6 @@ static void cpu_close()
 
 		case 5:
 			ZetClose();
-		break;
-		
-		case 8:
 		break;
 	}
 }
@@ -158,7 +144,6 @@ static void cpu_write_byte(UINT32 a, UINT8 d)
 		case 8:
 			M6800WriteByte(a, d);
 		break;
-		
 	}
 }
 
@@ -222,7 +207,7 @@ static INT32 matching_game_name (const char *pBuf, const char *name)
 	return (*pBuf == ':');
 }
 
-static INT32 CheckHiscoreAllowed()
+static INT32 CheckHiscoreAllowed(void)
 {
 	INT32 Allowed = 1;
 	
@@ -232,25 +217,14 @@ static INT32 CheckHiscoreAllowed()
 	return Allowed;
 }
 
-void HiscoreInit()
+void HiscoreInit(void)
 {
-	Debug_HiscoreInitted = 1;
-	
 	if (!CheckHiscoreAllowed()) return;
 	
 	HiscoresInUse = 0;
 	
 	TCHAR szDatFilename[MAX_PATH];
-#ifdef __LIBRETRO__
-#ifdef _WIN32
-   char slash = '\\';
-#else
-   char slash = '/';
-#endif
-	snprintf(szDatFilename, sizeof(szDatFilename), "%s%chiscore.dat", g_rom_dir, slash);
-#else
 	_stprintf(szDatFilename, _T("%shiscore.dat"), szAppHiscorePath);
-#endif
 
 	FILE *fp = _tfopen(szDatFilename, _T("r"));
 	if (fp) {
@@ -301,11 +275,7 @@ void HiscoreInit()
 	if (nHiscoreNumRanges) HiscoresInUse = 1;
 	
 	TCHAR szFilename[MAX_PATH];
-#ifdef __LIBRETRO__
-	snprintf(szFilename, sizeof(szFilename), "%s%c%s.hi", g_rom_dir, slash, BurnDrvGetText(DRV_NAME));
-#else
 	_stprintf(szFilename, _T("%s%s.hi"), szAppHiscorePath, BurnDrvGetText(DRV_NAME));
-#endif
 
 	fp = _tfopen(szFilename, _T("r"));
 	INT32 Offset = 0;
@@ -346,12 +316,8 @@ void HiscoreInit()
 	nCpuType = -1;
 }
 
-void HiscoreReset()
+void HiscoreReset(void)
 {
-#if defined FBA_DEBUG
-	if (!Debug_HiscoreInitted) bprintf(PRINT_ERROR, _T("HiscoreReset called without init\n"));
-#endif
-
 	if (!CheckHiscoreAllowed() || !HiscoresInUse) return;
 	
 	if (nCpuType == -1) set_cpu_type();
@@ -373,12 +339,8 @@ void HiscoreReset()
 	}
 }
 
-void HiscoreApply()
+void HiscoreApply(void)
 {
-#if defined FBA_DEBUG
-	if (!Debug_HiscoreInitted) bprintf(PRINT_ERROR, _T("HiscoreApply called without init\n"));
-#endif
-
 	if (!CheckHiscoreAllowed() || !HiscoresInUse) return;
 	
 	if (nCpuType == -1) set_cpu_type();
@@ -429,30 +391,16 @@ void HiscoreApply()
 	}
 }
 
-void HiscoreExit()
+void HiscoreExit(void)
 {
-#if defined FBA_DEBUG
-	if (!Debug_HiscoreInitted) bprintf(PRINT_ERROR, _T("HiscoreExit called without init\n"));
-#endif
-
 	if (!CheckHiscoreAllowed() || !HiscoresInUse) {
-		Debug_HiscoreInitted = 0;
 		return;
 	}
 	
 	if (nCpuType == -1) set_cpu_type();
 	
 	TCHAR szFilename[MAX_PATH];
-#ifdef __LIBRETRO__
-#ifdef _WIN32
-   char slash = '\\';
-#else
-   char slash = '/';
-#endif
-	snprintf(szFilename, sizeof(szFilename), "%s%c%s.hi", g_rom_dir, slash, BurnDrvGetText(DRV_NAME));
-#else
 	_stprintf(szFilename, _T("%s%s.hi"), szAppHiscorePath, BurnDrvGetText(DRV_NAME));
-#endif
 
 	FILE *fp = _tfopen(szFilename, _T("w"));
 	if (fp) {
@@ -491,6 +439,4 @@ void HiscoreExit()
 		free(HiscoreMemRange[i].Data);
 		HiscoreMemRange[i].Data = NULL;
 	}
-	
-	Debug_HiscoreInitted = 0;
 }

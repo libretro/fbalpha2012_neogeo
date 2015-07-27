@@ -6,40 +6,40 @@
 INT32 nM6800Count = 0;
 static INT32 nCpuType = 0;
 
-static M6800Ext *M6800CPUContext;
+static struct M6800Ext *M6800CPUContext;
 
 static INT32 nM6800CyclesDone[MAX_CPU];
 INT32 nM6800CyclesTotal;
 
-static UINT8 M6800ReadByteDummyHandler(UINT16)
+static UINT8 M6800ReadByteDummyHandler(UINT16 a)
 {
 	return 0;
 }
 
-static void M6800WriteByteDummyHandler(UINT16, UINT8)
+static void M6800WriteByteDummyHandler(UINT16 a, UINT8 b)
 {
 }
 
-static UINT8 M6800ReadOpDummyHandler(UINT16)
-{
-	return 0;
-}
-
-static UINT8 M6800ReadOpArgDummyHandler(UINT16)
+static UINT8 M6800ReadOpDummyHandler(UINT16 a)
 {
 	return 0;
 }
 
-static UINT8 M6800ReadPortDummyHandler(UINT16)
+static UINT8 M6800ReadOpArgDummyHandler(UINT16 a)
 {
 	return 0;
 }
 
-static void M6800WritePortDummyHandler(UINT16, UINT8)
+static UINT8 M6800ReadPortDummyHandler(UINT16 a)
+{
+	return 0;
+}
+
+static void M6800WritePortDummyHandler(UINT16 a, UINT8 b)
 {
 }
 
-void M6800Reset()
+void M6800Reset(void)
 {
 #if defined FBA_DEBUG
 	if (!DebugCPU_M6800Initted) bprintf(PRINT_ERROR, _T("M6800Reset called without init\n"));
@@ -48,7 +48,7 @@ void M6800Reset()
 	m6800_reset();
 }
 
-void M6800NewFrame()
+void M6800NewFrame(void)
 {
 #if defined FBA_DEBUG
 	if (!DebugCPU_M6800Initted) bprintf(PRINT_ERROR, _T("M6800NewFrame called without init\n"));
@@ -65,15 +65,15 @@ static UINT8 M6800CheatRead(UINT32 a)
 	return M6800ReadByte(a);
 }
 
-void M6800Open(INT32 ) {} // does nothing
-void M6800Close() {}	 // ""
+void M6800Open(INT32 a) {} // does nothing
+void M6800Close(void) {}	 // ""
 
-INT32 M6800GetActive()
+INT32 M6800GetActive(void)
 {
 	return 0;
 }
 
-static cpu_core_config M6800CheatCpuConfig =
+static struct cpu_core_config M6800CheatCpuConfig =
 {
 	M6800Open,
 	M6800Close,
@@ -89,7 +89,7 @@ static cpu_core_config M6800CheatCpuConfig =
 	0
 };
 
-static cpu_core_config HD63701CheatCpuConfig =
+static struct cpu_core_config HD63701CheatCpuConfig =
 {
 	M6800Open,
 	M6800Close,
@@ -105,7 +105,7 @@ static cpu_core_config HD63701CheatCpuConfig =
 	0
 };
 
-static cpu_core_config M6803CheatCpuConfig =
+static struct cpu_core_config M6803CheatCpuConfig =
 {
 	M6800Open,
 	M6800Close,
@@ -123,16 +123,13 @@ static cpu_core_config M6803CheatCpuConfig =
 
 INT32 M6800CoreInit(INT32 num, INT32 type)
 {
-	DebugCPU_M6800Initted = 1;
-	
 	nM6800Count = num % MAX_CPU;
 	
-	M6800CPUContext = (M6800Ext*)malloc(num * sizeof(M6800Ext));
-	if (M6800CPUContext == NULL) {
+	M6800CPUContext = (struct M6800Ext*)malloc(num * sizeof(struct M6800Ext));
+	if (M6800CPUContext == NULL)
 		return 1;
-	}
 	
-	memset(M6800CPUContext, 0, num * sizeof(M6800Ext));
+	memset(M6800CPUContext, 0, num * sizeof(struct M6800Ext));
 	
 	for (INT32 i = 0; i < num; i++) {
 		M6800CPUContext[i].ReadByte = M6800ReadByteDummyHandler;
@@ -216,8 +213,6 @@ void M6800Exit()
 		free(M6800CPUContext);
 		M6800CPUContext = NULL;
 	}
-	
-	DebugCPU_M6800Initted = 0;
 }
 
 void M6800SetIRQLine(INT32 vector, INT32 status)

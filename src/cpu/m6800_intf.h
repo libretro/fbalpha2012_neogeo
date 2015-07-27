@@ -1,5 +1,9 @@
 #include "m6800/m6800.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef UINT8 (*pReadByteHandler)(UINT16 a);
 typedef void (*pWriteByteHandler)(UINT16 a, UINT8 d);
 typedef UINT8 (*pReadOpHandler)(UINT16 a);
@@ -181,3 +185,7 @@ inline static INT32 M6800TotalCycles()
 
 	return nM6800CyclesTotal;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -148,7 +148,7 @@ static void DACBuildVolTables()
 	}
 }
 
-void DACInit(INT32 Num, UINT32 /*Clock*/, INT32 bAdd, INT32 (*pSyncCB)())
+void DACInit(INT32 Num, UINT32 Clock, INT32 bAdd, INT32 (*pSyncCB)())
 {
 #if defined FBA_DEBUG
 	if (Num >= DAC_NUM) bprintf (PRINT_ERROR, _T("DACInit called for too many chips (%d)! Change DAC_NUM (%d)!\n"), Num, DAC_NUM);
@@ -163,7 +163,7 @@ void DACInit(INT32 Num, UINT32 /*Clock*/, INT32 bAdd, INT32 (*pSyncCB)())
 
 	ptr = &dac_table[Num];
 
-	memset (ptr, 0, sizeof(dac_info));
+	memset (ptr, 0, sizeof(struct dac_info));
 
 	ptr->Initialized = 1;
 	ptr->nVolume = 1.00;

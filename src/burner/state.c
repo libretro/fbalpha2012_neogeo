@@ -98,14 +98,14 @@ INT32 BurnStateLoadEmbed(FILE* fp, INT32 nOffset, INT32 bAll, INT32 (*pLoadGame)
 
 	// Check the game the savestate is for, and load it if needed.
 	{
-		bool bLoadGame = false;
+		BOOL bLoadGame = FALSE;
 
 		if (nBurnDrvActive < nBurnDrvCount) {
 			if (strcmp(szForName, BurnDrvGetTextA(DRV_NAME))) {	// The save state is for the wrong game
-				bLoadGame = true;
+				bLoadGame = TRUE;
 			}
 		} else {										// No game loaded
-			bLoadGame = true;
+			bLoadGame = TRUE;
 		}
 
 		if (bLoadGame) {

@@ -5,7 +5,7 @@
 // written by Barry Harris (Treble Winner) based on the code in Kev's opwolf driver
 
 INT32 nBurnGunNumPlayers = 0;
-static bool bBurnGunDrawTargets = true;
+static BOOL bBurnGunDrawTargets = TRUE;
 
 static INT32 nBurnGunMaxX = 0;
 static INT32 nBurnGunMaxY = 0;
@@ -86,7 +86,7 @@ void BurnGunMakeInputs(INT32 num, INT16 x, INT16 y)
 	if (BurnGunY[num] > MinY + nBurnGunMaxY * 0x100) BurnGunY[num] = MinY + nBurnGunMaxY * 0x100;
 }
 	
-void BurnGunInit(INT32 nNumPlayers, bool bDrawTargets)
+void BurnGunInit(INT32 nNumPlayers, BOOL bDrawTargets)
 {
 	Debug_BurnGunInitted = 1;
 	
@@ -113,7 +113,7 @@ void BurnGunExit()
 #endif
 
 	nBurnGunNumPlayers = 0;
-	bBurnGunDrawTargets = true;
+	bBurnGunDrawTargets = TRUE;
 	
 	nBurnGunMaxX = 0;
 	nBurnGunMaxY = 0;
@@ -143,7 +143,8 @@ void BurnGunDrawTarget(INT32 num, INT32 x, INT32 y)
 	if (num >= nBurnGunNumPlayers) bprintf(PRINT_ERROR, _T("BurnGunDrawTarget called with invalid player %x\n"), num);
 #endif
 
-	if (bBurnGunDrawTargets == false) return;
+	if (bBurnGunDrawTargets == FALSE)
+      return;
 	
 	if (num > MAX_GUNS - 1) return;
 	

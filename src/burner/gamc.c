@@ -773,4 +773,3 @@ INT32 GamcPlayerHotRod(struct GameInp* pgi, char* szi, INT32 nPlayer, INT32 nFla
 
 #undef MACRO
 #undef KEY
-

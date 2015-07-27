@@ -7,6 +7,10 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined(__LIBRETRO__) && defined(_MSC_VER)
 #include <tchar.h>
 #else
@@ -19,7 +23,10 @@
 
 #include "burn.h"
 
-#ifdef LSB_FIRST
+#ifdef MSB_FIRST
+// define the above union and BURN_ENDIAN_SWAP macros in the following platform specific header
+#include "burn_endian.h"
+#else
 typedef union
 {
 	struct { UINT8 l,h,h2,h3; } b;
@@ -28,36 +35,9 @@ typedef union
 } PAIR;
 
 #define BURN_ENDIAN_SWAP_INT8(x)				x
-#define BURN_ENDIAN_SWAP_INT16(x)				x
-#define BURN_ENDIAN_SWAP_INT32(x)				x
-#define BURN_ENDIAN_SWAP_INT64(x)				x
-#else
-// define the above union and BURN_ENDIAN_SWAP macros in the following platform specific header
-#include "burn_endian.h"
-#endif
-
-#ifdef NO_UNALIGNED_MEM
-#define BURN_UNALIGNED_READ16(x) (\
-	(UINT16) ((UINT8 *) (x))[1] << 8 | \
-	(UINT16) ((UINT8 *) (x))[0])
-#define BURN_UNALIGNED_READ32(x) (\
-	(UINT32) ((UINT8 *) (x))[3] << 24 | \
-	(UINT32) ((UINT8 *) (x))[2] << 16 | \
-	(UINT32) ((UINT8 *) (x))[1] << 8 | \
-	(UINT32) ((UINT8 *) (x))[0])
-#define BURN_UNALIGNED_WRITE16(x, y) ( \
-	((UINT8 *) (x))[0] = (UINT8) (y), \
-	((UINT8 *) (x))[1] = (UINT8) ((y) >> 8))
-#define BURN_UNALIGNED_WRITE32(x, y) ( \
-	((UINT8 *) (x))[0] = (UINT8) (y), \
-	((UINT8 *) (x))[1] = (UINT8) ((y) >> 8), \
-	((UINT8 *) (x))[2] = (UINT8) ((y) >> 16), \
-	((UINT8 *) (x))[3] = (UINT8) ((y) >> 24))
-#else
-#define BURN_UNALIGNED_READ16(x) (*(UINT16 *) (x))
-#define BURN_UNALIGNED_READ32(x) (*(UINT32 *) (x))
-#define BURN_UNALIGNED_WRITE16(x, y) (*(UINT16 *) (x) = (y))
-#define BURN_UNALIGNED_WRITE32(x, y) (*(UINT32 *) (x) = (y))
+#define BURN_ENDIAN_SWAP_INT16(x)			x
+#define BURN_ENDIAN_SWAP_INT32(x)			x
+#define BURN_ENDIAN_SWAP_INT64(x)			x
 #endif
 
 // ---------------------------------------------------------------------------
@@ -123,25 +103,13 @@ INT32 BurnTransferInit();
 // ---------------------------------------------------------------------------
 // Plotting pixels
 
-inline static void PutPix(UINT8* pPix, UINT32 c)
-{
-	if (nBurnBpp >= 4) {
-		*((UINT32*)pPix) = c;
-	} else {
-		if (nBurnBpp == 2) {
-			*((UINT16*)pPix) = (UINT16)c;
-		} else {
-			pPix[0] = (UINT8)(c >>  0);
-			pPix[1] = (UINT8)(c >>  8);
-			pPix[2] = (UINT8)(c >> 16);
-		}
-	}
-}
+#define PutPix(pPix, c) (*((UINT16*)pPix) = (UINT16)c)
 
 // ---------------------------------------------------------------------------
 // Setting up cpus for cheats
 
-struct cpu_core_config {
+struct cpu_core_config
+{
 	void (*open)(INT32);		// cpu open
 	void (*close)();		// cpu close
 
@@ -159,7 +127,7 @@ struct cpu_core_config {
 	UINT32 nAddressXor;		// fix endianness for some cpus
 };
 
-void CpuCheatRegister(INT32 type, cpu_core_config *config);
+void CpuCheatRegister(INT32 type, struct cpu_core_config *config);
 
 // burn_memory.cpp
 void BurnInitMemoryManager();
@@ -238,8 +206,12 @@ extern UINT8 DebugCPU_S2650Initted;
 extern UINT8 DebugCPU_SekInitted;
 extern UINT8 DebugCPU_VezInitted;
 extern UINT8 DebugCPU_ZetInitted;
-extern UINT8 DebugCPU_PIC16C5XInitted;
+
 extern UINT8 DebugCPU_I8039Initted;
 extern UINT8 DebugCPU_SH2Initted;
 
 void DebugTrackerExit();
+
+#ifdef __cplusplus
+}
+#endif

@@ -22,6 +22,10 @@
 #define _stscanf sscanf
 #define _ftprintf fprintf
 
+#ifndef BOOL
+#define BOOL unsigned char
+#endif
+
 #ifdef _MSC_VER
 #include <tchar.h>
 #define strncasecmp(s1, s2, n) _strnicmp(s1, s2, n)
@@ -49,15 +53,23 @@ typedef struct { int x, y, width, height; } RECT;
 #define PUF_TEXT_NO_TRANSLATE	(0)
 #define PUF_TYPE_ERROR		(1)
 
-extern TCHAR szAppBurnVer[16];
-
 typedef int HWND;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern TCHAR szAppBurnVer[16];
 
 extern int bDrvOkay;
 extern int bRunPause;
-extern bool bAlwaysProcessKeyboardInput;
+extern BOOL bAlwaysProcessKeyboardInput;
 extern HWND hScrnWnd;		// Handle to the screen window
 
 extern void InpDIPSWResetDIPs (void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

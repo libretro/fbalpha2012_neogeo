@@ -1,3 +1,5 @@
+#include <vector>
+#include <string>
 #include "libretro.h"
 #include "burner.h"
 #include "input/inp_keys.h"
@@ -5,8 +7,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <vector>
-#include <string>
 #include <ctype.h>
 
 #include "cd/cd_interface.h"
@@ -93,9 +93,9 @@ unsigned ArcadeJoystick;
 
 int bDrvOkay;
 int bRunPause;
-bool bAlwaysProcessKeyboardInput;
+BOOL bAlwaysProcessKeyboardInput;
 
-bool bDoIpsPatch;
+BOOL bDoIpsPatch;
 void IpsApplyPatches(UINT8 *, char *) {}
 
 TCHAR szAppHiscorePath[MAX_PATH];
@@ -2173,3 +2173,5 @@ size_t wcstombs(char *s, const wchar_t *pwcs, size_t n)
 }
 
 #endif
+
+}

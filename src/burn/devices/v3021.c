@@ -20,7 +20,7 @@ UINT8 v3021Read()
 void v3021Write(UINT16 data)
 {
 	time_t nLocalTime = time(NULL);
-	tm* tmLocalTime = localtime(&nLocalTime);
+	struct tm* tmLocalTime = localtime(&nLocalTime);
 
 	CalCom <<= 1;
 	CalCom |= data & 1;

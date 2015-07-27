@@ -222,7 +222,7 @@ void filter_rc_exit()
 		
 		ptr = &flt_rc_table[i];
 
-		memset(ptr, 0, sizeof(flt_rc_info));
+		memset(ptr, 0, sizeof(struct flt_rc_info));
 	}
 
 	num_filters = 0;

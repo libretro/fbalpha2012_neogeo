@@ -24,7 +24,8 @@
 
 // ---------------------------------------------------------------------------
 // OS dependent functionality
-typedef struct tagIMAGE {
+typedef struct tagIMAGE
+{
 	unsigned int	width;
 	unsigned int	height;
 	unsigned int	rowbytes;
@@ -66,7 +67,7 @@ typedef struct tagIMAGE {
 void img_free(IMAGE* img);
 INT32 img_alloc(IMAGE* img);
 
-bool PNGIsImage(FILE* fp);
+BOOL PNGIsImage(FILE* fp);
 INT32 PNGLoad(IMAGE* img, FILE* fp, INT32 nPreset);
 
 // gami.cpp
@@ -79,8 +80,8 @@ extern INT32 nAnalogSpeed;
 
 extern INT32 nFireButtons;
 
-extern bool bStreetFighterLayout;
-extern bool bLeftAltkeyMapped;
+extern BOOL bStreetFighterLayout;
+extern BOOL bLeftAltkeyMapped;
 
 INT32 GameInpInit();
 INT32 GameInpExit();
@@ -92,13 +93,13 @@ void GameInpCheckLeftAlt();
 void GameInpCheckMouse();
 #endif
 INT32 GameInpBlank(INT32 bDipSwitch);
-INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, bool bOverWrite);
+INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, BOOL bOverWrite);
 INT32 ConfigGameLoadHardwareDefaults();
 INT32 GameInpDefault();
 INT32 GameInpWrite(FILE* h);
-INT32 GameInpRead(TCHAR* szVal, bool bOverWrite);
-INT32 GameInpMacroRead(TCHAR* szVal, bool bOverWrite);
-INT32 GameInpCustomRead(TCHAR* szVal, bool bOverWrite);
+INT32 GameInpRead(TCHAR* szVal, BOOL bOverWrite);
+INT32 GameInpMacroRead(TCHAR* szVal, BOOL bOverWrite);
+INT32 GameInpCustomRead(TCHAR* szVal, BOOL bOverWrite);
 
 // Player Default Controls
 extern INT32 nPlayerDefaultControls[4];
@@ -106,9 +107,9 @@ extern TCHAR szPlayerDefaultIni[4][MAX_PATH];
 
 // cong.cpp
 extern const INT32 nConfigMinVersion;					// Minimum version of application for which input files are valid
-extern bool bSaveInputs;
-INT32 ConfigGameLoad(bool bOverWrite);				// char* lpszName = NULL
-INT32 ConfigGameSave(bool bSave);
+extern BOOL bSaveInputs;
+INT32 ConfigGameLoad(BOOL bOverWrite);				// char* lpszName = NULL
+INT32 ConfigGameSave(BOOL bSave);
 
 // conc.cpp
 INT32 ConfigCheatLoad();
@@ -175,7 +176,7 @@ INT32 __cdecl ZipLoadOneFile(char* arcName, const char* fileName, void** Dest, I
 #define BZIP_STATUS_BADDATA	(1)
 #define BZIP_STATUS_ERROR	(2)
 
-INT32 BzipOpen(bool);
+INT32 BzipOpen(BOOL);
 INT32 BzipClose();
 INT32 BzipInit();
 INT32 BzipExit();

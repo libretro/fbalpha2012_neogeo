@@ -4,26 +4,26 @@
 
 #define CHEAT_MAXCPU	8 // enough?
 
+BOOL bCheatsAllowed;
+struct CheatInfo* pCheatInfo = NULL;
 
-bool bCheatsAllowed;
-CheatInfo* pCheatInfo = NULL;
-
-static bool bCheatsEnabled = false;
+static BOOL bCheatsEnabled = FALSE;
 static INT32 cheat_core_init_pointer = 0;
 
-struct cheat_core {
-	cpu_core_config *cpuconfig;
+struct cheat_core
+{
+	struct cpu_core_config *cpuconfig;
 
 	INT32 nCPU;			// which cpu
 };
 
 static struct cheat_core cpus[CHEAT_MAXCPU];
-static cheat_core *cheat_ptr;
-static cpu_core_config *cheat_subptr;
+static struct cheat_core *cheat_ptr;
+static struct cpu_core_config *cheat_subptr;
 
-void CpuCheatRegister(INT32 nCPU, cpu_core_config *config)
+void CpuCheatRegister(INT32 nCPU, struct cpu_core_config *config)
 {
-	cheat_core *s_ptr = &cpus[cheat_core_init_pointer];
+	struct cheat_core *s_ptr = &cpus[cheat_core_init_pointer];
 
 	s_ptr->cpuconfig = config;
 	s_ptr->nCPU = nCPU;
@@ -31,33 +31,34 @@ void CpuCheatRegister(INT32 nCPU, cpu_core_config *config)
 	cheat_core_init_pointer++;
 }
 
-INT32 CheatUpdate()
+INT32 CheatUpdate(void)
 {
-	bCheatsEnabled = false;
+   bCheatsEnabled = FALSE;
 
-	if (bCheatsAllowed) {
-		CheatInfo* pCurrentCheat = pCheatInfo;
-		CheatAddressInfo* pAddressInfo;
+   if (bCheatsAllowed)
+   {
+      struct CheatAddressInfo* pAddressInfo;
+      struct CheatInfo* pCurrentCheat = pCheatInfo;
 
-		while (pCurrentCheat) {
-			if (pCurrentCheat->nStatus > 1) {
-				pAddressInfo = pCurrentCheat->pOption[pCurrentCheat->nCurrent]->AddressInfo;
-				if (pAddressInfo->nAddress) {
-					bCheatsEnabled = true;
-				}
-			}
-			pCurrentCheat = pCurrentCheat->pNext;
-		}
-	}
+      while (pCurrentCheat) {
+         if (pCurrentCheat->nStatus > 1) {
+            pAddressInfo = pCurrentCheat->pOption[pCurrentCheat->nCurrent]->AddressInfo;
+            if (pAddressInfo->nAddress) {
+               bCheatsEnabled = TRUE;
+            }
+         }
+         pCurrentCheat = pCurrentCheat->pNext;
+      }
+   }
 
-	return 0;
+   return 0;
 }
 
 INT32 CheatEnable(INT32 nCheat, INT32 nOption)
 {
+	struct CheatAddressInfo* pAddressInfo;
+	struct CheatInfo* pCurrentCheat = pCheatInfo;
 	INT32 nCurrentCheat = 0;
-	CheatInfo* pCurrentCheat = pCheatInfo;
-	CheatAddressInfo* pAddressInfo;
 	INT32 nOpenCPU = -1;
 
 	if (!bCheatsAllowed) {
@@ -176,36 +177,38 @@ INT32 CheatEnable(INT32 nCheat, INT32 nOption)
 
 INT32 CheatApply()
 {
-	if (!bCheatsEnabled) {
-		return 0;
-	}
-
+	struct CheatAddressInfo* pAddressInfo;
+   struct CheatInfo* pCurrentCheat;
 	INT32 nOpenCPU = -1;
 
-	CheatInfo* pCurrentCheat = pCheatInfo;
-	CheatAddressInfo* pAddressInfo;
-	while (pCurrentCheat) {
-		if (pCurrentCheat->nStatus > 1) {
-			pAddressInfo = pCurrentCheat->pOption[pCurrentCheat->nCurrent]->AddressInfo;
-			while (pAddressInfo->nAddress) {
+	if (!bCheatsEnabled)
+		return 0;
 
-				if (pAddressInfo->nCPU != nOpenCPU) {
-					if (nOpenCPU != -1) {
-						cheat_subptr->close();
-					}
+	pCurrentCheat = pCheatInfo;
 
-					nOpenCPU = pAddressInfo->nCPU;
-					cheat_ptr = &cpus[nOpenCPU];
-					cheat_subptr = cheat_ptr->cpuconfig;
-					cheat_subptr->open(cheat_ptr->nCPU);
-				}
+	while (pCurrentCheat)
+   {
+      if (pCurrentCheat->nStatus > 1) {
+         pAddressInfo = pCurrentCheat->pOption[pCurrentCheat->nCurrent]->AddressInfo;
+         while (pAddressInfo->nAddress) {
 
-				cheat_subptr->write(pAddressInfo->nAddress, pAddressInfo->nValue);
-				pAddressInfo++;
-			}
-		}
-		pCurrentCheat = pCurrentCheat->pNext;
-	}
+            if (pAddressInfo->nCPU != nOpenCPU) {
+               if (nOpenCPU != -1) {
+                  cheat_subptr->close();
+               }
+
+               nOpenCPU = pAddressInfo->nCPU;
+               cheat_ptr = &cpus[nOpenCPU];
+               cheat_subptr = cheat_ptr->cpuconfig;
+               cheat_subptr->open(cheat_ptr->nCPU);
+            }
+
+            cheat_subptr->write(pAddressInfo->nAddress, pAddressInfo->nValue);
+            pAddressInfo++;
+         }
+      }
+      pCurrentCheat = pCurrentCheat->pNext;
+   }
 
 	if (nOpenCPU != -1) {
 		cheat_subptr->close();
@@ -218,16 +221,17 @@ INT32 CheatInit()
 {
 	CheatExit();
 
-	bCheatsEnabled = false;
+	bCheatsEnabled = FALSE;
 
 	return 0;
 }
 
 void CheatExit()
 {
-	if (pCheatInfo) {
-		CheatInfo* pCurrentCheat = pCheatInfo;
-		CheatInfo* pNextCheat;
+	if (pCheatInfo)
+   {
+		struct CheatInfo* pNextCheat;
+		struct CheatInfo* pCurrentCheat = pCheatInfo;
 
 		do {
 			pNextCheat = pCurrentCheat->pNext;
@@ -242,7 +246,7 @@ void CheatExit()
 		} while ((pCurrentCheat = pNextCheat) != 0);
 	}
 
-	memset (cpus, 0, sizeof(cheat_core));
+	memset (cpus, 0, sizeof(struct cheat_core));
 
 	cheat_core_init_pointer = 0;
 

@@ -1276,7 +1276,7 @@ UINT8 __fastcall neogeoReadByteSMARNG(UINT32 sekAddress)
 	return Neo68KROMActive[(nNeo68KROMBank + sekAddress - 0x200000) ^ 1];
 }
 
-INT32 NeoSMAScan(INT32 nAction, INT32* /*pnMin*/)
+INT32 NeoSMAScan(INT32 nAction, INT32* pnMin)
 {
 	if (nAction & ACB_DRIVER_DATA) {
 		SCAN_VAR(nSMARandomNumber);
@@ -1367,7 +1367,7 @@ static void PCM2DecryptV(INT32 size, INT32 bit)
 	}
 }
 
-static void PCM2DecryptV2(const PCM2DecryptV2Info* const pInfo)
+static void PCM2DecryptV2(const struct PCM2DecryptV2Info* const pInfo)
 {
 	// Decrypt V-ROMs
 
@@ -1386,7 +1386,7 @@ static void PCM2DecryptV2(const PCM2DecryptV2Info* const pInfo)
 	}
 }
 
-static void PCM2DecryptP2(const PCM2DecryptP2Info* const pInfo)
+static void PCM2DecryptP2(const struct PCM2DecryptP2Info* const pInfo)
 {
 	// Descamble P-ROMs
 
@@ -1469,7 +1469,7 @@ static void NeoPVCMapBank()
 	SekMapMemory(Neo68KROMActive + nNeo68KROMBank, 0x200000, 0x2fdfff, SM_ROM);
 }
 
-static INT32 NeoPVCScan(INT32 nAction, INT32*)
+static INT32 NeoPVCScan(INT32 nAction, INT32 *b)
 {
 	struct BurnArea ba;
 
@@ -3246,7 +3246,7 @@ UINT16 __fastcall fatfury2ReadWordProtection(UINT32 sekAddress)
 	return 0;
 }
 
-void __fastcall fatfury2WriteByteProtection(UINT32 sekAddress, UINT8 /*byteValue*/)
+void __fastcall fatfury2WriteByteProtection(UINT32 sekAddress, UINT8 byteValue)
 {
 //	bprintf(PRINT_NORMAL, _T("  - prot 0x%06X -> 0x%02X (PC: 0x%06X)\n"), sekAddress, byteValue, SekGetPC(-1));
 
@@ -3267,7 +3267,7 @@ void __fastcall fatfury2WriteByteProtection(UINT32 sekAddress, UINT8 /*byteValue
 	}
 }
 
-void __fastcall fatfury2WriteWordProtection(UINT32 sekAddress, UINT16 /*wordValue*/)
+void __fastcall fatfury2WriteWordProtection(UINT32 sekAddress, UINT16 wordValue)
 {
 //	bprintf(PRINT_NORMAL, _T("  - prot 0x%06X -> 0x%04X (PC: 0x%06X)\n"), sekAddress, wordValue, SekGetPC(-1));
 
@@ -3324,7 +3324,7 @@ void __fastcall fatfury2WriteWordProtection(UINT32 sekAddress, UINT16 /*wordValu
 	}
 }
 
-INT32 fatfury2Scan(INT32 nAction, INT32* /*pnMin*/)
+INT32 fatfury2Scan(INT32 nAction, INT32* pnMin)
 {
 	if (nAction & ACB_DRIVER_DATA) {
 		SCAN_VAR(prot_data);
@@ -4627,7 +4627,7 @@ STDROMPICKEXT(kog, kog, neogeo)
 STD_ROM_FN(kog)
 
 // This is actually set by a jumper on the PCB
-UINT16 __fastcall KogReadWord(UINT32)
+UINT16 __fastcall KogReadWord(UINT32 a)
 {
 	extern INT32 nBIOS;
 	if (nBIOS == 5 || nBIOS == 6 || nBIOS == 7 || nBIOS == 8 || nBIOS == 10 || nBIOS == 11) {
@@ -6830,7 +6830,7 @@ static INT32 kof2002Init()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
+		const struct PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -6919,7 +6919,7 @@ static INT32 kof2002bInit()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
+		const struct PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -7058,7 +7058,7 @@ static INT32 kf2k2mpInit()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
+		const struct PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -7122,7 +7122,7 @@ static INT32 kof2km2Init()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
+		const struct PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -7617,7 +7617,7 @@ static INT32 mslug5Init()
 	nRet = NeoPVCInit();
 	
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0x4e001, 0xfe2cf6, { 0xc3, 0xfd, 0x81, 0xac, 0x6d, 0xe7, 0xbf, 0x9e } };
+		const struct PCM2DecryptV2Info Info = { 0x4e001, 0xfe2cf6, { 0xc3, 0xfd, 0x81, 0xac, 0x6d, 0xe7, 0xbf, 0x9e } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -7757,7 +7757,7 @@ static INT32 ms5plusInit()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0x4e001, 0xfe2cf6, { 0xc3, 0xfd, 0x81, 0xac, 0x6d, 0xe7, 0xbf, 0x9e } };
+		const struct PCM2DecryptV2Info Info = { 0x4e001, 0xfe2cf6, { 0xc3, 0xfd, 0x81, 0xac, 0x6d, 0xe7, 0xbf, 0x9e } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -7840,7 +7840,7 @@ static INT32 svcpcbInit()
 	nRet = NeoPVCInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xC2000, 0xFFAC28, { 0xC3, 0xFD, 0x81, 0xAC, 0x6D, 0xE7, 0xBF, 0x9E } };
+		const struct PCM2DecryptV2Info Info = { 0xC2000, 0xFFAC28, { 0xC3, 0xFD, 0x81, 0xAC, 0x6D, 0xE7, 0xBF, 0x9E } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -8282,7 +8282,7 @@ STD_ROM_FN(samsho5)
 
 static void samsho5Callback()
 {
-	PCM2DecryptP2Info Info = { 0x000000, 0x080000, 0x700000, 0x680000, 0x500000, 0x180000, 0x200000, 0x480000, 0x300000, 0x780000, 0x600000, 0x280000, 0x100000, 0x580000, 0x400000, 0x380000 };
+	struct PCM2DecryptP2Info Info = { 0x000000, 0x080000, 0x700000, 0x680000, 0x500000, 0x180000, 0x200000, 0x480000, 0x300000, 0x780000, 0x600000, 0x280000, 0x100000, 0x580000, 0x400000, 0x380000 };
 
 	PCM2DecryptP2(&Info);
 }
@@ -8296,7 +8296,7 @@ static INT32 samsho5Init()
 	INT32 nRet = NeoInit();
 	
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0x0A000, 0xFEB2C0, { 0xCB, 0x29, 0x7D, 0x43, 0xD2, 0x3A, 0xC2, 0xB4 } };
+		struct PCM2DecryptV2Info Info = { 0x0A000, 0xFEB2C0, { 0xCB, 0x29, 0x7D, 0x43, 0xD2, 0x3A, 0xC2, 0xB4 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -8563,7 +8563,7 @@ static INT32 kf2k3pcbInit()
 	nRet = NeoPVCInit();
 
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 		
@@ -8662,7 +8662,7 @@ static INT32 kof2003Init()
 	nRet = NeoPVCInit();
 
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -8756,7 +8756,7 @@ static INT32 kof2003hInit()
 	nRet = NeoPVCInit();
 
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -8800,12 +8800,12 @@ static struct BurnRomInfo kf2k3blRomDesc[] = {
 STDROMPICKEXT(kf2k3bl, kf2k3bl, neogeo)
 STD_ROM_FN(kf2k3bl)
 
-UINT8 __fastcall kf2k3blReadByteProtection(UINT32)
+UINT8 __fastcall kf2k3blReadByteProtection(UINT32 a)
 {
 	return PVCRAM[0x1ff2];
 }
 
-UINT16 __fastcall kf2k3blReadWordProtection(UINT32)
+UINT16 __fastcall kf2k3blReadWordProtection(UINT32 a)
 {
 	return PVCRAM[0x1ff2];
 }
@@ -8838,7 +8838,7 @@ static INT32 kf2k3blInit()
 	NeoCallbackActive->pInstallHandlers = kf2k3blInstallHandlers;
 
 	if (nRet == 0) {		
-		PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -8946,7 +8946,7 @@ static INT32 kf2k3blaInit()
 	NeoCallbackActive->pInstallHandlers = kf2k3blaInstallHandlers;
 
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -9053,7 +9053,7 @@ static INT32 kof2k3uplInit()
 	NeoCallbackActive->pInstallHandlers = kf2k3blInstallHandlers;
 
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0xa7001, 0xff14ea, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -9097,7 +9097,7 @@ STD_ROM_FN(samsh5sp)
 
 static void samsh5spCallback()
 {
-	PCM2DecryptP2Info Info = { 0x000000, 0x080000, 0x500000, 0x480000, 0x600000, 0x580000, 0x700000, 0x280000, 0x100000, 0x680000, 0x400000, 0x780000, 0x200000, 0x380000, 0x300000, 0x180000 };
+	struct PCM2DecryptP2Info Info = { 0x000000, 0x080000, 0x500000, 0x480000, 0x600000, 0x580000, 0x700000, 0x280000, 0x100000, 0x680000, 0x400000, 0x780000, 0x200000, 0x380000, 0x300000, 0x180000 };
 
 	PCM2DecryptP2(&Info);
 }
@@ -9113,7 +9113,7 @@ static INT32 samsh5spInit()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		PCM2DecryptV2Info Info = { 0x02000, 0xffb440, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
+		struct PCM2DecryptV2Info Info = { 0x02000, 0xffb440, { 0x4b, 0xa4, 0x63, 0x46, 0xf0, 0x91, 0xea, 0x62 } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -12174,7 +12174,7 @@ static INT32 matrimInit()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0x01000, 0xffce20, { 0xc4, 0x83, 0xa8, 0x5f, 0x21, 0x27, 0x64, 0xaf } };
+		const struct PCM2DecryptV2Info Info = { 0x01000, 0xffce20, { 0xc4, 0x83, 0xa8, 0x5f, 0x21, 0x27, 0x64, 0xaf } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -12910,7 +12910,7 @@ static INT32 kf2k2plcInit()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
+		const struct PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -12963,7 +12963,7 @@ static INT32 kf2k2ps2Init()
 	nRet = NeoInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
+		const struct PCM2DecryptV2Info Info = { 0xa5000, 0x000000, { 0xf9, 0xe0, 0x5d, 0xf3, 0xea, 0x92, 0xbe, 0xef } };
 
 		PCM2DecryptV2(&Info);
 	}
@@ -13514,7 +13514,7 @@ static INT32 mslug5bInit()
 	nRet = NeoPVCInit();
 
 	if (nRet == 0) {
-		const PCM2DecryptV2Info Info = { 0x4e001, 0xfe2cf6, { 0xc3, 0xfd, 0x81, 0xac, 0x6d, 0xe7, 0xbf, 0x9e } };
+		const struct PCM2DecryptV2Info Info = { 0x4e001, 0xfe2cf6, { 0xc3, 0xfd, 0x81, 0xac, 0x6d, 0xe7, 0xbf, 0x9e } };
 
 		PCM2DecryptV2(&Info);
 	}

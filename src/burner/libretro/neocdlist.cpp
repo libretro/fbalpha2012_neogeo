@@ -498,3 +498,5 @@ void NeoCDInfo_Exit()
 		game = NULL;
 	}
 }
+
+}

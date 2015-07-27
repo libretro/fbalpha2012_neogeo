@@ -23,12 +23,12 @@ static void (*pCPURunEnd)() = NULL;
 // ---------------------------------------------------------------------------
 // Running time
 
-static double BurnTimerTimeCallbackDummy()
+static double BurnTimerTimeCallbackDummy(void)
 {
 	return 0.0;
 }
 
-extern "C" double BurnTimerGetTime()
+double BurnTimerGetTime(void)
 {
 	return dTime + pTimerTimeCallback();
 }
@@ -164,7 +164,7 @@ void BurnOPMTimerCallback(INT32 c, double period)
 	nTimerCount[c] += MAKE_TIMER_TICKS(pCPUTotalCycles(), nCPUClockspeed);
 }
 
-void BurnOPNTimerCallback(INT32  /*n */, INT32 c, INT32 cnt, double stepTime)
+void BurnOPNTimerCallback(INT32  n, INT32 c, INT32 cnt, double stepTime)
 {
 	pCPURunEnd();
 	
@@ -181,7 +181,7 @@ void BurnOPNTimerCallback(INT32  /*n */, INT32 c, INT32 cnt, double stepTime)
 //	bprintf(PRINT_NORMAL, _T("  - timer %i started, %08X ticks (fires in %lf seconds)\n"), c, nTimerCount[c], stepTime * cnt);
 }
 
-void BurnYMFTimerCallback(INT32 /* n */, INT32 c, double period)
+void BurnYMFTimerCallback(INT32 n , INT32 c, double period)
 {
 	pCPURunEnd();
 

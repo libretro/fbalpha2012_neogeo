@@ -34,11 +34,11 @@ static INT32 CompGo(INT32 bFinish)
 	INT32 nResult = 0;
 	INT32 nAvailOut = 0;
 
-	bool bRetry, bOverflow;
+	BOOL bRetry, bOverflow;
 
 	do {
 
-		bRetry = false;
+		bRetry = FALSE;
 
 		// PoINT32 to the remainder of out buffer
 		Zstr.next_out = Comp + nCompFill;
@@ -71,7 +71,7 @@ static INT32 CompGo(INT32 bFinish)
 				return 1;
 			}
 
-			bRetry = true;
+			bRetry = TRUE;
 		}
 	} while (bRetry);
 

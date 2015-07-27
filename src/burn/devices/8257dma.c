@@ -78,10 +78,10 @@ void i8257_update_status();
 //-------------------------------------------------
 
 // fake functions to keep everything safe
-static void null_line(INT32){}
-static UINT8 null_in(UINT16){ return 0; }
-static void null_out(UINT16,UINT8){}
-static INT32 null_idle(INT32){return 0;}
+static void null_line(INT32 a){}
+static UINT8 null_in(UINT16 a){ return 0; }
+static void null_out(UINT16 a,UINT8 b){}
+static INT32 null_idle(INT32 a){return 0;}
 
 static INT32 trigger_transfer = 0;
 
@@ -367,7 +367,7 @@ void i8257_drq_write(int channel, int state)
 	i8257_timer(TIMER_DRQ_SYNC, param);
 }
 
-void i8257_do_transfer(int)
+void i8257_do_transfer(int a)
 {
 	if (trigger_transfer)
 		i8257_update_status();

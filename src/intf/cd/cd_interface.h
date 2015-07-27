@@ -17,23 +17,23 @@ UINT8* CDEmuReadTOC(INT32 track);
 UINT8* CDEmuReadQChannel();
 INT32 CDEmuGetSoundBuffer(INT16* buffer, INT32 samples);
 
-static inline CDEmuStatusValue CDEmuGetStatus()
+static inline enum CDEmuStatusValue CDEmuGetStatus()
 {
-	extern CDEmuStatusValue CDEmuStatus;
+	extern enum CDEmuStatusValue CDEmuStatus;
 
 	return CDEmuStatus;
 }
 
 static inline void CDEmuStartRead()
 {
-	extern CDEmuStatusValue CDEmuStatus;
+	extern enum CDEmuStatusValue CDEmuStatus;
 
 	CDEmuStatus = seeking;
 }
 
 static inline void CDEmuPause()
 {
-	extern CDEmuStatusValue CDEmuStatus;
+	extern enum CDEmuStatusValue CDEmuStatus;
 
 	CDEmuStatus = paused;
 }

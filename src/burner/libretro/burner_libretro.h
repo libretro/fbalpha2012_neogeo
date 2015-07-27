@@ -4,15 +4,23 @@
 #include "gameinp.h"
 #include "input/inp_keys.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern int bDrvOkay;
 extern int bRunPause;
-extern bool bAlwaysProcessKeyboardInput;
+extern BOOL bAlwaysProcessKeyboardInput;
+
+extern void InpDIPSWResetDIPs (void);
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #define ANSIToTCHAR(str, foo, bar) (str)
 #endif
 
-extern void InpDIPSWResetDIPs (void);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

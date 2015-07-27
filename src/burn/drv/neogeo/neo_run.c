@@ -215,8 +215,8 @@ UINT8 nLEDLatch, nLED[3];
 
 static bool bMemoryCardInserted, bMemoryCardWritable;
 
-NEO_CALLBACK NeoCallback[MAX_SLOT] = { { NULL, NULL, NULL, NULL, NULL }, };
-NEO_CALLBACK* NeoCallbackActive = &NeoCallback[0];
+struct NEO_CALLBACK NeoCallback[MAX_SLOT] = { { NULL, NULL, NULL, NULL, NULL }, };
+struct NEO_CALLBACK* NeoCallbackActive = &NeoCallback[0];
 
 static INT32 nCyclesTotal[2];
 static INT32 nCyclesSegment;
@@ -450,8 +450,8 @@ static INT32 FindROMs(UINT32 nType, INT32* pOffset, INT32* pNum)
 static INT32 LoadRoms(void)
 {
    struct BurnRomInfo ri;
-   NeoGameInfo info;
-   NeoGameInfo* pInfo = &info;
+   struct NeoGameInfo info;
+   struct NeoGameInfo* pInfo = &info;
 
    ri.nType = 0;
    ri.nLen = 0;
@@ -909,7 +909,7 @@ static inline void neogeoSynchroniseZ80(INT32 nExtraCycles)
 
 // Callbacks for the FM chip
 
-static void neogeoFMIRQHandler(INT32, INT32 nStatus)
+static void neogeoFMIRQHandler(INT32 a, INT32 nStatus)
 {
 	if (nStatus & 1)
 		ZetSetIRQLine(0xFF, ZET_IRQSTATUS_ACK);
@@ -1581,7 +1581,7 @@ void __fastcall neogeoZ80Out(UINT16 nAddress, UINT8 nValue)
 // -----------------------------------------------------------------------------
 // 68K handlers
 
-INT32 __fastcall NeoCDIRQCallback(INT32 /* nIRQ */)
+INT32 __fastcall NeoCDIRQCallback(INT32 nIRQ)
 {
 //	bprintf(PRINT_NORMAL, _T("  - IRQ Callback %i %2X.\n"), nIRQ, nNeoCDIRQVector);
 	if (nNeoCDIRQVectorAck) {
@@ -1880,7 +1880,7 @@ static void WriteIO1(INT32 nOffset, UINT8 byteValue)
 	return;
 }
 
-static void WriteIO2(INT32 nOffset, UINT8 /*byteValue*/)
+static void WriteIO2(INT32 nOffset, UINT8 byteValue)
 {
 	switch (nOffset) {
 		case 0x01:											// Enable display

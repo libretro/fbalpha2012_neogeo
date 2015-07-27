@@ -3,6 +3,7 @@
 #include "burnint.h"
 #include "ymz280b.h"
 #include "burn_sound.h"
+#include <boolean.h>
 
 static INT32 nYMZ280BSampleRate;
 
@@ -62,8 +63,8 @@ struct sYMZ280BChannelInfo {
 static INT32 nActiveChannel, nDelta, nSample, nCount, nRamReadAddress;
 static INT32* buf;
 
-sYMZ280BChannelInfo YMZ280BChannelInfo[8];
-static sYMZ280BChannelInfo* channelInfo;
+struct sYMZ280BChannelInfo YMZ280BChannelInfo[8];
+static struct sYMZ280BChannelInfo* channelInfo;
 
 static INT32* YMZ280BChannelData[8];
 
@@ -206,7 +207,7 @@ inline static void UpdateIRQStatus()
 	}
 }
 
-inline static void ComputeVolume(sYMZ280BChannelInfo* channel)
+inline static void ComputeVolume(struct sYMZ280BChannelInfo* channel)
 {
 	if (channel->nPan == 8) {
 		channel->nVolumeLeft = channel->nVolume;

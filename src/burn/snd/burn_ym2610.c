@@ -32,12 +32,12 @@ INT32 bYM2610UseSeperateVolumes; // support custom Taito panning hardware
 // ----------------------------------------------------------------------------
 // Dummy functions
 
-static void YM2610UpdateDummy(INT16*, INT32)
+static void YM2610UpdateDummy(INT16 *a, INT32 b)
 {
 	return;
 }
 
-static INT32 YM2610StreamCallbackDummy(INT32)
+static INT32 YM2610StreamCallbackDummy(INT32 a)
 {
 	return 0;
 }
@@ -45,7 +45,7 @@ static INT32 YM2610StreamCallbackDummy(INT32)
 // ----------------------------------------------------------------------------
 // Execute YM2610 for part of a frame
 
-static void AY8910Render(INT32 nSegmentLength)
+static void AY8910Render2(INT32 nSegmentLength)
 {
 #if defined FBA_DEBUG
 	if (!DebugSnd_YM2610Initted) bprintf(PRINT_ERROR, _T("BurnYM2610 AY8910Render called without init\n"));
@@ -111,7 +111,7 @@ static void YM2610UpdateResample(INT16* pSoundBuf, INT32 nSegmentEnd)
 	nSegmentLength <<= 1;
 
 	YM2610Render(nSamplesNeeded);
-	AY8910Render(nSamplesNeeded);
+	AY8910Render2(nSamplesNeeded);
 
 	pYM2610Buffer[0] = pBuffer + 0 * 4096 + 4;
 	pYM2610Buffer[1] = pBuffer + 1 * 4096 + 4;
@@ -255,7 +255,7 @@ static void YM2610UpdateNormal(INT16* pSoundBuf, INT32 nSegmentEnd)
 	}
 
 	YM2610Render(nSegmentEnd);
-	AY8910Render(nSegmentEnd);
+	AY8910Render2(nSegmentEnd);
 
 	pYM2610Buffer[0] = pBuffer + 4 + 0 * 4096;
 	pYM2610Buffer[1] = pBuffer + 4 + 1 * 4096;
@@ -353,7 +353,7 @@ static void BurnAY8910UpdateRequest()
 	if (!DebugSnd_YM2610Initted) bprintf(PRINT_ERROR, _T("BurnYM2610 BurnAY8910UpdateRequest called without init\n"));
 #endif
 
-	AY8910Render(BurnYM2610StreamCallback(nBurnYM2610SoundRate));
+	AY8910Render2(BurnYM2610StreamCallback(nBurnYM2610SoundRate));
 }
 
 // ----------------------------------------------------------------------------
