@@ -12764,9 +12764,8 @@ STD_ROM_FN(kf2k1pa)
 
 static void kf2k1paCallback()
 {
-	for (INT32 i = 0; i < 0x20000; i++) {
+	for (INT32 i = 0; i < 0x20000; i++)
 		NeoTextROM[nNeoActiveSlot][i] = BITSWAP08(NeoTextROM[nNeoActiveSlot][i], 3, 2, 4, 5, 1, 6, 0, 7);
-	}	
 }
 
 static INT32 kf2k1paInit()

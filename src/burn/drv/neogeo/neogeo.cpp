@@ -49,23 +49,20 @@ INT32 NeoLoadCode(INT32 nOffset, INT32 nNum, UINT8* pDest)
 
 static void NeoSVCAddressDecrypt(UINT8* src, UINT8* dst, INT32 start, INT32 end)
 {
-	for (INT32 i = start / 4; i < end / 4; i++) {
+	for (INT32 i = start / 4; i < end / 4; i++)
 		((UINT32*)dst)[i] = ((UINT32*)src)[(i & 0xFFE00000) | (0x0C8923 ^ BITSWAP24((i & 0x1FFFFF), 0x17, 0x16, 0x15, 0x04, 0x0B, 0x0E, 0x08, 0x0C, 0x10, 0x00, 0x0a, 0x13, 0x03, 0x06, 0x02, 0x07, 0x0D, 0x01, 0x11, 0x09, 0x14, 0x0f, 0x12, 0x05))];
-	}
 }
 
 static void NeoKOFAddressDecrypt(UINT8* src, UINT8* dst, INT32 start, INT32 end)
 {
-	for (INT32 i = start; i < end; i += 0x100) {
+	for (INT32 i = start; i < end; i += 0x100)
 		memcpy(dst + i, src + ((i & 0xFF800000) | BURN_ENDIAN_SWAP_INT16((BITSWAP16((i >> 8) & 0x7FFF, 0x0F, 0x0A, 0x0E, 0x0C, 0x0B, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x0D, 0x01, 0x00)) << 8)), 0x100);
-	}
 }
 
 static void NeoPCBDataDecrypt(UINT8* dst, INT32 size)
 {
-	for (INT32 i = 0; i < size / 4; i++) {
+	for (INT32 i = 0; i < size / 4; i++)
 		((UINT32*)dst)[i] = BURN_ENDIAN_SWAP_INT32(BITSWAP32(0xE9C42134 ^ BURN_ENDIAN_SWAP_INT32(((UINT32*)dst)[i]), 0x09, 0x0D, 0x13, 0x00, 0x17, 0x0F, 0x03, 0x05, 0x04, 0x0C, 0x11, 0x1E, 0x12, 0x15, 0x0B, 0x06, 0x1B, 0x0A, 0x1A, 0x1C, 0x14, 0x02, 0x0e, 0x1D, 0x18, 0x08, 0x01, 0x10, 0x19, 0x1F, 0x07, 0x16));
-	}
 }
 
 // This function loads and pre-processes the sprite data
@@ -88,23 +85,20 @@ INT32 NeoLoadSprites(INT32 nOffset, INT32 nNum, UINT8* pDest, UINT32 nSpriteSize
       if (BurnDrvGetHardwareCode() & HARDWARE_SNK_CMC42) {
          NeoCMC42Init();
       } else {
-         if (BurnDrvGetHardwareCode() & HARDWARE_SNK_CMC50) {
+         if (BurnDrvGetHardwareCode() & HARDWARE_SNK_CMC50)
             NeoCMC50Init();
-         }
       }
 
       pBuf1 = (UINT8*)BurnMalloc(nRomSize * 2);
-      if (pBuf1 == NULL) {
+      if (pBuf1 == NULL)
          return 1;
-      }
 
       if ((BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_SNK_DEDICATED_PCB) {
          //			dProgress *= 0.75;
 
          pBuf2 = (UINT8*)BurnMalloc(nRomSize * 2);
-         if (pBuf2 == NULL) {
+         if (pBuf2 == NULL)
             return 1;
-         }
       }
 
       for (INT32 i = 0; i < (nNum >> 1); i++) {
@@ -367,7 +361,8 @@ void NeoClearScreen()
    {
       UINT32* pClear = (UINT32*)pBurnDraw;
       nColour |= nColour << 16;
-      for (INT32 i = 0; i < nNeoScreenWidth * 224 / 16; i++) {
+      for (INT32 i = 0; i < nNeoScreenWidth * 224 / 16; i++)
+      {
          *pClear++ = nColour;
          *pClear++ = nColour;
          *pClear++ = nColour;

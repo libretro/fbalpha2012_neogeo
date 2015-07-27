@@ -55,7 +55,8 @@ INT32 NeoRenderSprites(void)
    {
       UINT16 *vidram = (UINT16*)NeoGraphicsRAM;
 
-      if ((vidram[0x8202] & 0x40) == 0 && (vidram[0x8203] & 0x40) != 0) {
+      if ((vidram[0x8202] & 0x40) == 0 && (vidram[0x8203] & 0x40) != 0)
+      {
          nStart = 3;
 
          while ((vidram[0x8200 + nStart] & 0x40) != 0) nStart++;
@@ -72,19 +73,17 @@ INT32 NeoRenderSprites(void)
 
       pBank = (UINT16*)(NeoGraphicsRAM + (zBank << 7));
 
-      if (BankAttrib02 & 0x40) {
+      if (BankAttrib02 & 0x40)
          nBankXPos += nBankXZoom + 1;
-      } else {
+      else
+      {
          nBankYPos = (0x0200 - (BankAttrib02 >> 7)) & 0x01FF;
          nBankXPos = (BankAttrib03 >> 7);
-         if (nNeoScreenWidth == 304) {
+         if (nNeoScreenWidth == 304)
             nBankXPos -= 8;
-         }
 
          nBankYZoom = BankAttrib01 & 0xFF;
          nBankSize  = BankAttrib02 & 0x3F;
-
-         //			if (nBankSize > 0x10 && nSliceStart == 0x10) bprintf(PRINT_NORMAL, _T("bank: %04X, x: %04X, y: %04X, zoom: %02X, size: %02X.\n"), zBank, nBankXPos, nBankYPos, nBankYZoom, nBankSize);
       }
 
       if (nBankSize) {
