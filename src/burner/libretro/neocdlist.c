@@ -2,6 +2,7 @@
 // NeoGeo CD Game Info Module (by CaptainCPS-X)
 // ---------------------------------------------------------------------------------------
 #include "burner.h"
+#include <boolean.h>
 #include "../neocdlist.h"
 
 struct NGCDGAME games[] = 
@@ -110,9 +111,9 @@ struct NGCDGAME games[] =
 	{ _T("fatfury3")	, _T("Fatal Fury 3 - Road to the Final Victory / Garou Densetsu 3 - Harukanaru Tatakai"), _T("1995"), _T("SNK"), 0x069c },		//
 };
 
-NGCDGAME* GetNeoGeoCDInfo(unsigned int nID)
+struct NGCDGAME* GetNeoGeoCDInfo(unsigned int nID)
 {
-	for(unsigned int nGame = 0; nGame < (sizeof(games) / sizeof(NGCDGAME)); nGame++) {
+	for(unsigned int nGame = 0; nGame < (sizeof(games) / sizeof(struct NGCDGAME)); nGame++) {
 		if(nID == games[nGame].id ) {
 			return &games[nGame];
 		}
@@ -121,17 +122,17 @@ NGCDGAME* GetNeoGeoCDInfo(unsigned int nID)
 	return NULL;
 }
 
-NGCDGAME* game;
+struct NGCDGAME* game;
 
 // Get the title 
 int GetNeoCDTitle(unsigned int nGameID) 
 {
-	game = (NGCDGAME*)malloc(sizeof(NGCDGAME));
-	memset(game, 0, sizeof(NGCDGAME));
+	game = (struct NGCDGAME*)malloc(sizeof(struct NGCDGAME));
+	memset(game, 0, sizeof(struct NGCDGAME));
 	
 	if(GetNeoGeoCDInfo(nGameID))
 	{		
-		memcpy(game, GetNeoGeoCDInfo(nGameID), sizeof(NGCDGAME));
+		memcpy(game, GetNeoGeoCDInfo(nGameID), sizeof(struct NGCDGAME));
 		return 1;
 	}
 
@@ -357,7 +358,7 @@ static int NeoCDList_CheckISO(TCHAR* pszFile)
 				if(!memcmp(IsoCheck, "CD001", 5))
 				{
 					//bprintf(PRINT_NORMAL, _T("    Standard ISO9660 Identifier Found. \n"));
-					iso9660_VDH vdh;
+					struct iso9660_VDH vdh;
 
 					// Get Volume Descriptor Header			
 					memset(&vdh, 0, sizeof(vdh));
@@ -497,6 +498,4 @@ void NeoCDInfo_Exit()
 		free(game);
 		game = NULL;
 	}
-}
-
 }
