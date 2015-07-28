@@ -3,7 +3,6 @@
 #include "timer.h"
 #include "m68000_intf.h"
 #include "z80_intf.h"
-#include "m6800_intf.h"
 
 #define MAX_TIMER_VALUE ((1 << 30) - 65536)
 
@@ -305,20 +304,6 @@ INT32 BurnTimerAttachZet(INT32 nClockspeed)
 	pCPUTotalCycles = ZetTotalCycles;
 	pCPURun = ZetRun;
 	pCPURunEnd = ZetRunEnd;
-
-	nTicksExtra = MAKE_TIMER_TICKS(1, nCPUClockspeed) - 1;
-
-//	bprintf(PRINT_NORMAL, _T("--- timer cpu speed %iHz, one cycle = %i ticks.\n"), nClockspeed, MAKE_TIMER_TICKS(1, nCPUClockspeed));
-
-	return 0;
-}
-
-INT32 BurnTimerAttachM6800(INT32 nClockspeed)
-{
-	nCPUClockspeed = nClockspeed;
-	pCPUTotalCycles = M6800TotalCycles;
-	pCPURun = M6800Run;
-	pCPURunEnd = M6800RunEnd;
 
 	nTicksExtra = MAKE_TIMER_TICKS(1, nCPUClockspeed) - 1;
 

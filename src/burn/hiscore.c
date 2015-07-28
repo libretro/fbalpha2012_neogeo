@@ -1,7 +1,6 @@
 #include "burnint.h"
 #include "m68000_intf.h"
 #include "z80_intf.h"
-#include "m6800_intf.h"
 
 // A hiscore.dat support module for FBA - written by Treble Winner, Feb 2009
 // At some point we really need a CPU interface to track CPU types and numbers,
@@ -121,9 +120,6 @@ static UINT8 cpu_read_byte(UINT32 a)
 
 		case 5:
 			return ZetReadByte(a);
-			
-		case 8:
-			return M6800ReadByte(a);
 	}
 
 	return 0;
@@ -139,10 +135,6 @@ static void cpu_write_byte(UINT32 a, UINT8 d)
 
 		case 5:
 			ZetWriteByte(a, d);
-		break;
-		
-		case 8:
-			M6800WriteByte(a, d);
 		break;
 	}
 }
