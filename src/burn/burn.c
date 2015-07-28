@@ -702,13 +702,6 @@ INT32 BurnDrvCartridgeSetup(enum BurnCartrigeCommand nCommand)
 	return 0;
 }
 
-// Do one frame of game emulation
-INT32 BurnDrvFrame(void)
-{
-	HiscoreApply();
-	return pDriver[nBurnDrvActive]->Frame();		// Forward to drivers function
-}
-
 // Force redraw of the screen
 INT32 BurnDrvRedraw(void)
 {
