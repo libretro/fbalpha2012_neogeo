@@ -152,6 +152,8 @@ INT32 GameInpBlank(INT32 bDipSwitch)
 
 static void GameInpInitMacros()
 {
+   UINT32 i;
+   INT32 nPlayer;
 	struct GameInp* pgi;
 	struct BurnInputInfo bii;
 
@@ -168,14 +170,14 @@ static void GameInpInitMacros()
 
 	nFireButtons = 0;
 
-	for (UINT32 i = 0; i < nGameInpCount; i++) {
+	for (i = 0; i < nGameInpCount; i++) {
 		bii.szName = NULL;
 		BurnDrvGetInputInfo(&bii, i);
 		if (bii.szName == NULL) {
 			bii.szName = "";
 		}
 		if (bii.szName[0] == 'P' && bii.szName[1] >= '1' && bii.szName[1] <= '4') {
-			INT32 nPlayer = bii.szName[1] - '1';
+			nPlayer = bii.szName[1] - '1';
 
 			if (nPlayer == 0) {
 				if (strncmp(" fire", bii.szInfo + 2, 5) == 0) {
@@ -242,365 +244,371 @@ static void GameInpInitMacros()
 
 	pgi = GameInp + nGameInpCount;
 
-	for (INT32 nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++) {
-		if (nPunchx3[nPlayer] == 7) {		// Create a 3x punch macro
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
+	for (nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++)
+   {
+      INT32 j;
 
-			sprintf(pgi->Macro.szName, "P%i 3× Punch", nPlayer + 1);
-			for (INT32 j = 0; j < 3; j++) {
-				BurnDrvGetInputInfo(&bii, nPunchInputs[nPlayer][j]);
-				pgi->Macro.pVal[j] = bii.pVal;
-				pgi->Macro.nVal[j] = 1;
-			}
+      if (nPunchx3[nPlayer] == 7)
+      {		// Create a 3x punch macro
 
-			nMacroCount++;
-			pgi++;
-		}
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
 
-		if (nKickx3[nPlayer] == 7) {		// Create a 3x kick macro
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i 3× Punch", nPlayer + 1);
+         for (j = 0; j < 3; j++)
+         {
+            BurnDrvGetInputInfo(&bii, nPunchInputs[nPlayer][j]);
+            pgi->Macro.pVal[j] = bii.pVal;
+            pgi->Macro.nVal[j] = 1;
+         }
 
-			sprintf(pgi->Macro.szName, "P%i 3× Kick", nPlayer + 1);
-			for (INT32 j = 0; j < 3; j++) {
-				BurnDrvGetInputInfo(&bii, nKickInputs[nPlayer][j]);
-				pgi->Macro.pVal[j] = bii.pVal;
-				pgi->Macro.nVal[j] = 1;
-			}
+         nMacroCount++;
+         pgi++;
+      }
 
-			nMacroCount++;
-			pgi++;
-		}
+      if (nKickx3[nPlayer] == 7) {		// Create a 3x kick macro
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
 
-		if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_SNK_NEOGEO) {
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons AB", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons AC", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons AD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons BC", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons BD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons CD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ABC", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ABD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ACD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
+         sprintf(pgi->Macro.szName, "P%i 3× Kick", nPlayer + 1);
+         for (j = 0; j < 3; j++) {
+            BurnDrvGetInputInfo(&bii, nKickInputs[nPlayer][j]);
+            pgi->Macro.pVal[j] = bii.pVal;
+            pgi->Macro.nVal[j] = 1;
+         }
 
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons BCD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
+         nMacroCount++;
+         pgi++;
+      }
 
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ABCD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[3] = bii.pVal;
-			pgi->Macro.nVal[3] = 1;
-			nMacroCount++;
-			pgi++;
-		}
-		
-		if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_IGS_PGM) {
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 12", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 13", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 14", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 23", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 24", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 34", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 123", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 124", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-			
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 134", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
+      if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_SNK_NEOGEO) {
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons AB", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
 
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 234", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons AC", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
 
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 1234", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[3] = bii.pVal;
-			pgi->Macro.nVal[3] = 1;
-			nMacroCount++;
-			pgi++;
-		}
-	}
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons AD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons BC", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons BD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons CD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ABC", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ABD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ACD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons BCD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ABCD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[3] = bii.pVal;
+         pgi->Macro.nVal[3] = 1;
+         nMacroCount++;
+         pgi++;
+      }
+
+      if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_IGS_PGM) {
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 12", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 13", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 14", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 23", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 24", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 34", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 123", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 124", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 134", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 234", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons 1234", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
+         pgi->Macro.pVal[3] = bii.pVal;
+         pgi->Macro.nVal[3] = 1;
+         nMacroCount++;
+         pgi++;
+      }
+   }
 
 	if ((nPunchx3[0] == 7) && (nKickx3[0] == 7)) {
 		bStreetFighterLayout = TRUE;
@@ -610,15 +618,17 @@ static void GameInpInitMacros()
 	}
 }
 
-INT32 GameInpInit()
+INT32 GameInpInit(void)
 {
+   INT32 i;
 	INT32 nRet = 0;
 	// Count the number of inputs
 	nGameInpCount = 0;
 	nMacroCount = 0;
 	nMaxMacro = nMaxPlayers * 12;
 
-	for (UINT32 i = 0; i < 0x1000; i++) {
+	for (i = 0; i < 0x1000; i++)
+   {
 		nRet = BurnDrvGetInputInfo(NULL,i);
 		if (nRet) {														// end of input list
 			nGameInpCount = i;
@@ -906,6 +916,7 @@ static TCHAR* InpMacroToString(struct GameInp* pgi)
 
 	if (pgi->nInput == GIT_MACRO_CUSTOM) {
 		struct BurnInputInfo bii;
+      INT32 i;
 
 		if (pgi->Macro.nMode) {
 			_stprintf(szString, _T("switch 0x%.2X"), pgi->Macro.Switch.nCode);
@@ -913,8 +924,10 @@ static TCHAR* InpMacroToString(struct GameInp* pgi)
 			_stprintf(szString, _T("undefined"));
 		}
 
-		for (INT32 i = 0; i < 4; i++) {
-			if (pgi->Macro.pVal[i]) {
+		for (i = 0; i < 4; i++)
+      {
+			if (pgi->Macro.pVal[i])
+         {
 				BurnDrvGetInputInfo(&bii, pgi->Macro.nInput[i]);
 				_stprintf(szString + _tcslen(szString), _T(" \"%hs\" 0x%02X"), bii.szName, pgi->Macro.nVal[i]);
 			}
@@ -1085,6 +1098,7 @@ static struct { INT32 nCode; TCHAR* szName; } KeyNames[] = {
 
 TCHAR* InputCodeDesc(INT32 c)
 {
+   INT32 i;
 	static TCHAR szString[64];
 	TCHAR* szName = _T("");
 
@@ -1133,20 +1147,20 @@ TCHAR* InputCodeDesc(INT32 c)
 		}
 	}
 
-	for (INT32 i = 0; KeyNames[i].nCode; i++) {
-		if (c == KeyNames[i].nCode) {
-			if (KeyNames[i].szName) {
-				szName = KeyNames[i].szName;
-			}
-			break;
-		}
+	for (i = 0; KeyNames[i].nCode; i++)
+   {
+		if (c == KeyNames[i].nCode)
+      {
+         if (KeyNames[i].szName)
+            szName = KeyNames[i].szName;
+         break;
+      }
 	}
 
-	if (szName[0]) {
+	if (szName[0])
 		_stprintf(szString, _T("%s"), szName);
-	} else {
+   else
 		_stprintf(szString, _T("code 0x%.2X"), c);
-	}
 
 	return szString;
 }
@@ -1158,26 +1172,28 @@ TCHAR* InpToDesc(struct GameInp* pgi)
 	if (pgi->nInput == 0) {
 		return _T("");
 	}
-	if (pgi->nInput == GIT_CONSTANT) {
-		if (pgi->nType & BIT_GROUP_CONSTANT) {
-			for (INT32 i = 0; i < 8; i++) {
+	if (pgi->nInput == GIT_CONSTANT)
+   {
+		if (pgi->nType & BIT_GROUP_CONSTANT)
+      {
+         INT32 i;
+			for (i = 0; i < 8; i++)
 				szInputName[7 - i] = pgi->Input.Constant.nConst & (1 << i) ? _T('1') : _T('0');
-			}
 			szInputName[8] = 0;
 
 			return szInputName;
 		}
 
-		if (pgi->Input.Constant.nConst == 0) {
+		if (pgi->Input.Constant.nConst == 0)
 			return _T("-");
-		}
 	}
-	if (pgi->nInput == GIT_SWITCH) {
+	if (pgi->nInput == GIT_SWITCH)
 		return InputCodeDesc(pgi->Input.Switch.nCode);
-	}
-	if (pgi->nInput == GIT_MOUSEAXIS) {
+	if (pgi->nInput == GIT_MOUSEAXIS)
+   {
 		TCHAR nAxis = _T('?');
-		switch (pgi->Input.MouseAxis.nAxis) {
+		switch (pgi->Input.MouseAxis.nAxis)
+      {
 			case 0:
 				nAxis = _T('X');
 				break;
@@ -1621,8 +1637,11 @@ INT32 GameInpDefault()
 
 INT32 GameInpWrite(FILE* h)
 {
+   UINT32 i;
+   struct GameInp* pgi;
+
 	// Write input types
-	for (UINT32 i = 0; i < nGameInpCount; i++) {
+	for (i = 0; i < nGameInpCount; i++) {
 		TCHAR* szName = NULL;
 		INT32 nPad = 0;
 		szName = InputNumToName(i);
@@ -1636,28 +1655,31 @@ INT32 GameInpWrite(FILE* h)
 
 	_ftprintf(h, _T("\n"));
 
-	struct GameInp* pgi = GameInp + nGameInpCount;
-	for (UINT32 i = 0; i < nMacroCount; i++, pgi++) {
+	pgi = GameInp + nGameInpCount;
+
+	for (i = 0; i < nMacroCount; i++, pgi++)
+   {
 		INT32 nPad = 0;
 
-		if (pgi->nInput & GIT_GROUP_MACRO) {
-			switch (pgi->nInput) {
-				case GIT_MACRO_AUTO:									// Auto-assigned macros
-					_ftprintf(h, _T("macro  \"%hs\" "), pgi->Macro.szName);
-					break;
-				case GIT_MACRO_CUSTOM:									// Custom macros
-					_ftprintf(h, _T("custom \"%hs\" "), pgi->Macro.szName);
-					break;
-				default:												// Unknown -- ignore
-					continue;
-			}
+		if (pgi->nInput & GIT_GROUP_MACRO)
+      {
+         switch (pgi->nInput) {
+            case GIT_MACRO_AUTO:									// Auto-assigned macros
+               _ftprintf(h, _T("macro  \"%hs\" "), pgi->Macro.szName);
+               break;
+            case GIT_MACRO_CUSTOM:									// Custom macros
+               _ftprintf(h, _T("custom \"%hs\" "), pgi->Macro.szName);
+               break;
+            default:												// Unknown -- ignore
+               continue;
+         }
 
-			nPad = 16 - strlen(pgi->Macro.szName);
-			for (INT32 j = 0; j < nPad; j++) {
-				_ftprintf(h, _T(" "));
-			}
-			_ftprintf(h, _T("%s\n"), InpMacroToString(pgi));
-		}
+         nPad = 16 - strlen(pgi->Macro.szName);
+         for (INT32 j = 0; j < nPad; j++) {
+            _ftprintf(h, _T(" "));
+         }
+         _ftprintf(h, _T("%s\n"), InpMacroToString(pgi));
+      }
 	}
 
 	return 0;

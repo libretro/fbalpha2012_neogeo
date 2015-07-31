@@ -793,8 +793,9 @@ INT32 BurnClearScreen()
 // Byteswaps an area of memory
 INT32 BurnByteswap(UINT8* pMem, INT32 nLen)
 {
+   INT32 i;
 	nLen >>= 1;
-	for (INT32 i = 0; i < nLen; i++, pMem += 2) {
+	for (i = 0; i < nLen; i++, pMem += 2) {
 		UINT8 t = pMem[0];
 		pMem[0] = pMem[1];
 		pMem[1] = t;

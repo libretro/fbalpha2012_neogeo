@@ -372,6 +372,10 @@ ifeq ($(LIBRETRO_OPTIMIZATIONS), 1)
 FBA_DEFINES += -D__LIBRETRO_OPTIMIZATIONS__ 
 endif
 
+ifneq ($(platform), sncps3)
+CFLAGS += -std=gnu99
+endif
+
 ifeq ($(DEBUG), 1)
 CFLAGS += -O0 -g
 CXXFLAGS += -O0 -g
