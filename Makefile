@@ -128,7 +128,21 @@ else ifeq ($(platform), wii)
    ENDIANNESS_DEFINES = -DWORDS_BIGENDIAN
    PLATFORM_DEFINES := -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
    EXTERNAL_ZLIB = 1
-	STATIC_LINKING = 1
+   STATIC_LINKING = 1
+else ifeq ($(platform), ctr)
+   TARGET := $(TARGET_NAME)_libretro_ctr.a
+   ENDIANNESS_DEFINES = -LMSB_FIRST
+   EXTERNAL_ZLIB = 1
+   CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
+   PLATFORM_DEFINES += -DARM11 -D_3DS
+   PLATFORM_DEFINES += -march=armv6k -mtune=mpcore -mfloat-abi=hard
+   PLATFORM_DEFINES += -Wall -mword-relocations
+   PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
+   CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+   CPU_ARCH := arm
+   STATIC_LINKING = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
