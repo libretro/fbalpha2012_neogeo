@@ -1993,10 +1993,10 @@ static void poll_input(void)
                      pgi->Input.nVal = 0xFFFF;
                   else
                      pgi->Input.nVal = 0x0001;
-#ifdef LSB_FIRST
-                  *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
+#ifdef MSB_FIRST
                   *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+                  *(pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
                }
                else
@@ -2023,20 +2023,20 @@ static void poll_input(void)
                }
 
                pgi->Input.nVal = (unsigned short)nSlider;
-#ifdef LSB_FIRST
-               *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
+#ifdef MSB_FIRST
                *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
                break;
             }
          case GIT_MOUSEAXIS:						// Mouse axis
             {
                pgi->Input.nVal = (UINT16)(CinpMouseAxis(pgi->Input.MouseAxis.nMouse, pgi->Input.MouseAxis.nAxis) * nAnalogSpeed);
-#ifdef LSB_FIRST
-               *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
+#ifdef MSB_FIRST
                *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
             }
             break;
@@ -2069,10 +2069,10 @@ static void poll_input(void)
                }
 
                pgi->Input.nVal = (UINT16)nJoy;
-#ifdef LSB_FIRST
-               *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
+#ifdef MSB_FIRST
                *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
                break;
             }
@@ -2093,10 +2093,10 @@ static void poll_input(void)
                else
                   pgi->Input.nVal = 0;
 
-#ifdef LSB_FIRST
-               *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
+#ifdef MSB_FIRST
                *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
                break;
             }
@@ -2116,10 +2116,10 @@ static void poll_input(void)
                else
                   pgi->Input.nVal = 0;
 
-#ifdef LSB_FIRST
-               *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
+#ifdef MSB_FIRST
                *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
 #endif
                break;
             }
