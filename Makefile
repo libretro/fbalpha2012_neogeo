@@ -50,12 +50,10 @@ ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
    SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-   ENDIANNESS_DEFINES := -DLSB_FIRST
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
-   ENDIANNESS_DEFINES := -DLSB_FIRST
 else ifeq ($(platform), ios)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
@@ -64,12 +62,10 @@ else ifeq ($(platform), ios)
    CC = clang -arch armv7 -isysroot $(IOSSDK) -miphoneos-version-min=5.0
    CXX = clang++ -arch armv7 -isysroot $(IOSSDK) -miphoneos-version-min=5.0
    CFLAGS += -DIOS -miphoneos-version-min=5.0
-   ENDIANNESS_DEFINES := -DLSB_FIRST
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
    SHARED := -lcpp -lm -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-   ENDIANNESS_DEFINES := -DLSB_FIRST
 
 	CC = qcc -Vgcc_ntoarmv7le
 	CXX = QCC -Vgcc_ntoarmv7le_cpp
@@ -81,7 +77,7 @@ else ifeq ($(platform), ps3)
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
-   ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN
+   ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES += -D__CELLOS_LV2__
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
@@ -90,7 +86,7 @@ else ifeq ($(platform), sncps3)
    CXX	= $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
    CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
    AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
-   ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN
+   ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES += -D__CELLOS_LV2__ -DSN_TARGET_PS3
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
@@ -99,7 +95,7 @@ else ifeq ($(platform), psl1ght)
    CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
    CXX = $(PS3DEV)/ppu/bin/ppu-g++$(EXE_EXT)
    AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
-   ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN
+   ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES += -D__CELLOS_LV2__
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
@@ -108,7 +104,7 @@ else ifeq ($(platform), xenon)
    CC = xenon-gcc$(EXE_EXT)
    CXX = xenon-g++$(EXE_EXT)
    AR = xenon-ar$(EXE_EXT)
-   ENDIANNESS_DEFINES = -DWORDS_BIGENDIAN
+   ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES := -D__LIBXENON__ -m32 -D__ppc__
 	STATIC_LINKING = 1
 else ifeq ($(platform), ngc)
@@ -116,7 +112,7 @@ else ifeq ($(platform), ngc)
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
    CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
-   ENDIANNESS_DEFINES = -DWORDS_BIGENDIAN
+   ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES := -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
@@ -125,7 +121,7 @@ else ifeq ($(platform), wii)
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
    CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
-   ENDIANNESS_DEFINES = -DWORDS_BIGENDIAN
+   ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES := -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
    EXTERNAL_ZLIB = 1
    STATIC_LINKING = 1
@@ -161,21 +157,19 @@ ifneq (,$(findstring softfloat,$(platform)))
 else ifneq (,$(findstring hardfloat,$(platform)))
    PLATFORM_DEFINES += -mfloat-abi=hard
 endif
-   ENDIANNESS_DEFINES := -DLSB_FIRST
    CFLAGS += -DARM
    CC = gcc
    CXX = g++
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_emscripten.bc
    PLATFORM_DEFINES := -DUSE_FILE32API
-   ENDIANNESS_DEFINES := -DLSB_FIRST -DNO_UNALIGNED_MEM
+   ENDIANNESS_DEFINES := -DNO_UNALIGNED_MEM
 else
    TARGET := $(TARGET_NAME)_libretro.dll
    CC = gcc
    CXX = g++
    SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
    LDFLAGS += -static-libgcc -static-libstdc++
-   ENDIANNESS_DEFINES := -DLSB_FIRST
 endif
 
 CC_SYSTEM = gcc
