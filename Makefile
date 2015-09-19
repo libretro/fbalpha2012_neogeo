@@ -131,7 +131,6 @@ else ifeq ($(platform), wii)
    STATIC_LINKING = 1
 else ifeq ($(platform), ctr)
    TARGET := $(TARGET_NAME)_libretro_ctr.a
-   ENDIANNESS_DEFINES = -LMSB_FIRST
    EXTERNAL_ZLIB = 1
    CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
    CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
