@@ -98,7 +98,6 @@ else ifeq ($(platform), vita)
    CFLAGS += -O3 -mfloat-abi=hard -ffast-math -fsingle-precision-constant
    CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
    CPU_ARCH := arm
-   STATIC_LINKING = 1
 else ifeq ($(platform), psl1ght)
    TARGET := $(TARGET_NAME)_libretro_psl1ght.a
    CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
