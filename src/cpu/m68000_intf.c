@@ -571,13 +571,13 @@ void __fastcall A68KChangePC(UINT32 pc)
 #endif
 
 #ifdef EMU_M68K
-UINT32 __fastcall M68KReadByte(UINT32 a) { return (UINT32)ReadByte(a); }
-UINT32 __fastcall M68KReadWord(UINT32 a) { return (UINT32)ReadWord(a); }
-UINT32 __fastcall M68KReadLong(UINT32 a) { return               ReadLong(a); }
+uint __fastcall M68KReadByte(uint a) { return (uint)ReadByte(a); }
+uint __fastcall M68KReadWord(uint a) { return (uint)ReadWord(a); }
+uint __fastcall M68KReadLong(uint a) { return       ReadLong(a); }
 
-UINT32 __fastcall M68KFetchByte(UINT32 a) { return (UINT32)FetchByte(a); }
-UINT32 __fastcall M68KFetchWord(UINT32 a) { return (UINT32)FetchWord(a); }
-UINT32 __fastcall M68KFetchLong(UINT32 a) { return               FetchLong(a); }
+uint __fastcall M68KFetchByte(uint a) { return (uint)FetchByte(a); }
+uint __fastcall M68KFetchWord(uint a) { return (uint)FetchWord(a); }
+uint __fastcall M68KFetchLong(uint a) { return       FetchLong(a); }
 
 #ifdef FBA_DEBUG
 UINT32 __fastcall M68KReadByteBP(UINT32 a) { return (UINT32)ReadByteBP(a); }
@@ -600,9 +600,9 @@ void (__fastcall *M68KWriteWordDebug)(UINT32, UINT32);
 void (__fastcall *M68KWriteLongDebug)(UINT32, UINT32);
 #endif
 
-void __fastcall M68KWriteByte(UINT32 a, UINT32 d) { WriteByte(a, d); }
-void __fastcall M68KWriteWord(UINT32 a, UINT32 d) { WriteWord(a, d); }
-void __fastcall M68KWriteLong(UINT32 a, UINT32 d) { WriteLong(a, d); }
+void __fastcall M68KWriteByte(uint a, uint d) { WriteByte(a, d); }
+void __fastcall M68KWriteWord(uint a, uint d) { WriteWord(a, d); }
+void __fastcall M68KWriteLong(uint a, uint d) { WriteLong(a, d); }
 #endif
 
 #if defined EMU_A68K
@@ -722,7 +722,7 @@ static INT32 SekSetup(struct A68KContext* psr)
 // Callbacks for Musashi
 
 #ifdef EMU_M68K
-INT32 M68KIRQAcknowledge(INT32 nIRQ)
+int M68KIRQAcknowledge(int nIRQ)
 {
 	if (nSekIRQPending[nSekActive] & SEK_IRQSTATUS_AUTO) {
 		m68k_set_irq(0);
@@ -749,7 +749,7 @@ void M68KRTECallback(void)
 	}
 }
 
-void M68KcmpildCallback(UINT32 val, INT32 reg)
+void M68KcmpildCallback(unsigned int val, int reg)
 {
 	if (pSekExt->CmpCallback)
 		pSekExt->CmpCallback(val, reg);

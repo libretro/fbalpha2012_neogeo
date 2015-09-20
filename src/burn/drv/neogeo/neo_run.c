@@ -2874,7 +2874,7 @@ if (NeoCDDMAAddress2 == 0x0800)  {
 			bprintf(PRINT_ERROR, _T("    Unknown transfer type 0x%04X (PC: 0x%06X)\n"), NeoCDDMAMode, SekGetPC(-1));
 			bprintf(PRINT_NORMAL, _T("    ??? : 0x%08X  0x%08X 0x%04X 0x%04X 0x%08X\n"), NeoCDDMAAddress1, NeoCDDMAAddress2, NeoCDDMAValue1, NeoCDDMAValue2, NeoCDDMACount);
 
-extern INT32 bRunPause;
+extern int bRunPause;
 bRunPause = 1;
 
 		}

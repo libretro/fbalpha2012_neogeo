@@ -131,8 +131,7 @@ else ifeq ($(platform), ctr)
    PLATFORM_DEFINES += -march=armv6k -mtune=mpcore -mfloat-abi=hard
    PLATFORM_DEFINES += -Wall -mword-relocations
    PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
-   CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
-   CPU_ARCH := arm
+   CXXFLAGS += -fno-rtti -fno-exceptions -std=gnu++11
    STATIC_LINKING = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
