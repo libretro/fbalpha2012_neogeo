@@ -571,13 +571,13 @@ void __fastcall A68KChangePC(UINT32 pc)
 #endif
 
 #ifdef EMU_M68K
-uint __fastcall M68KReadByte(uint a) { return (uint)ReadByte(a); }
-uint __fastcall M68KReadWord(uint a) { return (uint)ReadWord(a); }
-uint __fastcall M68KReadLong(uint a) { return       ReadLong(a); }
+unsigned int __fastcall M68KReadByte(unsigned int a) { return (unsigned int)ReadByte(a); }
+unsigned int __fastcall M68KReadWord(unsigned int a) { return (unsigned int)ReadWord(a); }
+unsigned int __fastcall M68KReadLong(unsigned int a) { return               ReadLong(a); }
 
-uint __fastcall M68KFetchByte(uint a) { return (uint)FetchByte(a); }
-uint __fastcall M68KFetchWord(uint a) { return (uint)FetchWord(a); }
-uint __fastcall M68KFetchLong(uint a) { return       FetchLong(a); }
+unsigned int __fastcall M68KFetchByte(unsigned int a) { return (unsigned int)FetchByte(a); }
+unsigned int __fastcall M68KFetchWord(unsigned int a) { return (unsigned int)FetchWord(a); }
+unsigned int __fastcall M68KFetchLong(unsigned int a) { return               FetchLong(a); }
 
 #ifdef FBA_DEBUG
 UINT32 __fastcall M68KReadByteBP(UINT32 a) { return (UINT32)ReadByteBP(a); }
@@ -600,9 +600,9 @@ void (__fastcall *M68KWriteWordDebug)(UINT32, UINT32);
 void (__fastcall *M68KWriteLongDebug)(UINT32, UINT32);
 #endif
 
-void __fastcall M68KWriteByte(uint a, uint d) { WriteByte(a, d); }
-void __fastcall M68KWriteWord(uint a, uint d) { WriteWord(a, d); }
-void __fastcall M68KWriteLong(uint a, uint d) { WriteLong(a, d); }
+void __fastcall M68KWriteByte(unsigned int a, unsigned int d) { WriteByte(a, d); }
+void __fastcall M68KWriteWord(unsigned int a, unsigned int d) { WriteWord(a, d); }
+void __fastcall M68KWriteLong(unsigned int a, unsigned int d) { WriteLong(a, d); }
 #endif
 
 #if defined EMU_A68K
