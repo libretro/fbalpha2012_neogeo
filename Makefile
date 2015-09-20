@@ -86,6 +86,19 @@ else ifeq ($(platform), sncps3)
    PLATFORM_DEFINES += -D__CELLOS_LV2__ -DSN_TARGET_PS3
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
+else ifeq ($(platform), vita)
+   TARGET := $(TARGET_NAME)_libretro_vita.a
+	CC = arm-vita-eabi-gcc$(EXE_EXT)
+	CC_AS = arm-vita-eabi-gcc$(EXE_EXT)
+	CXX = arm-vita-eabi-g++$(EXE_EXT)
+	AR = arm-vita-eabi-ar$(EXE_EXT)
+   PLATFORM_DEFINES += -DVITA
+   EXTERNAL_ZLIB = 1
+	STATIC_LINKING = 1
+   CFLAGS += -O3 -mfloat-abi=hard -ffast-math -fsingle-precision-constant
+   CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+   CPU_ARCH := arm
+   STATIC_LINKING = 1
 else ifeq ($(platform), psl1ght)
    TARGET := $(TARGET_NAME)_libretro_psl1ght.a
    CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
