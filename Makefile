@@ -50,14 +50,26 @@ else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
-else ifeq ($(platform), ios)
+
+# iOS
+else ifneq (,$(findstring ios,$(platform)))
+
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
    SHARED := -dynamiclib
    
-   CC = clang -arch armv7 -isysroot $(IOSSDK) -miphoneos-version-min=5.0
-   CXX = clang++ -arch armv7 -isysroot $(IOSSDK) -miphoneos-version-min=5.0
-   CFLAGS += -DIOS -miphoneos-version-min=5.0
+   CC = cc -arch armv7 -isysroot $(IOSSDK)
+   CXX = c++ -arch armv7 -isysroot $(IOSSDK)
+   CFLAGS += -DIOS
+ifeq ($(platform),ios9)
+	CC += -miphoneos-version-min=8.0
+	CXX +=  -miphoneos-version-min=8.0
+	CFLAGS += -miphoneos-version-min=8.0
+else
+	CC += -miphoneos-version-min=5.0
+	CXX +=  -miphoneos-version-min=5.0
+	CFLAGS += -miphoneos-version-min=5.0
+endif
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
