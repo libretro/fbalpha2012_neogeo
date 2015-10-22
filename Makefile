@@ -41,6 +41,8 @@ GRIFFIN_DIR = griffin-libretro
 EXTERNAL_ZLIB = 0
 
 TARGET_NAME := fb_alpha_neo
+BURN_BLACKLIST :=
+FBA_LIBRETRO_DIRS := $(LIBRETRO_DIR)
 
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
@@ -157,6 +159,8 @@ else ifeq ($(platform), ctr)
    PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
    CXXFLAGS += -fno-rtti -fno-exceptions -std=gnu++11
    STATIC_LINKING = 1
+   BURN_BLACKLIST += $(FBA_BURN_DIR)/burn_memory.c
+   FBA_LIBRETRO_DIRS += $(LIBRETRO_DIR)/3ds
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
@@ -198,7 +202,7 @@ CXX_SYSTEM = g++
 
 all: $(TARGET)
 
-BURN_BLACKLIST := $(FBA_BURNER_DIR)/un7z.cpp \
+BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp \
 	$(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_CPU_DIR)/arm7/arm7core.c \
 	$(FBA_CPU_DIR)/hd6309/6309tbl.c \
@@ -342,7 +346,7 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 
 FBA_LIB_DIRS := $(FBA_LIB_DIR)/zlib
 
-FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS) $(FBA_BURNER_DIRS)
+FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS) $(FBA_BURNER_DIRS) $(FBA_LIBRETRO_DIRS)
 
 
 ifeq ($(EXTERNAL_ZLIB), 1)
@@ -352,7 +356,6 @@ FBA_SRC_DIRS += $(FBA_LIB_DIRS)
 endif
 
 FBA_CXXSRCS := $(GRIFFIN_CXXSRCFILES) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
-FBA_CXXSRCS += $(LIBRETRO_DIR)/libretro.cpp $(LIBRETRO_DIR)/neocdlist.cpp
 FBA_CXXOBJ := $(FBA_CXXSRCS:.cpp=.o)
 FBA_CSRCS := $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
 FBA_COBJ := $(FBA_CSRCS:.c=.o)
