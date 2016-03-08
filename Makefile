@@ -161,6 +161,15 @@ else ifeq ($(platform), ctr)
    STATIC_LINKING = 1
    BURN_BLACKLIST += $(FBA_BURN_DIR)/burn_memory.c
    FBA_LIBRETRO_DIRS += $(LIBRETRO_DIR)/3ds
+else ifeq ($(platform), rpi2)
+   TARGET := $(TARGET_NAME)_libretro.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   PLATFORM_DEFINES += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
+   PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
+   PLATFORM_DEFINES += -DARM
+   CXXFLAGS += -fno-rtti -fno-exceptions
+   HAVE_NEON = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
