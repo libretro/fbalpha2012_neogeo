@@ -40,7 +40,7 @@ GRIFFIN_DIR = griffin-libretro
 
 EXTERNAL_ZLIB = 0
 
-TARGET_NAME := fb_alpha_neo
+TARGET_NAME := fba2012_neogeo
 BURN_BLACKLIST :=
 FBA_LIBRETRO_DIRS := $(LIBRETRO_DIR)
 
