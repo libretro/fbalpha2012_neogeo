@@ -1870,7 +1870,7 @@ static bool init_input(void)
             keybinds[pgi->Input.Switch.nCode][1] = 1;
             value_found = true;
          }
-         else if((parentrom && !strcmp(parentrom,"avsp") || !strcmp(drvname,"avsp")) && (!strcmp(bii.szName,"P2 Shot")))
+         else if(((parentrom && !strcmp(parentrom,"avsp")) || !strcmp(drvname,"avsp")) && (!strcmp(bii.szName,"P2 Shot")))
          {
             keybinds[pgi->Input.Switch.nCode][0] = RETRO_DEVICE_ID_JOYPAD_A;
             keybinds[pgi->Input.Switch.nCode][1] = 1;
