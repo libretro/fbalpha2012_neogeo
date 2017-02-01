@@ -11,7 +11,7 @@
 
 #include "cd/cd_interface.h"
 
-#define FBA_VERSION "v0.2.97.30" // Sept 16, 2013 (SVN)
+#define FBA_VERSION "v0.2.97.29" // Sept 16, 2013 (SVN)
 
 #ifdef _WIN32
    char slash = '\\';
