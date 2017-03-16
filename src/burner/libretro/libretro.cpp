@@ -84,7 +84,7 @@ static bool driver_inited;
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   info->library_name = "FB Alpha 2012 NeoGeo";
+   info->library_name = "FB Alpha 2012 Neo Geo";
    info->library_version = FBA_VERSION;
    info->need_fullpath = true;
    info->block_extract = true;
