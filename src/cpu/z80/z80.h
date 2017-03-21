@@ -29,7 +29,7 @@ typedef struct
 	UINT8	after_ei;			/* are we in the EI shadow? */
 	INT32 cycles_left;
 	const struct z80_irq_daisy_chain *daisy;
-   NT64 dummy;
+   INT64 dummy;
 	int		(*irq_callback)(int irqline);
 } Z80_Regs;
 
