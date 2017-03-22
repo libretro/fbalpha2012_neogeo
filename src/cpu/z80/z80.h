@@ -1,6 +1,8 @@
 #ifndef _Z80_H_
 #define _Z80_H_
 
+#include "driver.h"
+
 #define	CPUINFO_PTR_CPU_SPECIFIC	0x18000
 #define Z80_CLEAR_LINE		0
 #define Z80_ASSERT_LINE		1
@@ -28,9 +30,8 @@ typedef struct
 	UINT8	irq_state;			/* irq line state */
 	UINT8	after_ei;			/* are we in the EI shadow? */
 	INT32 cycles_left;
-	const struct z80_irq_daisy_chain *daisy;
-   INT64 dummy;
-	int		(*irq_callback)(int irqline);
+   ALIGN_VAR(8) const struct z80_irq_daisy_chain *daisy;
+ 	ALIGN_VAR(8) int		(*irq_callback)(int irqline);
 } Z80_Regs;
 
 enum {
