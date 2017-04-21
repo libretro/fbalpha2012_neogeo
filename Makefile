@@ -184,6 +184,15 @@ else ifeq ($(platform), rpi2)
    PLATFORM_DEFINES += -DARM
    CXXFLAGS += -fno-rtti -fno-exceptions
    HAVE_NEON = 1
+else ifeq ($(platform), rpi3)
+   TARGET := $(TARGET_NAME)_libretro.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   PLATFORM_DEFINES += -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+   PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
+   PLATFORM_DEFINES += -DARM
+   CXXFLAGS += -fno-rtti -fno-exceptions
+   HAVE_NEON = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
