@@ -12,8 +12,6 @@ ifeq ($(platform),)
    else ifneq ($(findstring MINGW,$(shell uname -a)),)
       platform = win
    endif
-   else ifneq (,$(findstring armv,$(platform)))
-      override platform += unix
    else ifneq (,$(findstring rpi,$(platform)))
       override platform += unix
 endif
@@ -52,28 +50,6 @@ ifeq ($(platform), unix)
       else ifneq (,$(findstring rpi3,$(platform)))
          PLATFORM_DEFINES += -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
       endif
-   endif
-   
-   # Generic ARM
-   ifneq (,$(findstring armv,$(platform)))
-      ifneq (,$(findstring cortexa8,$(platform)))
-         PLATFORM_DEFINES += -marm -mcpu=cortex-a8
-      else ifneq (,$(findstring cortexa9,$(platform)))
-         PLATFORM_DEFINES += -marm -mcpu=cortex-a9
-      endif
-      PLATFORM_DEFINES += -marm
-      ifneq (,$(findstring neon,$(platform)))
-         PLATFORM_DEFINES += -mfpu=neon
-         HAVE_NEON = 1
-      endif
-      ifneq (,$(findstring softfloat,$(platform)))
-         PLATFORM_DEFINES += -mfloat-abi=softfp
-      else ifneq (,$(findstring hardfloat,$(platform)))
-         PLATFORM_DEFINES += -mfloat-abi=hard
-      endif
-      CFLAGS += -DARM
-      CC = gcc
-      CXX = g++
    endif
    
 else ifeq ($(platform), osx)
