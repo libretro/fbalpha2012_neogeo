@@ -45,7 +45,6 @@ ifneq (,$(findstring unix,$(platform)))
       PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
       PLATFORM_DEFINES += -DARM
       CXXFLAGS += -fno-rtti -fno-exceptions
-      HAVE_NEON = 1
       ifneq (,$(findstring rpi2,$(platform)))
          PLATFORM_DEFINES += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
       else ifneq (,$(findstring rpi3,$(platform)))
