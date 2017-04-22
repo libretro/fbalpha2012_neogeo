@@ -7,13 +7,14 @@ ifeq ($(platform),)
    platform = unix
    ifeq ($(shell uname -a),)
       platform = win
+      EXE_EXT=.exe
    else ifneq ($(findstring Darwin,$(shell uname -a)),)
       platform = osx
    else ifneq ($(findstring MINGW,$(shell uname -a)),)
       platform = win
    endif
-   else ifneq (,$(findstring rpi,$(platform)))
-      override platform += unix
+else ifneq (,$(findstring rpi,$(platform)))
+   override platform += unix
 endif
 
 MAIN_FBA_DIR := src
@@ -34,7 +35,7 @@ TARGET_NAME := fbalpha2012_neogeo
 BURN_BLACKLIST :=
 FBA_LIBRETRO_DIRS := $(LIBRETRO_DIR)
 
-ifeq ($(platform), unix)
+ifneq (,$(findstring unix,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
    SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
