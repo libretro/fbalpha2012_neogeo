@@ -13,6 +13,8 @@ ifeq ($(platform),)
    else ifneq ($(findstring MINGW,$(shell uname -a)),)
       platform = win
    endif
+else ifneq (,$(findstring armv,$(platform)))
+   override platform += unix
 else ifneq (,$(findstring rpi,$(platform)))
    override platform += unix
 endif
