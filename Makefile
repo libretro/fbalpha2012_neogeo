@@ -4,27 +4,20 @@ FRONTEND_SUPPORTS_RGB565 = 1
 HAVE_GRIFFIN = 0
 
 ifeq ($(platform),)
-platform = unix
-ifeq ($(shell uname -a),)
-   platform = win
-else ifneq ($(findstring Darwin,$(shell uname -a)),)
-   platform = osx
-else ifneq ($(findstring MINGW,$(shell uname -a)),)
-   platform = win
+   platform = unix
+   ifeq ($(shell uname -a),)
+      platform = win
+      EXE_EXT=.exe
+   else ifneq ($(findstring Darwin,$(shell uname -a)),)
+      platform = osx
+   else ifneq ($(findstring MINGW,$(shell uname -a)),)
+      platform = win
+   endif
+else ifneq (,$(findstring armv,$(platform)))
+   override platform += unix
+else ifneq (,$(findstring rpi,$(platform)))
+   override platform += unix
 endif
-endif
-
-# system platform
-system_platform = unix
-ifeq ($(shell uname -a),)
-   system_platform = win
-EXE_EXT=.exe
-else ifneq ($(findstring Darwin,$(shell uname -a)),)
-   system_platform = osx
-else ifneq ($(findstring MINGW,$(shell uname -a)),)
-   system_platform = win
-endif
-
 
 MAIN_FBA_DIR := src
 FBA_BURN_DIR := $(MAIN_FBA_DIR)/burn
@@ -44,10 +37,23 @@ TARGET_NAME := fbalpha2012_neogeo
 BURN_BLACKLIST :=
 FBA_LIBRETRO_DIRS := $(LIBRETRO_DIR)
 
-ifeq ($(platform), unix)
+ifneq (,$(findstring unix,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
    SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   
+   # Raspberry Pi
+   ifneq (,$(findstring rpi,$(platform)))
+      PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
+      PLATFORM_DEFINES += -DARM
+      CXXFLAGS += -fno-rtti -fno-exceptions
+      ifneq (,$(findstring rpi2,$(platform)))
+         PLATFORM_DEFINES += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
+      else ifneq (,$(findstring rpi3,$(platform)))
+         PLATFORM_DEFINES += -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+      endif
+   endif
+   
 else ifeq ($(platform), osx)
    TARGET := $(TARGET_NAME)_libretro.dylib
    fpic := -fPIC
@@ -175,37 +181,7 @@ else ifeq ($(platform), ctr)
    STATIC_LINKING = 1
    BURN_BLACKLIST += $(FBA_BURN_DIR)/burn_memory.c
    FBA_LIBRETRO_DIRS += $(LIBRETRO_DIR)/3ds
-else ifeq ($(platform), rpi2)
-   TARGET := $(TARGET_NAME)_libretro.so
-   fpic := -fPIC
-   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-   PLATFORM_DEFINES += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
-   PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
-   PLATFORM_DEFINES += -DARM
-   CXXFLAGS += -fno-rtti -fno-exceptions
-   HAVE_NEON = 1
-else ifneq (,$(findstring armv,$(platform)))
-   TARGET := $(TARGET_NAME)_libretro.so
-   fpic := -fPIC
-   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-ifneq (,$(findstring cortexa8,$(platform)))
-   PLATFORM_DEFINES += -marm -mcpu=cortex-a8
-else ifneq (,$(findstring cortexa9,$(platform)))
-   PLATFORM_DEFINES += -marm -mcpu=cortex-a9
-endif
-   PLATFORM_DEFINES += -marm
-ifneq (,$(findstring neon,$(platform)))
-   PLATFORM_DEFINES += -mfpu=neon
-   HAVE_NEON = 1
-endif
-ifneq (,$(findstring softfloat,$(platform)))
-   PLATFORM_DEFINES += -mfloat-abi=softfp
-else ifneq (,$(findstring hardfloat,$(platform)))
-   PLATFORM_DEFINES += -mfloat-abi=hard
-endif
-   CFLAGS += -DARM
-   CC = gcc
-   CXX = g++
+
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_$(platform).bc
    PLATFORM_DEFINES := -DUSE_FILE32API
