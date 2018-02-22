@@ -44,7 +44,7 @@ for ( my $i = 0; $i < scalar @ARGV; $i++ ) {{
 		# Argument is a dir
 		my @dirlist = readdir( INDIR ) or die "\nError: Couldn't read directory $ARGV[$i] $!";
 		foreach my $filename ( @dirlist ) {
-			if ( $filename =~ /d\w?_.+\.c/ ) {
+			if ( $filename =~ /d\w?_.+\.cpp/ ) {
 				push( @Filelist, "$ARGV[$i]/$filename" );
 			}
 		}

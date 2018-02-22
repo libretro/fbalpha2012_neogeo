@@ -1,6 +1,5 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef _BURN_TIMER_H
+#define _BURN_TIMER_H
 
 // FM timers
 
@@ -8,7 +7,7 @@ extern "C" {
 #define MAKE_TIMER_TICKS(n, m) ((INT64)(n) * TIMER_TICKS_PER_SECOND / (m))
 #define MAKE_CPU_CYLES(n, m) ((INT64)(n) * (m) / TIMER_TICKS_PER_SECOND)
 
-double BurnTimerGetTime(void);
+extern "C" double BurnTimerGetTime();
 
 // Callbacks for various sound chips
 void BurnOPNTimerCallback(INT32 n, INT32 c, INT32 cnt, double stepTime);	// period = cnt * stepTime in s
@@ -39,6 +38,4 @@ INT32 BurnTimerUpdate(INT32 nCycles);
 void BurnTimerUpdateEnd();
 void BurnTimerEndFrame(INT32 nCycles);
 
-#ifdef __cplusplus
-}
 #endif

@@ -852,7 +852,7 @@ unsigned int m68k_context_size()
 /* Used to calculate the context size minus the system-specific pointers, for savestates */
 unsigned int m68k_context_size_no_pointers()
 {
-   return (long long)&m68ki_cpu.pointer_block_divider - (long long)&m68ki_cpu;
+	return (long long)&m68ki_cpu.pointer_block_divider - (long long)&m68ki_cpu;
 }
 
 unsigned int m68k_get_context(void* dst)

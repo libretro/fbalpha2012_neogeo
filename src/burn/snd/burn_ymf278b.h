@@ -1,5 +1,8 @@
 #include "driver.h"
-#include "ymf278b.h"
+extern "C" {
+ #include "ymf278b.h"
+}
+
 #include "timer.h"
 
 void BurnYMF278BSelectRegister(INT32 nRegister, UINT8 nValue);

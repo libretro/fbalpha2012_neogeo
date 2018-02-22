@@ -1,10 +1,12 @@
 // burn_ym2610.h
 #include "driver.h"
-#include "ay8910.h"
-#include "fm.h"
+extern "C" {
+ #include "ay8910.h"
+ #include "fm.h"
+}
 #include "timer.h"
 
-void BurnYM2610UpdateRequest();
+extern "C" void BurnYM2610UpdateRequest();
 
 void BurnYM2610MapADPCMROM(UINT8* YM2610ADPCMAROM, INT32 nYM2610ADPCMASize, UINT8* YM2610ADPCMBROM, INT32 nYM2610ADPCMBSize);
 INT32 BurnYM2610Init(INT32 nClockFrequency, UINT8* YM2610ADPCMAROM, INT32* nYM2610ADPCMASize, UINT8* YM2610ADPCMBROM, INT32* nYM2610ADPCMBSize, FM_IRQHANDLER IRQCallback, INT32 (*StreamCallback)(INT32), double (*GetTimeCallback)(), INT32 bAddSignal);
@@ -27,5 +29,10 @@ extern INT32 bYM2610UseSeperateVolumes;
 	BurnYM2610SetRoute(BURN_SND_YM2610_YM2610_ROUTE_2, v, d);	\
 	BurnYM2610SetRoute(BURN_SND_YM2610_AY8910_ROUTE  , v, d);
 	
-#define BurnYM2610Read(a)     YM2610Read(0, a)
-#define BurnYM2610Write(a, n) YM2610Write(0, a, n)
+#define BurnYM2610Read(a) YM2610Read(0, a)
+
+#if defined FBA_DEBUG
+	#define BurnYM2610Write(a, n) if (!DebugSnd_YM2610Initted) bprintf(PRINT_ERROR, _T("BurnYM2610Write called without init\n")); YM2610Write(0, a, n)
+#else
+	#define BurnYM2610Write(a, n) YM2610Write(0, a, n)
+#endif

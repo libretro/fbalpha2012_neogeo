@@ -2,6 +2,9 @@
 //            Refer to the "license.txt" file for more info
 
 // Burner emulation library
+//
+#ifndef _BURNH_H
+#define _BURNH_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -15,16 +18,10 @@
  #define MAX_PATH 	260
 #endif
 
-#ifndef BOOL
-#define BOOL unsigned char
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef FALSE
-#define FALSE 0
+#ifdef _MSC_VER
+#define ALIGN_VAR(x)  __declspec(align(x))
+#else
+#define ALIGN_VAR(x)  __attribute__((aligned(x)))
 #endif
 
 #include <time.h>
@@ -71,7 +68,19 @@ extern TCHAR szAppSamplesPath[MAX_PATH];
  #define WRITE_UNICODE_BOM(file)
 #endif
 
-#include "burn_types.h"
+typedef unsigned char						UINT8;
+typedef signed char 						INT8;
+typedef unsigned short						UINT16;
+typedef signed short						INT16;
+typedef unsigned int						UINT32;
+typedef signed int							INT32;
+#ifdef _MSC_VER
+typedef signed __int64						INT64;
+typedef unsigned __int64					UINT64;
+#else
+__extension__ typedef unsigned long long	UINT64;
+__extension__ typedef long long				INT64;
+#endif
 
 #include "state.h"
 #include "cheat.h"
@@ -79,12 +88,7 @@ extern TCHAR szAppSamplesPath[MAX_PATH];
 
 extern INT32 nBurnVer;						// Version number of the library
 
-enum BurnCartrigeCommand
-{
-   CART_INIT_START,
-   CART_INIT_END,
-   CART_EXIT
-};
+enum BurnCartrigeCommand { CART_INIT_START, CART_INIT_END, CART_EXIT };
 
 // ---------------------------------------------------------------------------
 // Callbacks
@@ -94,17 +98,15 @@ extern INT32 (__cdecl *BurnExtLoadRom)(UINT8* Dest, INT32* pnWrote, INT32 i);
 
 // Application-defined progress indicator functions
 extern INT32 (__cdecl *BurnExtProgressRangeCallback)(double dProgressRange);
-extern INT32 (__cdecl *BurnExtProgressUpdateCallback)(double dProgress, const TCHAR* pszText, BOOL bAbs);
+extern INT32 (__cdecl *BurnExtProgressUpdateCallback)(double dProgress, const TCHAR* pszText, bool bAbs);
 
 // Application-defined catridge initialisation function
-extern INT32 (__cdecl *BurnExtCartridgeSetupCallback)(enum BurnCartrigeCommand nCommand);
+extern INT32 (__cdecl *BurnExtCartridgeSetupCallback)(BurnCartrigeCommand nCommand);
+
+// Application-defined colour conversion function
+extern UINT32 (__cdecl *BurnHighCol) (INT32 r, INT32 g, INT32 b, INT32 i);
 
 // ---------------------------------------------------------------------------
-#if defined(FRONTEND_SUPPORTS_RGB565)
-#define BurnHighCol(r, g, b, i) ((((r) << 8) & 0xf800) | (((g) << 3) & 0x07e0) | (((b) >> 3) & 0x001f))
-#else
-#define BurnHighCol(r, g, b, i) (((((r) << 7) & 0x7c00) | (((g) << 2) & 0x03e0) | (((b) >> 3) & 0x001f)))
-#endif
 
 extern UINT32 nCurrentFrame;
 
@@ -177,14 +179,14 @@ struct BurnDIPInfo {
 
 // ---------------------------------------------------------------------------
 
-extern BOOL bBurnUseMMX;
-extern BOOL bBurnUseASMCPUEmulation;
+extern bool bBurnUseMMX;
+extern bool bBurnUseASMCPUEmulation;
 
 extern UINT32 nFramesEmulated;
 extern UINT32 nFramesRendered;
 extern clock_t starttime;					// system time when emulation started and after roms loaded
 
-extern BOOL bForce60Hz;
+extern bool bForce60Hz;
 
 extern INT32 nBurnFPS;
 extern INT32 nBurnCPUSpeedAdjust;
@@ -226,14 +228,15 @@ INT32 BurnLibExit();
 INT32 BurnDrvInit();
 INT32 BurnDrvExit();
 
-INT32 BurnDrvCartridgeSetup(enum BurnCartrigeCommand nCommand);
+INT32 BurnDrvCartridgeSetup(BurnCartrigeCommand nCommand);
 
+INT32 BurnDrvFrame();
 INT32 BurnDrvRedraw();
 INT32 BurnRecalcPal();
 INT32 BurnDrvGetPaletteEntries();
 
 INT32 BurnSetProgressRange(double dProgressRange);
-INT32 BurnUpdateProgress(double dProgressStep, const TCHAR* pszText, BOOL bAbs);
+INT32 BurnUpdateProgress(double dProgressStep, const TCHAR* pszText, bool bAbs);
 
 void BurnLocalisationSetName(char *szName, TCHAR *szLongName);
 
@@ -267,9 +270,9 @@ INT32 BurnDrvGetVisibleSize(INT32* pnWidth, INT32* pnHeight);
 INT32 BurnDrvGetVisibleOffs(INT32* pnLeft, INT32* pnTop);
 INT32 BurnDrvGetFullSize(INT32* pnWidth, INT32* pnHeight);
 INT32 BurnDrvGetAspect(INT32* pnXAspect, INT32* pnYAspect);
-INT32 BurnDrvGetHardwareCode();
+UINT32 BurnDrvGetHardwareCode();
 INT32 BurnDrvGetFlags();
-BOOL BurnDrvIsWorking();
+bool BurnDrvIsWorking();
 INT32 BurnDrvGetMaxPlayers();
 INT32 BurnDrvSetVisibleSize(INT32 pnWidth, INT32 pnHeight);
 INT32 BurnDrvSetAspect(INT32 pnXAspect, INT32 pnYAspect);
@@ -280,7 +283,7 @@ INT32 BurnDrvGetSampleName(char** pszName, UINT32 i, INT32 nAka);
 
 void Reinitialise();
 
-extern BOOL bDoIpsPatch;
+extern bool bDoIpsPatch;
 void IpsApplyPatches(UINT8* base, char* rom_name);
 
 // ---------------------------------------------------------------------------
@@ -331,6 +334,7 @@ void IpsApplyPatches(UINT8* base, char* rom_name);
 #define HARDWARE_PREFIX_SETA							(0x15000000)
 #define HARDWARE_PREFIX_TECHNOS							(0x16000000)
 #define HARDWARE_PREFIX_PCENGINE						(0x17000000)
+#define HARDWARE_PREFIX_SEGA_MASTER_SYSTEM				(0x18000000)
 
 #define HARDWARE_MISC_PRE90S							(HARDWARE_PREFIX_MISC_PRE90S)
 #define HARDWARE_MISC_POST90S							(HARDWARE_PREFIX_MISC_POST90S)
@@ -427,6 +431,8 @@ void IpsApplyPatches(UINT8* base, char* rom_name);
 #define HARDWARE_IREM_M92								(HARDWARE_PREFIX_IREM | 0x00050000)
 #define HARDWARE_IREM_MISC								(HARDWARE_PREFIX_IREM | 0x00060000)
 
+#define HARDWARE_SEGA_MASTER_SYSTEM						(HARDWARE_PREFIX_SEGA_MASTER_SYSTEM)
+
 #define HARDWARE_SEGA_MEGADRIVE							(HARDWARE_PREFIX_SEGA_MEGADRIVE)
 
 #define HARDWARE_SEGA_MEGADRIVE_PCB_SEGA_EEPROM			(1)
@@ -466,7 +472,7 @@ void IpsApplyPatches(UINT8* base, char* rom_name);
 #define HARDWARE_SEGA_MEGADRIVE_PCB_REALTEC				(35)
 #define HARDWARE_SEGA_MEGADRIVE_PCB_MC_SUP19IN1			(36)
 #define HARDWARE_SEGA_MEGADRIVE_PCB_MC_SUP15IN1			(37)
-#define HARDWARE_SEGA_MEGADRIVE_PCB_12IN1				(38)
+#define HARDWARE_SEGA_MEGADRIVE_PCB_MC_12IN1			(38)
 #define HARDWARE_SEGA_MEGADRIVE_PCB_TOPFIGHTER			(39)
 #define HARDWARE_SEGA_MEGADRIVE_PCB_POKEMON				(40)
 #define HARDWARE_SEGA_MEGADRIVE_PCB_POKEMON2			(41)
@@ -535,6 +541,8 @@ void IpsApplyPatches(UINT8* base, char* rom_name);
 #define FBF_PWRINST										(1 << 8)
 
 #ifdef __cplusplus
-} // End of extern "C"
+ } // End of extern "C"
 #endif
 
+
+#endif

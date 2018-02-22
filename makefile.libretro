@@ -1,0 +1,526 @@
+DEBUG = 0
+LIBRETRO_OPTIMIZATIONS = 1
+FRONTEND_SUPPORTS_RGB565 = 1
+HAVE_GRIFFIN = 0
+EXTERNAL_ZLIB = 0
+INCLUDE_7Z_SUPPORT = 1
+
+# system platform
+ifeq ($(platform),)
+   platform = unix
+   ifeq ($(shell uname -a),)
+      platform = win
+      EXE_EXT=.exe
+   else ifneq ($(findstring Darwin,$(shell uname -a)),)
+      platform = osx
+      arch = intel
+      ifeq ($(shell uname -p),powerpc)
+         arch = ppc
+      endif
+   else ifneq ($(findstring MINGW,$(shell uname -a)),)
+      platform = win
+      EXE_EXT=.exe
+   endif
+else ifneq (,$(findstring armv,$(platform)))
+   override platform += unix
+endif
+
+
+MAIN_FBA_DIR := src
+FBA_BURN_DIR := $(MAIN_FBA_DIR)/burn
+FBA_BURN_DRIVERS_DIR := $(MAIN_FBA_DIR)/burn/drv
+FBA_BURNER_DIR := $(MAIN_FBA_DIR)/burner
+LIBRETRO_DIR := $(FBA_BURNER_DIR)/libretro
+LIBRETRO_COMM_DIR  = $(LIBRETRO_DIR)/libretro-common
+FBA_CPU_DIR := $(MAIN_FBA_DIR)/cpu
+FBA_LIB_DIR := $(MAIN_FBA_DIR)/dep/libs
+FBA_INTERFACE_DIR := $(MAIN_FBA_DIR)/intf
+FBA_GENERATED_DIR = $(MAIN_FBA_DIR)/dep/generated
+FBA_SCRIPTS_DIR = $(MAIN_FBA_DIR)/dep/scripts
+GRIFFIN_DIR = griffin-libretro
+
+# TARGET
+TARGET_NAME := fbalpha2012_neogeo
+FBA_DEFINES += -DTARGET=\"\ Neo\ Geo\" -DNEOGEO_ONLY
+
+SPACE :=
+SPACE := $(SPACE) $(SPACE)
+BACKSLASH :=
+BACKSLASH := \$(BACKSLASH)
+filter_out1 = $(filter-out $(firstword $1),$1)
+filter_out2 = $(call filter_out1,$(call filter_out1,$1))
+unixpath = $(subst \,/,$1)
+unixcygpath = /$(subst :,,$(call unixpath,$1))
+
+ifneq (,$(findstring msvc,$(platform)))
+	OBJOUT = -Fo
+	LINKOUT = -out:
+ifeq ($(STATIC_LINKING),1)
+	LD ?= lib.exe
+	STATIC_LINKING=0
+else
+	LD = link.exe
+endif
+else
+	OBJOUT   = -o
+	LINKOUT  = -o 
+	LD = $(CXX)
+endif
+
+# GIT HASH
+GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+   FBA_DEFINES += -DGIT_VERSION=\"$(GIT_VERSION)\"
+endif
+
+# Unix
+ifneq (,$(findstring unix,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+
+# OS X
+else ifeq ($(platform), osx)
+   TARGET := $(TARGET_NAME)_libretro.dylib
+   fpic := -fPIC
+   SHARED := -dynamiclib
+   ifeq ($(arch),ppc)
+      ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN -DMSB_FIRST
+   endif
+   OSXVER = `sw_vers -productVersion | cut -d. -f 2`
+   OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9)) && echo "YES"`
+   fpic += -mmacosx-version-min=10.1
+   ifndef ($(NOUNIVERSAL))
+      CFLAGS += $(ARCHFLAGS)
+      CXXFLAGS += $(ARCHFLAGS)
+      LDFLAGS += $(ARCHFLAGS)
+   endif
+
+# iOS
+else ifneq (,$(findstring ios,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro_ios.dylib
+   fpic := -fPIC
+   SHARED := -dynamiclib
+
+   ifeq ($(IOSSDK),)
+      IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
+   endif
+   ifeq ($(platform),ios-arm64)
+      CC = cc -arch arm64 -isysroot $(IOSSDK)
+      CXX = c++ -arch arm64 -isysroot $(IOSSDK)   
+   else
+      CC = cc -arch armv7 -isysroot $(IOSSDK)
+      CXX = c++ -arch armv7 -isysroot $(IOSSDK)
+   endif
+   CFLAGS += -DIOS
+   ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
+      CC += -miphoneos-version-min=8.0
+      CXX +=  -miphoneos-version-min=8.0
+      CFLAGS += -miphoneos-version-min=8.0
+   else
+      CC += -miphoneos-version-min=5.0
+      CXX +=  -miphoneos-version-min=5.0
+      CFLAGS += -miphoneos-version-min=5.0
+   endif
+
+# Theos iOS
+else ifeq ($(platform), theos_ios)
+   DEPLOYMENT_IOSVERSION = 5.0
+   TARGET = iphone:latest:$(DEPLOYMENT_IOSVERSION)
+   ARCHS = armv7 armv7s
+   TARGET_IPHONEOS_DEPLOYMENT_VERSION=$(DEPLOYMENT_IOSVERSION)
+   THEOS_BUILD_DIR := objs
+   include $(THEOS)/makefiles/common.mk
+   LIBRARY_NAME = $(TARGET_NAME)_libretro_ios
+   CFLAGS += -DIOS
+
+# QNX
+else ifeq ($(platform), qnx)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).so
+   fpic := -fPIC
+   SHARED := -lcpp -lm -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   CC = qcc -Vgcc_ntoarmv7le
+   CXX = QCC -Vgcc_ntoarmv7le_cpp
+   AR = qcc -Vgcc_ntoarmv7le
+   PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
+
+# PS3
+else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
+   TARGET := $(TARGET_NAME)_libretro_ps3.a
+   ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN -DMSB_FIRST
+   PLATFORM_DEFINES += -D__CELLOS_LV2__
+   EXTERNAL_ZLIB = 1
+   STATIC_LINKING = 1
+
+   # sncps3
+   ifneq (,$(findstring sncps3,$(platform)))
+      PLATFORM_DEFINES += -DSN_TARGET_PS3
+      CXX = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
+      CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
+      AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
+
+   # PS3
+   else ifneq (,$(findstring ps3,$(platform)))
+      CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
+      CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
+      AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+      
+   # Lightweight PS3 Homebrew SDK
+   else ifneq (,$(findstring psl1ght,$(platform)))
+      TARGET := $(TARGET_NAME)_libretro_$(platform).a
+      CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
+      CXX = $(PS3DEV)/ppu/bin/ppu-g++$(EXE_EXT)
+      AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
+   endif
+
+# Vita
+else ifeq ($(platform), vita)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = arm-vita-eabi-gcc$(EXE_EXT)
+   CC_AS = arm-vita-eabi-gcc$(EXE_EXT)
+   CXX = arm-vita-eabi-g++$(EXE_EXT)
+   AR = arm-vita-eabi-ar$(EXE_EXT)
+   PLATFORM_DEFINES += -DVITA
+   EXTERNAL_ZLIB = 1
+   STATIC_LINKING = 1
+   INCLUDE_7Z_SUPPORT = 0
+
+# CTR (3DS)
+else ifeq ($(platform), ctr)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   EXTERNAL_ZLIB = 1
+   CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
+   PLATFORM_DEFINES += -DARM11 -D_3DS
+   PLATFORM_DEFINES += -march=armv6k -mtune=mpcore -mfloat-abi=hard
+   PLATFORM_DEFINES += -Wall -mword-relocations
+   PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
+   CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+   CPU_ARCH := arm
+   STATIC_LINKING = 1
+   INCLUDE_7Z_SUPPORT = 0
+
+# Xbox 360
+else ifeq ($(platform), xenon)
+   TARGET := $(TARGET_NAME)_libretro_xenon360.a
+   CC = xenon-gcc$(EXE_EXT)
+   CXX = xenon-g++$(EXE_EXT)
+   AR = xenon-ar$(EXE_EXT)
+   ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN -DMSB_FIRST
+   PLATFORM_DEFINES := -D__LIBXENON__ -m32 -D__ppc__
+   STATIC_LINKING = 1
+
+# Nintendo Game Cube / Wii / WiiU
+else ifneq (,$(filter $(platform), ngc wii wiiu))
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+   ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN -DMSB_FIRST
+   PLATFORM_DEFINES := -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
+   EXTERNAL_ZLIB = 1
+   STATIC_LINKING = 1
+
+   # Nintendo WiiU
+   ifneq (,$(findstring wiiu,$(platform)))
+      PLATFORM_DEFINES += -DHW_RVL -mwup -mcpu=750 -meabi -mhard-float
+
+   # Nintendo Wii
+   else ifneq (,$(findstring wii,$(platform)))
+      PLATFORM_DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+
+   # Nintendo Game Cube
+   else ifneq (,$(findstring ngc,$(platform)))
+      PLATFORM_DEFINES += -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
+   endif
+
+# Emscripten
+else ifeq ($(platform), emscripten)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).bc
+   PLATFORM_DEFINES := -DUSE_FILE32API
+   ENDIANNESS_DEFINES := -DNO_UNALIGNED_MEM
+   EXTERNAL_ZLIB = 1
+   STATIC_LINKING = 1
+
+# GCW0
+else ifeq ($(platform), gcw0)
+   TARGET := $(TARGET_NAME)_libretro.so
+   CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
+   CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
+   AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar
+   fpic := -fPIC
+   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   LDFLAGS += $(PTHREAD_FLAGS)
+   CFLAGS += $(PTHREAD_FLAGS) -DHAVE_MKDIR
+   CFLAGS += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
+   CXXFLAGS += -std=gnu++11 -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
+
+# Windows MSVC 2003 Xbox 1
+else ifeq ($(platform), xbox1_msvc2003)
+TARGET := $(TARGET_NAME)_libretro_xdk1.lib
+CC  = CL.exe
+CXX  = CL.exe
+LD   = lib.exe
+
+export INCLUDE := $(XDK)/xbox/include
+export LIB := $(XDK)/xbox/lib
+PATH := $(call unixcygpath,$(XDK)/xbox/bin/vc71):$(PATH)
+PSS_STYLE :=2
+CFLAGS   += -D_XBOX -D_XBOX1
+CXXFLAGS += -D_XBOX -D_XBOX1
+STATIC_LINKING=1
+
+# Windows MSVC 2003 x86
+else ifeq ($(platform), windows_msvc2003_x86)
+	CC  = cl.exe
+CXX = cl.exe
+
+PATH := $(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../../Vc7/bin"):$(PATH)
+PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../IDE")
+INCLUDE := $(shell IFS=$$'\n'; cygpath -w "$(VS71COMNTOOLS)../../Vc7/include")
+LIB := $(shell IFS=$$'\n'; cygpath -w "$(VS71COMNTOOLS)../../Vc7/lib")
+BIN := $(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../../Vc7/bin")
+
+WindowsSdkDir := $(INETSDK)
+
+export INCLUDE := $(INCLUDE);$(INETSDK)/Include;libretro-common/include/compat/msvc
+export LIB := $(LIB);$(WindowsSdkDir);$(INETSDK)/Lib
+TARGET := $(TARGET_NAME)_libretro.dll
+PSS_STYLE :=2
+LDFLAGS += -DLL
+CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
+
+# Windows
+else
+   TARGET := $(TARGET_NAME)_libretro.dll
+   CC = gcc
+   CXX = g++
+   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   LDFLAGS += -static-libgcc -static-libstdc++
+
+endif
+
+CC_SYSTEM = gcc
+CXX_SYSTEM = g++
+
+BURN_BLACKLIST := \
+	$(FBA_CPU_DIR)/m68k/m68k_in.c \
+	$(FBA_CPU_DIR)/m68k/m68kmake.c \
+	$(FBA_CPU_DIR)/m68k/m68kdasm.c \
+
+ifeq ($(HAVE_GRIFFIN), 1)
+   GRIFFIN_CXXSRCFILES := $(GRIFFIN_DIR)/neogeo.cpp $(GRIFFIN_DIR)/cpu-m68k.cpp
+   BURN_BLACKLIST += $(FBA_CPU_DIR)/m68000_intf.cpp
+else
+   NEOGEO_DIR := $(FBA_BURN_DRIVERS_DIR)/neogeo
+   M68K_DIR := $(FBA_CPU_DIR)/m68k
+endif
+
+FBA_BURN_DIRS := $(FBA_BURN_DIR) \
+	$(FBA_BURN_DIR)/devices \
+	$(FBA_BURN_DIR)/snd \
+	$(NEOGEO_DIR) \
+	$(FBA_BURN_DRIVERS_DIR)
+
+FBA_CPU_DIRS := $(FBA_CPU_DIR) \
+	$(M68K_DIR) \
+	$(FBA_CPU_DIR)/z80
+
+
+# Neo Geo Only
+   SOURCES_CXX := $(FBA_BURN_DIR)/devices/eeprom.cpp \
+		$(FBA_BURN_DIR)/snd/burn_ym2610.cpp \
+		$(FBA_BURN_DIR)/snd/burn_ymf278b.cpp \
+		$(FBA_BURN_DIR)/snd/ymz280b.cpp \
+		$(FBA_CPU_DIR)/m68000_intf.cpp \
+		$(FBA_CPU_DIR)/z80_intf.cpp \
+		$(LIBRETRO_DIR)/neocdlist.cpp
+
+   SOURCES_C :=	$(FBA_BURN_DIR)/snd/ay8910.c \
+		$(FBA_BURN_DIR)/snd/fm.c \
+		$(FBA_BURN_DIR)/snd/ymf278b.c \
+		$(FBA_BURN_DIR)/snd/ymdeltat.c
+
+   FBA_BURN_DIRS := $(NEOGEO_DIR) \
+		$(FBA_BURN_DIR) \
+		$(FBA_BURN_DRIVERS_DIR)
+
+   FBA_CPU_DIRS := $(FBA_CPU_DIR)/a68k \
+		$(M68K_DIR) \
+		$(FBA_CPU_DIR)/z80
+
+FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS)
+
+
+ifeq ($(EXTERNAL_ZLIB), 1)
+   FBA_DEFINES += -DEXTERNAL_ZLIB
+   LDFLAGS += -lz
+else
+   FBA_SRC_DIRS += $(FBA_LIB_DIR)/zlib
+endif
+
+ifeq ($(INCLUDE_7Z_SUPPORT), 1)
+   FBA_DEFINES += -DINCLUDE_7Z_SUPPORT
+   FBA_SRC_DIRS += $(FBA_LIB_DIR)/lib7z
+   BURN_BLACKLIST += $(FBA_LIB_DIR)/lib7z/LzFindMt.c \
+		$(FBA_LIB_DIR)/lib7z/LzmaEnc.c \
+		$(FBA_LIB_DIR)/lib7z/MtCoder.c \
+		$(FBA_LIB_DIR)/lib7z/Lzma2Enc.c \
+		$(FBA_LIB_DIR)/lib7z/Bcj2Enc.c \
+		$(FBA_LIB_DIR)/lib7z/Threads.c \
+		$(FBA_LIB_DIR)/lib7z/Lzma86Enc.c \
+		$(FBA_LIB_DIR)/lib7z/LzmaLib.c \
+		$(FBA_LIB_DIR)/lib7z/XzEnc.c
+else
+   BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp
+endif
+
+SOURCES_CXX += $(GRIFFIN_CXXSRCFILES) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
+SOURCES_CXX += $(LIBRETRO_DIR)/libretro.cpp
+SOURCES_C += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
+
+FBA_CXXOBJ := $(SOURCES_CXX:.cpp=.o)
+FBA_COBJ := $(SOURCES_C:.c=.o)
+
+OBJS := $(FBA_COBJ) $(FBA_CXXOBJ)
+
+FBA_DEFINES += -DUSE_SPEEDHACKS -D__LIBRETRO__ \
+	-D__LIBRETRO_OPTIMIZATIONS__ \
+	-DWANT_NEOGEOCD \
+	$(ENDIANNESS_DEFINES) \
+	$(PLATFORM_DEFINES)
+
+ifneq ($(platform),qnx)
+   FBA_DEFINES += -DSH2_INLINE="static inline"
+endif
+
+INCFLAGS := \
+	-I$(LIBRETRO_DIR) \
+	-I$(FBA_BURN_DIR) \
+	-I$(MAIN_FBA_DIR)/cpu \
+	-I$(FBA_BURN_DIR)/snd \
+	-I$(FBA_BURN_DIR)/devices \
+	-I$(FBA_INTERFACE_DIR) \
+	-I$(FBA_INTERFACE_DIR)/input \
+	-I$(FBA_INTERFACE_DIR)/cd \
+	-I$(FBA_BURNER_DIR) \
+	-I$(FBA_CPU_DIR) \
+	-I$(FBA_CPU_DIR)/i8039 \
+	-I$(FBA_LIB_DIR)/zlib \
+	-I$(FBA_LIB_DIR)/lib7z \
+	-I$(FBA_BURN_DIR)/drv/capcom \
+	-I$(FBA_BURN_DIR)/drv/dataeast \
+	-I$(FBA_BURN_DIR)/drv/cave \
+	-I$(FBA_BURN_DIR)/drv/neogeo \
+	-I$(FBA_BURN_DIR)/drv/psikyo \
+	-I$(FBA_BURN_DIR)/drv/sega \
+	-I$(FBA_BURN_DIR)/drv/toaplan \
+	-I$(FBA_BURN_DIR)/drv/taito \
+	-I$(FBA_GENERATED_DIR) \
+	-I$(LIBRETRO_COMM_DIR)/include \
+	-I$(FBA_LIB_DIR)
+
+ifneq (,$(findstring msvc2003,$(platform)))
+INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
+endif
+
+ifeq ($(LIBRETRO_OPTIMIZATIONS), 1)
+   FBA_DEFINES += -D__LIBRETRO_OPTIMIZATIONS__
+endif
+
+ifeq ($(DEBUG), 1)
+   CFLAGS += -O0 -g
+   CXXFLAGS += -O0 -g
+else
+   CFLAGS += -O2 -DNDEBUG
+   CXXFLAGS += -O2 -DNDEBUG
+endif
+
+ifeq ($(platform), sncps3)
+   WARNINGS_DEFINES =
+else ifneq (,$(findstring msvc,$(platform)))
+	WARNINGS_DEFINES =
+else
+   WARNINGS_DEFINES = -Wno-write-strings
+endif
+
+CFLAGS += $(fpic) $(WARNINGS_DEFINES) $(FBA_DEFINES)
+CXXFLAGS += $(fpic) $(WARNINGS_DEFINES) $(FBA_DEFINES)
+LDFLAGS += $(fpic)
+
+ifeq ($(FRONTEND_SUPPORTS_RGB565), 1)
+   CFLAGS += -DFRONTEND_SUPPORTS_RGB565
+   CXXFLAGS += -DFRONTEND_SUPPORTS_RGB565
+endif
+
+ifeq ($(ZLIB_INTERNAL), 0)
+   INCFLAGS += -I$(FBA_LIB_DIR)
+endif
+
+ifeq ($(LIBRETRO_OPTIMIZATIONS), 1)
+   GENERATE_OPTS := -D__LIBRETRO_OPTIMIZATIONS__
+else
+   GENERATE_OPTS :=
+endif
+
+PERL = perl$(EXE_EXT)
+M68KMAKE_EXE = m68kmake$(EXE_EXT)
+EXE_PREFIX = ./
+
+.PHONY: clean generate-files generate-files-clean clean-objs
+
+ifeq ($(platform), theos_ios)
+COMMON_FLAGS := -DIOS -DARM $(COMMON_DEFINES) $(INCFLAGS) -I$(THEOS_INCLUDE_PATH) -Wno-error
+$(LIBRARY_NAME)_CFLAGS += $(CFLAGS) $(COMMON_FLAGS)
+$(LIBRARY_NAME)_CXXFLAGS += $(CXXFLAGS) $(COMMON_FLAGS)
+${LIBRARY_NAME}_FILES = $(SOURCES_CXX) $(SOURCES_C)
+include $(THEOS_MAKE_PATH)/library.mk
+else
+all: $(TARGET)
+
+
+generate-files-clean:
+	rm -rf $(FBA_GENERATED_DIR)/
+	rm -rf $(FBA_CPU_DIR)/m68k/m68kopac.c
+	rm -rf $(FBA_CPU_DIR)/m68k/m68kopdm.c
+	rm -rf $(FBA_CPU_DIR)/m68k/m68kopnz.c
+	rm -rf $(FBA_CPU_DIR)/m68k/m68kops.c
+	rm -rf $(FBA_CPU_DIR)/m68k/m68kops.h
+
+generate-files:
+	@mkdir -p $(FBA_GENERATED_DIR) 2>/dev/null || /bin/true
+	@echo "Generating $(FBA_GENERATED_DIR)/driverlist.h..."
+	@echo ""
+	$(PERL) $(FBA_SCRIPTS_DIR)/gamelist.pl -o $(FBA_GENERATED_DIR)/driverlist.h -l gamelist.txt $(FBA_BURN_DRIVERS_DIR)/neogeo
+	@echo ""
+	@echo "Generating $(FBA_GENERATED_DIR)/neo_sprite_func.h..."
+	@echo ""
+	@echo "Generating $(FBA_GENERATED_DIR)/neo_sprite_func_table.h..."
+	@echo ""
+	$(PERL) $(FBA_SCRIPTS_DIR)/neo_sprite_func.pl -o $(FBA_GENERATED_DIR)/neo_sprite_func.h $(LIBRETRO_OPTIMIZATIONS)
+	$(CC_SYSTEM) $(GENERATE_OPTS) -o $(M68KMAKE_EXE) $(FBA_CPU_DIR)/m68k/m68kmake.c
+	$(EXE_PREFIX)$(M68KMAKE_EXE) $(FBA_CPU_DIR)/m68k/ $(FBA_CPU_DIR)/m68k/m68k_in.c
+
+%.o: %.cpp
+	@$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS)
+
+%.o: %.c
+	@$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
+
+$(TARGET): $(OBJS)
+ifeq ($(STATIC_LINKING), 1)
+	$(AR) rcs $@ $(OBJS)
+else
+	@$(LD) $(LINKOUT)$@ $(SHARED) $(OBJS) $(LDFLAGS)
+endif
+
+
+clean-objs:
+	rm -f $(OBJS)
+
+clean:
+	rm -f $(TARGET)
+	rm -f $(OBJS)
+	rm -f $(M68KMAKE_EXE)
+endif

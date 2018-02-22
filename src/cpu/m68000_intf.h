@@ -1,10 +1,5 @@
 // 68000 (Sixty Eight K) Interface - header file
 #include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef FASTCALL
  #undef __fastcall
  #define __fastcall
@@ -37,8 +32,8 @@ extern "C" {
 #endif
 
 #ifdef EMU_A68K
-void __cdecl M68000_RUN(void);
-void __cdecl M68000_RESET(void);
+ extern "C" void __cdecl M68000_RUN();
+ extern "C" void __cdecl M68000_RESET();
 #endif
 
 #ifdef EMU_A68K
@@ -54,19 +49,19 @@ void __cdecl M68000_RESET(void);
 	UINT32 sfc, dfc, usp, vbr;
 	UINT32 nAsmBank, nCpuVersion;
  };
- struct A68KContext M68000_regs;
+ extern "C" struct A68KContext M68000_regs;
  extern     struct A68KContext* SekRegs[SEK_MAX];
 
- UINT8* OP_ROM;
- UINT8* OP_RAM;
+ extern "C" UINT8* OP_ROM;
+ extern "C" UINT8* OP_RAM;
 
  void __fastcall AsekChangePc(UINT32 pc);
 #endif
 
 #ifdef EMU_M68K
- INT32 nSekM68KContextSize[SEK_MAX];
- INT8* SekM68KContext[SEK_MAX];
- INT32 m68k_ICount;
+ extern "C" INT32 nSekM68KContextSize[SEK_MAX];
+ extern "C" INT8* SekM68KContext[SEK_MAX];
+ extern "C" INT32 m68k_ICount;
 #endif
 
 typedef UINT8 (__fastcall *pSekReadByteHandler)(UINT32 a);
@@ -236,7 +231,3 @@ INT32 SekSetCmpCallback(pSekCmpCallback pCallback);
 INT32 SekGetPC(INT32 n);
 
 INT32 SekScan(INT32 nAction);
-
-#ifdef __cplusplus
-}
-#endif

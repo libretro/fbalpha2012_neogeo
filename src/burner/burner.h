@@ -1,6 +1,6 @@
 // FB Alpha - Emulator for MC68000/Z80 based arcade games
 //            Refer to the "license.txt" file for more info
-
+#pragma once
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -17,15 +17,18 @@
 #define MAKE_STRING(s) MAKE_STRING_2(s)
 
 #define BZIP_MAX (20)								// Maximum zip files to search through
-#define DIRS_MAX (20)								// Maximum number of directories to search
+#if defined (BUILD_QT)
+ #define DIRS_MAX (4)								// Maximum number of directories to search
+#else
+ #define DIRS_MAX (20)								// Maximum number of directories to search
+#endif
 
 #include "title.h"
 #include "burn.h"
 
 // ---------------------------------------------------------------------------
 // OS dependent functionality
-typedef struct tagIMAGE
-{
+typedef struct tagIMAGE {
 	unsigned int	width;
 	unsigned int	height;
 	unsigned int	rowbytes;
@@ -35,15 +38,7 @@ typedef struct tagIMAGE
 	unsigned int	flags;
 } IMAGE;
 
-#if defined (BUILD_WIN32)
- #include "burner_win32.h"
-#elif defined (BUILD_SDL)
- #include "burner_sdl.h"
-#elif defined (_XBOX) && !defined(__LIBRETRO__)
- #include "burner_xbox.h"
-#elif defined(__LIBRETRO__)
 #include "burner_libretro.h"
-#endif
 
 #if defined (INCLUDE_LIB_PNGH)
  #include "png.h"
@@ -51,10 +46,6 @@ typedef struct tagIMAGE
 
 // ---------------------------------------------------------------------------
 // OS independent functionality
-
-#ifndef __LIBRETRO__
-#include "interface.h"
-#endif
 
 #define IMG_FREE		(1 << 0)
 
@@ -64,11 +55,13 @@ typedef struct tagIMAGE
 #define FIND_QT(s) while (*s && *s != _T('\"')) { s++; }	// Find quote
 
 // image.cpp
+extern int bPngImageOrientation;
 void img_free(IMAGE* img);
 INT32 img_alloc(IMAGE* img);
 
-BOOL PNGIsImage(FILE* fp);
+bool PNGIsImage(FILE* fp);
 INT32 PNGLoad(IMAGE* img, FILE* fp, INT32 nPreset);
+INT32 PNGGetInfo(IMAGE* img, FILE *fp);
 
 // gami.cpp
 extern struct GameInp* GameInp;
@@ -80,36 +73,46 @@ extern INT32 nAnalogSpeed;
 
 extern INT32 nFireButtons;
 
-extern BOOL bStreetFighterLayout;
-extern BOOL bLeftAltkeyMapped;
+extern bool bStreetFighterLayout;
+extern bool bLeftAltkeyMapped;
 
 INT32 GameInpInit();
 INT32 GameInpExit();
 TCHAR* InputCodeDesc(INT32 c);
 TCHAR* InpToDesc(struct GameInp* pgi);
 TCHAR* InpMacroToDesc(struct GameInp* pgi);
-#ifndef __LIBRETRO__
-void GameInpCheckLeftAlt();
-void GameInpCheckMouse();
-#endif
 INT32 GameInpBlank(INT32 bDipSwitch);
-INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, BOOL bOverWrite);
+INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, bool bOverWrite);
 INT32 ConfigGameLoadHardwareDefaults();
 INT32 GameInpDefault();
 INT32 GameInpWrite(FILE* h);
-INT32 GameInpRead(TCHAR* szVal, BOOL bOverWrite);
-INT32 GameInpMacroRead(TCHAR* szVal, BOOL bOverWrite);
-INT32 GameInpCustomRead(TCHAR* szVal, BOOL bOverWrite);
+INT32 GameInpRead(TCHAR* szVal, bool bOverWrite);
+INT32 GameInpMacroRead(TCHAR* szVal, bool bOverWrite);
+INT32 GameInpCustomRead(TCHAR* szVal, bool bOverWrite);
+
+// inp_interface.cpp
+extern INT32 nAutoFireRate;
 
 // Player Default Controls
 extern INT32 nPlayerDefaultControls[4];
 extern TCHAR szPlayerDefaultIni[4][MAX_PATH];
 
+// mappable System Macros for the Input Dialogue
+extern UINT8 macroSystemPause;
+extern UINT8 macroSystemFFWD;
+extern UINT8 macroSystemSaveState;
+extern UINT8 macroSystemLoadState;
+extern UINT8 macroSystemUNDOState;
+
+// scrn.cpp
+extern void scrnSSUndo();
+extern bool bHasFocus;
+
 // cong.cpp
 extern const INT32 nConfigMinVersion;					// Minimum version of application for which input files are valid
-extern BOOL bSaveInputs;
-INT32 ConfigGameLoad(BOOL bOverWrite);				// char* lpszName = NULL
-INT32 ConfigGameSave(BOOL bSave);
+extern bool bSaveInputs;
+INT32 ConfigGameLoad(bool bOverWrite);				// char* lpszName = NULL
+INT32 ConfigGameSave(bool bSave);
 
 // conc.cpp
 INT32 ConfigCheatLoad();
@@ -145,6 +148,12 @@ void ComputeGammaLUT();
 #define DAT_PCENGINE_ONLY	2
 #define DAT_TG16_ONLY		3
 #define DAT_SGX_ONLY		4
+#define DAT_SG1000_ONLY		5
+#define DAT_COLECO_ONLY		6
+#define DAT_MASTERSYSTEM_ONLY		7
+#define DAT_GAMEGEAR_ONLY		8
+#define DAT_MSX_ONLY        9
+
 INT32 write_datfile(INT32 bType, FILE* fDat);
 INT32 create_datfile(TCHAR* szFilename, INT32 bType);
 
@@ -156,6 +165,7 @@ INT32 BurnStateLoadEmbed(FILE* fp, INT32 nOffset, INT32 bAll, INT32 (*pLoadGame)
 INT32 BurnStateLoad(TCHAR* szName, INT32 bAll, INT32 (*pLoadGame)());
 INT32 BurnStateSaveEmbed(FILE* fp, INT32 nOffset, INT32 bAll);
 INT32 BurnStateSave(TCHAR* szName, INT32 bAll);
+INT32 BurnStateUNDO(TCHAR* szName);
 
 // statec.cpp
 INT32 BurnStateCompress(UINT8** pDef, INT32* pnDefLen, INT32 bAll);
@@ -176,7 +186,7 @@ INT32 __cdecl ZipLoadOneFile(char* arcName, const char* fileName, void** Dest, I
 #define BZIP_STATUS_BADDATA	(1)
 #define BZIP_STATUS_ERROR	(2)
 
-INT32 BzipOpen(BOOL);
+INT32 BzipOpen(bool);
 INT32 BzipClose();
 INT32 BzipInit();
 INT32 BzipExit();
@@ -188,3 +198,15 @@ extern TCHAR szAppTitlesPath[MAX_PATH];
 extern TCHAR szAppCheatsPath[MAX_PATH];
 extern TCHAR szAppIpsPath[MAX_PATH];
 extern TCHAR szAppIconsPath[MAX_PATH];
+extern TCHAR szAppSelectPath[MAX_PATH];
+extern TCHAR szAppVersusPath[MAX_PATH];
+extern TCHAR szAppHowtoPath[MAX_PATH];
+extern TCHAR szAppScoresPath[MAX_PATH];
+extern TCHAR szAppBossesPath[MAX_PATH];
+extern TCHAR szAppGameoverPath[MAX_PATH];
+extern TCHAR szAppFlyersPath[MAX_PATH];
+extern TCHAR szAppMarqueesPath[MAX_PATH];
+extern TCHAR szAppControlsPath[MAX_PATH];
+extern TCHAR szAppCabinetsPath[MAX_PATH];
+extern TCHAR szAppPCBsPath[MAX_PATH];
+extern TCHAR szAppHistoryPath[MAX_PATH];

@@ -18,6 +18,11 @@ FBA_GENERATED_DIR = $(MAIN_FBA_DIR)/dep/generated
 FBA_SCRIPTS_DIR = $(MAIN_FBA_DIR)/dep/scripts
 GRIFFIN_DIR := ../../../griffin-libretro
 
+GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
+ifneq ($(GIT_VERSION)," unknown")
+	LOCAL_CXXFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+endif
+
 ifeq ($(TARGET_ARCH),arm)
 LOCAL_CXXFLAGS += -DANDROID_ARM
 LOCAL_ARM_MODE := arm
@@ -35,8 +40,7 @@ ifeq ($(TARGET_ARCH),mips)
 LOCAL_CXXFLAGS += -DANDROID_MIPS -D__mips__ -D__MIPSEL__
 endif
 
-BURN_BLACKLIST := $(FBA_BURNER_DIR)/un7z.cpp \
-	$(FBA_CPU_DIR)/arm7/arm7exec.c \
+BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_CPU_DIR)/arm7/arm7core.c \
 	$(FBA_CPU_DIR)/hd6309/6309tbl.c \
 	$(FBA_CPU_DIR)/hd6309/6309ops.c \
@@ -61,6 +65,8 @@ BURN_BLACKLIST := $(FBA_BURNER_DIR)/un7z.cpp \
 	$(FBA_BURNER_DIR)/cong.cpp \
 	$(FBA_BURNER_DIR)/image.cpp \
 	$(FBA_BURNER_DIR)/misc.cpp \
+	$(FBA_BURNER_DIR)/gami.cpp \
+	$(FBA_BURNER_DIR)/gamc.cpp \
 	$(FBA_CPU_DIR)/h6280/tblh6280.c \
 	$(FBA_CPU_DIR)/m6502/t65sc02.c \
 	$(FBA_CPU_DIR)/m6502/t65c02.c \
@@ -70,7 +76,8 @@ BURN_BLACKLIST := $(FBA_BURNER_DIR)/un7z.cpp \
 	$(FBA_CPU_DIR)/nec/v25sfr.c \
 	$(FBA_CPU_DIR)/nec/v25instr.c \
 	$(FBA_CPU_DIR)/nec/necinstr.c \
-	$(FBA_BURN_DIR)/drv/capcom/ctv_make.cpp
+	$(FBA_BURN_DIR)/drv/capcom/ctv_make.cpp \
+	$(FBA_BURN_DIR)/drv/pgm/pgm_sprite_create.cpp
 
 ifeq ($(HAVE_GRIFFIN), 1)
 GRIFFIN_CXX_SRC_FILES := $(GRIFFIN_DIR)/cps12.cpp $(GRIFFIN_DIR)/cps3.cpp $(GRIFFIN_DIR)/neogeo.cpp $(GRIFFIN_DIR)/pgm.cpp $(GRIFFIN_DIR)/snes.cpp $(GRIFFIN_DIR)/galaxian.cpp
@@ -138,8 +145,8 @@ LOCAL_SRC_FILES := $(GRIFFIN_CXX_SRC_FILES) $(CYCLONE_SRC)  $(filter-out $(BURN_
 
 GLOBAL_DEFINES := -DWANT_NEOGEOCD
 
-LOCAL_CXXFLAGS += -O3 -fno-stack-protector -DUSE_SPEEDHACKS -DINLINE="static inline" -DSH2_INLINE="static inline" -D__LIBRETRO_OPTIMIZATIONS__ -DLSB_FIRST -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
-LOCAL_CFLAGS = -O3 -fno-stack-protector -DUSE_SPEEDHACKS -DINLINE="static inline" -DSH2_INLINE="static inline" -D__LIBRETRO_OPTIMIZATIONS__ -DLSB_FIRST -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
+LOCAL_CXXFLAGS += -O2 -fno-stack-protector -DUSE_SPEEDHACKS -DINLINE="static inline" -DSH2_INLINE="static inline" -D__LIBRETRO_OPTIMIZATIONS__ -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
+LOCAL_CFLAGS = -O2 -fno-stack-protector -DUSE_SPEEDHACKS -DINLINE="static inline" -DSH2_INLINE="static inline" -D__LIBRETRO_OPTIMIZATIONS__ -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
 
 LOCAL_C_INCLUDES = $(FBA_BURNER_DIR)/win32 \
 	$(LIBRETRO_DIR) \

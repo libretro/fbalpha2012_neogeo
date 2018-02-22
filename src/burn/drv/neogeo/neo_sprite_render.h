@@ -19,7 +19,24 @@
  #error illegal isopaque value
 #endif
 
-#define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTCLIP(a)) *((UINT16*)pPixel) = (UINT16)pTilePalette[b];
+#if BPP == 16
+ #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTCLIP(a)) {			\
+   	*((UINT16*)pPixel) = (UINT16)pTilePalette[b];	\
+ }
+#elif BPP == 24
+ #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTCLIP(a)) {			\
+	UINT32 nRGB = pTilePalette[b];							\
+	pPixel[0] = (UINT8)nRGB;								\
+	pPixel[1] = (UINT8)(nRGB >> 8);							\
+	pPixel[2] = (UINT8)(nRGB >> 16);						\
+ }
+#elif BPP == 32
+ #define PLOTPIXEL(a,b) if (TESTCOLOUR(b) && TESTCLIP(a)) {			\
+	 *((UINT32*)pPixel) = (UINT32)pTilePalette[b];		\
+ }
+#else
+ #error unsupported bitdepth specified.
+#endif
 
 #if XZOOM == 0
  #define PLOTLINE(OFFSET,ADVANCECOLUMN)		\
@@ -474,171 +491,161 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 	INT32 nLinesTotal = (nBankSize >= 0x20) ? 0x01FF : ((nBankSize << 4) - 1);
 	INT32 nLinesDone  = 0;
 
-	while (nLinesDone <= nLinesTotal)
-   {
-      nLine = (nBankYPos + nLinesDone) & 0x01FF;
-      nYPos = nLine;
+	while (nLinesDone <= nLinesTotal) {
+		nLine = (nBankYPos + nLinesDone) & 0x01FF;
+		nYPos = nLine;
 
-      //		bprintf(PRINT_NORMAL, _T("  - s:%i l:%i y:%i %i z:%i\n"), nLinesTotal, nLinesDone, nYPos, nBankYPos, nBankYZoom);
+//		bprintf(PRINT_NORMAL, _T("  - s:%i l:%i y:%i %i z:%i\n"), nLinesTotal, nLinesDone, nYPos, nBankYPos, nBankYZoom);
 
-      // Skip everything above the part of the display we need to render
-      if (nYPos < nSliceStart)
-      {
-         nLinesDone += nSliceStart - nYPos;
-         continue;
-      }
-      // Skip everything below the part of the display we need to render
-      if (nYPos >= nSliceEnd) {
-         nLinesDone += nSliceStart + 512 - nYPos;
-         continue;
-      }
+		// Skip everything above the part of the display we need to render
+		if (nYPos < nSliceStart) {
+			nLinesDone += nSliceStart - nYPos;
+			continue;
+		}
+		// Skip everything below the part of the display we need to render
+		if (nYPos >= nSliceEnd) {
+			nLinesDone += nSliceStart + 512 - nYPos;
+			continue;
+		}
 
-      // This part of the sprite strip is in the part of the display we need to render
-      {
-         INT32 nStartTile = (nLinesDone >= 0x0100) ? 0x10 : 0;
-         INT32 nStartLine = nLinesDone & 0xFF;
-         INT32 nEndLine   = (nLinesDone < 0x0100 && nLinesTotal >= 0x0100) ? 0xFF : nLinesTotal & 0xFF;
+		// This part of the sprite strip is in the part of the display we need to render
+		{
+			INT32 nStartTile = (nLinesDone >= 0x0100) ? 0x10 : 0;
+			INT32 nStartLine = nLinesDone & 0xFF;
+			INT32 nEndLine   = (nLinesDone < 0x0100 && nLinesTotal >= 0x0100) ? 0xFF : nLinesTotal & 0xFF;
 
-         INT32 nThisLine;
+			INT32 nThisLine;
 
-         // Handle wraparound for full-size sprite strips
-         if (nBankSize > 0x10 && nBankYZoom != 0xFF)
-         {
+			// Handle wraparound for full-size sprite strips
+			if (nBankSize > 0x10 && nBankYZoom != 0xFF) {
 
-            if (nBankSize <= 0x20)
-            {
+				if (nBankSize <= 0x20) {
 
-               // normal wrap
+					// normal wrap
 
-               if (nLinesDone >= 0x0100)
-               {
-                  if (nLinesDone < (0x01FF - nBankYZoom))
-                  {
-                     nLinesDone = (0x01FF - nBankYZoom);
-                     continue;
-                  }
+					if (nLinesDone >= 0x0100) {
+						if (nLinesDone < (0x01FF - nBankYZoom)) {
+							nLinesDone = (0x01FF - nBankYZoom);
 
-                  nStartLine -= 0xFF - nBankYZoom;
-                  nEndLine -= 0xFF - nBankYZoom;
-               }
+							continue;
+						}
 
-            } else {
+						nStartLine -= 0xFF - nBankYZoom;
+						nEndLine -= 0xFF - nBankYZoom;
+					}
 
-               // Full strip, full wrap
+				} else {
 
-               if (nLinesDone >= 0x0100) {
-                  nStartLine -= 0xFF - nBankYZoom;
-                  if (nStartLine < 0) {
+					// Full strip, full wrap
+
+					if (nLinesDone >= 0x0100) {
+						nStartLine -= 0xFF - nBankYZoom;
+						if (nStartLine < 0) {
 
 #if 1 && defined USE_SPEEDHACKS
-                     nStartLine += nBankYZoom + 1;
-                     if (nStartLine < 0) {
-                        nLinesDone = 0x200;
-                        continue;
-                     }
+							nStartLine += nBankYZoom + 1;
+							if (nStartLine < 0) {
+								nLinesDone = 0x200;
+								continue;
+							}
 #else
-                     nStartLine = nBankYZoom - (-nStartLine - 1) % (nBankYZoom + 1);
+							nStartLine = nBankYZoom - (-nStartLine - 1) % (nBankYZoom + 1);
 #endif
 
-                     nStartTile = 0;
-                  }
-               } else {
-                  if (nStartLine > nBankYZoom) {
+							nStartTile = 0;
+						}
+					} else {
+						if (nStartLine > nBankYZoom) {
 
 #if 1 && defined USE_SPEEDHACKS
-                     nStartLine -= nBankYZoom + 1;
-                     if (nStartLine > nBankYZoom) {
-                        nLinesDone = 0x0100;
-                        continue;
-                     }
+							nStartLine -= nBankYZoom + 1;
+							if (nStartLine > nBankYZoom) {
+								nLinesDone = 0x0100;
+								continue;
+							}
 #else
-                     nStartLine %= nBankYZoom + 1;
+							nStartLine %= nBankYZoom + 1;
 #endif
 
-                     nStartTile = 0x10;
-                  }
-               }
+							nStartTile = 0x10;
+						}
+					}
 
-               nEndLine = nBankYZoom;
-            }
-         }
+					nEndLine = nBankYZoom;
+				}
+			}
 
-         nLinesDone += nEndLine - nStartLine + 1;
+			nLinesDone += nEndLine - nStartLine + 1;
 
 #if 1 && defined USE_SPEEDHACKS
-         if (nBankSize <= 0x20 && nEndLine > nBankYZoom)
-            nEndLine = nBankYZoom;
+			if (nBankSize <= 0x20 && nEndLine > nBankYZoom) {
+				nEndLine = nBankYZoom;
+//				nLinesDone |= 0x00FF;
+			}
 #endif
 
-         // Clip to the part of the screen we need to render
-         if (nEndLine - nStartLine > nSliceEnd - nYPos - 1)
-            nEndLine = nStartLine + nSliceEnd - nYPos - 1;
+			// Clip to the part of the screen we need to render
+			if (nEndLine - nStartLine > nSliceEnd - nYPos - 1) {
+				nEndLine = nStartLine + nSliceEnd - nYPos - 1;
+			}
 
-         pTileRow = pBurnDraw + (nYPos - 0x10) * (BPP >> 3) * nNeoScreenWidth + nBankXPos * (BPP >> 3);
-         nThisLine = nStartLine;
+			pTileRow = pBurnDraw + (nYPos - 0x10) * (BPP >> 3) * nNeoScreenWidth + nBankXPos * (BPP >> 3);
+			nThisLine = nStartLine;
 
-         nPrevTile = ~0;
+			nPrevTile = ~0;
 
-         while (nThisLine <= nEndLine)
-         {
-            nTile = nStartTile + (pZoomValue[nThisLine] >> 4);
+			while (nThisLine <= nEndLine) {
 
-            if (nTile != nPrevTile)
-            {
-               nPrevTile = nTile;
+				nTile = nStartTile + (pZoomValue[nThisLine] >> 4);
 
-               nTileNumber = pBank[nTile << 1];
-               nTileAttrib = pBank[(nTile << 1) + 1];
+				if (nTile != nPrevTile) {
+					nPrevTile = nTile;
 
-               nTileNumber += (nTileAttrib & 0xF0) << 12;
-               nTileNumber &= nNeoTileMaskActive;
+					nTileNumber = pBank[nTile << 1];
+					nTileAttrib = pBank[(nTile << 1) + 1];
 
-               if (nTileAttrib & 8)
-               {
-                  nTileNumber &= ~7;
-                  nTileNumber |= nNeoSpriteFrame08;
-               }
-               else
-               {
-                  if (nTileAttrib & 4)
-                  {
-                     nTileNumber &= ~3;
-                     nTileNumber |= nNeoSpriteFrame04;
-                  }
-               }
+					nTileNumber += (nTileAttrib & 0xF0) << 12;
+					nTileNumber &= nNeoTileMaskActive;
 
-               nTransparent = NeoTileAttribActive[nTileNumber];
+					if (nTileAttrib & 8) {
+						nTileNumber &= ~7;
+						nTileNumber |= nNeoSpriteFrame08;
+					} else {
+						if (nTileAttrib & 4) {
+							nTileNumber &= ~3;
+							nTileNumber |= nNeoSpriteFrame04;
+						}
+					}
 
-               if (nTransparent == 0)
-               {
-                  pTileData = (UINT32*)(NeoSpriteROMActive + (nTileNumber << 7));
-                  pTilePalette = &NeoPalette[(nTileAttrib & 0xFF00) >> 4];
-               }
-            }
+					nTransparent = NeoTileAttribActive[nTileNumber];
 
-            if (nTransparent == 0)
-            {
-               nLine = (pZoomValue[nThisLine] & 0x0F) << 1;
-               if (nTileAttrib & 2)	// Flip Y
-                  nLine ^= 0x1E;
+					if (nTransparent == 0) {
+						pTileData = (UINT32*)(NeoSpriteROMActive + (nTileNumber << 7));
+						pTilePalette = &NeoPalette[(nTileAttrib & 0xFF00) >> 4];
+					}
+				}
 
-               if (nTileAttrib & 1) {							// Flip X
-                  pPixel = pTileRow + XZOOM * (BPP >> 3);
-                  PLOTLINE(MIRROROFFSET,pPixel -= (BPP >> 3));
-               }
-               else
-               {
-                  pPixel = pTileRow;
-                  PLOTLINE(NORMALOFFSET,pPixel += (BPP >> 3));
-               }
-            }
+				if (nTransparent == 0) {
+					nLine = (pZoomValue[nThisLine] & 0x0F) << 1;
+					if (nTileAttrib & 2) {							// Flip Y
+						nLine ^= 0x1E;
+					}
 
-            pTileRow += ((BPP >> 3) * nNeoScreenWidth);
+					if (nTileAttrib & 1) {							// Flip X
+						pPixel = pTileRow + XZOOM * (BPP >> 3);
+						PLOTLINE(MIRROROFFSET,pPixel -= (BPP >> 3));
+					} else {
+						pPixel = pTileRow;
+						PLOTLINE(NORMALOFFSET,pPixel += (BPP >> 3));
+					}
+				}
 
-            nThisLine++;
-         }
-      }
-   }
+				pTileRow += ((BPP >> 3) * nNeoScreenWidth);
+
+				nThisLine++;
+			}
+		}
+	}
 }
 
 #undef PLOTLINE
