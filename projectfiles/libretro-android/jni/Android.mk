@@ -41,24 +41,9 @@ LOCAL_CXXFLAGS += -DANDROID_MIPS -D__mips__ -D__MIPSEL__
 endif
 
 BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
-	$(FBA_CPU_DIR)/arm7/arm7core.c \
-	$(FBA_CPU_DIR)/hd6309/6309tbl.c \
-	$(FBA_CPU_DIR)/hd6309/6309ops.c \
-	$(FBA_CPU_DIR)/konami/konamtbl.c \
-	$(FBA_CPU_DIR)/konami/konamops.c \
 	$(FBA_CPU_DIR)/m68k/m68k_in.c \
-	$(FBA_CPU_DIR)/m6800/6800ops.c \
-	$(FBA_CPU_DIR)/m6800/6800tbl.c \
-	$(FBA_CPU_DIR)/m6805/6805ops.c \
-	$(FBA_CPU_DIR)/m6809/6809ops.c \
-	$(FBA_CPU_DIR)/m6809/6809tbl.c \
-	$(FBA_CPU_DIR)/sh2/mksh2.cpp \
-	$(FBA_CPU_DIR)/sh2/mksh2-x86.cpp \
 	$(FBA_CPU_DIR)/m68k/m68kmake.c \
-	$(FBA_BURNER_DIR)/wave_writer.cpp \
 	$(FBA_CPU_DIR)/m68k/m68kdasm.c \
-	$(FBA_LIBRETRO_DIR)/menu.cpp \
-	$(FBA_CPU_DIR)/sh2/mksh2.cpp \
 	$(FBA_BURNER_DIR)/sshot.cpp \
 	$(FBA_BURNER_DIR)/conc.cpp \
 	$(FBA_BURNER_DIR)/dat.cpp \
@@ -66,18 +51,7 @@ BURN_BLACKLIST := $(FBA_CPU_DIR)/arm7/arm7exec.c \
 	$(FBA_BURNER_DIR)/image.cpp \
 	$(FBA_BURNER_DIR)/misc.cpp \
 	$(FBA_BURNER_DIR)/gami.cpp \
-	$(FBA_BURNER_DIR)/gamc.cpp \
-	$(FBA_CPU_DIR)/h6280/tblh6280.c \
-	$(FBA_CPU_DIR)/m6502/t65sc02.c \
-	$(FBA_CPU_DIR)/m6502/t65c02.c \
-	$(FBA_CPU_DIR)/m6502/tdeco16.c \
-	$(FBA_CPU_DIR)/m6502/tn2a03.c \
-	$(FBA_CPU_DIR)/m6502/t6502.c \
-	$(FBA_CPU_DIR)/nec/v25sfr.c \
-	$(FBA_CPU_DIR)/nec/v25instr.c \
-	$(FBA_CPU_DIR)/nec/necinstr.c \
-	$(FBA_BURN_DIR)/drv/capcom/ctv_make.cpp \
-	$(FBA_BURN_DIR)/drv/pgm/pgm_sprite_create.cpp
+	$(FBA_BURNER_DIR)/gamc.cpp
 
 ifeq ($(HAVE_GRIFFIN), 1)
 GRIFFIN_CXX_SRC_FILES := $(GRIFFIN_DIR)/cps12.cpp $(GRIFFIN_DIR)/cps3.cpp $(GRIFFIN_DIR)/neogeo.cpp $(GRIFFIN_DIR)/pgm.cpp $(GRIFFIN_DIR)/snes.cpp $(GRIFFIN_DIR)/galaxian.cpp
@@ -118,21 +92,7 @@ FBA_BURN_DIRS := $(FBA_BURN_DIR) \
 	$(FBA_BURN_DRIVERS_DIR)/toaplan
 
 FBA_CPU_DIRS := $(FBA_CPU_DIR) \
-	$(FBA_CPU_DIR)/arm \
-	$(FBA_CPU_DIR)/arm7 \
-	$(FBA_CPU_DIR)/h6280 \
-	$(FBA_CPU_DIR)/hd6309 \
-	$(FBA_CPU_DIR)/i8039 \
-	$(FBA_CPU_DIR)/konami \
 	$(M68K_DIR) \
-	$(FBA_CPU_DIR)/m6502 \
-	$(FBA_CPU_DIR)/m6800 \
-	$(FBA_CPU_DIR)/m6805 \
-	$(FBA_CPU_DIR)/m6809 \
-	$(FBA_CPU_DIR)/nec \
-	$(FBA_CPU_DIR)/s2650 \
-	$(FBA_CPU_DIR)/pic16c5x \
-	$(FBA_CPU_DIR)/sh2 \
 	$(FBA_CPU_DIR)/z80
 
 FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS) $(FBA_BURNER_DIRS)
@@ -145,8 +105,8 @@ LOCAL_SRC_FILES := $(GRIFFIN_CXX_SRC_FILES) $(CYCLONE_SRC)  $(filter-out $(BURN_
 
 GLOBAL_DEFINES := -DWANT_NEOGEOCD
 
-LOCAL_CXXFLAGS += -O2 -fno-stack-protector -DUSE_SPEEDHACKS -DSH2_INLINE="static inline" -D__LIBRETRO_OPTIMIZATIONS__ -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
-LOCAL_CFLAGS = -O2 -fno-stack-protector -DUSE_SPEEDHACKS -DSH2_INLINE="static inline" -D__LIBRETRO_OPTIMIZATIONS__ -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
+LOCAL_CXXFLAGS += -O2 -fno-stack-protector -DUSE_SPEEDHACKS -D__LIBRETRO_OPTIMIZATIONS__ -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
+LOCAL_CFLAGS = -O2 -fno-stack-protector -DUSE_SPEEDHACKS -D__LIBRETRO_OPTIMIZATIONS__ -D__LIBRETRO__ -Wno-write-strings -DUSE_FILE32API -DANDROID -DFRONTEND_SUPPORTS_RGB565 $(CYCLONE_DEFINES) $(GLOBAL_DEFINES)
 
 LOCAL_C_INCLUDES = $(FBA_BURNER_DIR)/win32 \
 	$(LIBRETRO_DIR) \
