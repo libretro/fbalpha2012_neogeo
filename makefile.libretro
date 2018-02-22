@@ -404,7 +404,7 @@ INCFLAGS := \
 	-I$(FBA_CPU_DIR) \
 	-I$(FBA_LIB_DIR)/zlib \
 	-I$(FBA_LIB_DIR)/lib7z \
-	-I$(FBA_BURN_DIR)/drv/capcom \
+	-I$(FBA_BURN_DIR)/drv/neogeo \
 	-I$(FBA_GENERATED_DIR) \
 	-I$(LIBRETRO_COMM_DIR)/include \
 	-I$(FBA_LIB_DIR)
