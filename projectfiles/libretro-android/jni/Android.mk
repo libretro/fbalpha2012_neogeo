@@ -58,38 +58,14 @@ GRIFFIN_CXX_SRC_FILES := $(GRIFFIN_DIR)/cps12.cpp $(GRIFFIN_DIR)/cps3.cpp $(GRIF
 GRIFFIN_CXX_SRC_FILES += $(GRIFFIN_DIR)/cpu-m68k.cpp
 BURN_BLACKLIST += $(FBA_CPU_DIR)/m68000_intf.cpp
 else
-CPS2_DIR := $(FBA_BURN_DRIVERS_DIR)/capcom
-CPS3_DIR := $(FBA_BURN_DRIVERS_DIR)/cps3
-GALAXIAN_DIR := $(FBA_BURN_DRIVERS_DIR)/galaxian
 NEOGEO_DIR := $(FBA_BURN_DRIVERS_DIR)/neogeo
-PGM_DIR := $(FBA_BURN_DRIVERS_DIR)/pgm
-SNES_DIR := $(FBA_BURN_DRIVERS_DIR)/snes
-M68K_DIR := $(FBA_CPU_DIR)/m68k
 endif
 
 FBA_BURN_DIRS := $(FBA_BURN_DIR) \
 	$(FBA_BURN_DIR)/devices \
 	$(FBA_BURN_DIR)/snd \
-	$(CPS2_DIR) \
 	$(FBA_BURN_DRIVERS_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/cave \
-	$(CPS3_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/dataeast \
-	$(GALAXIAN_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/irem \
-	$(FBA_BURN_DRIVERS_DIR)/konami \
-	$(FBA_BURN_DRIVERS_DIR)/megadrive \
-	$(NEOGEO_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/pce \
-	$(PGM_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/pre90s \
-	$(FBA_BURN_DRIVERS_DIR)/psikyo \
-	$(FBA_BURN_DRIVERS_DIR)/pst90s \
-	$(FBA_BURN_DRIVERS_DIR)/sega \
-	$(FBA_BURN_DRIVERS_DIR)/sms \
-	$(SNES_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/taito \
-	$(FBA_BURN_DRIVERS_DIR)/toaplan
+	$(NEOGEO_DIR)
 
 FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 	$(M68K_DIR) \
@@ -98,8 +74,6 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS) $(FBA_BURNER_DIRS)
 
 LOCAL_MODULE    := libretro
-
-
 
 LOCAL_SRC_FILES := $(GRIFFIN_CXX_SRC_FILES) $(CYCLONE_SRC)  $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp))) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c))) $(LIBRETRO_DIR)/libretro.cpp $(LIBRETRO_DIR)/neocdlist.cpp 
 
@@ -121,16 +95,9 @@ LOCAL_C_INCLUDES = $(FBA_BURNER_DIR)/win32 \
 	$(FBA_INTERFACE_DIR)/cd \
 	$(FBA_BURNER_DIR) \
 	$(FBA_CPU_DIR) \
-	$(FBA_CPU_DIR)/i8039 \
+	$(FBA_LIB_DIR)/lib7z \
 	$(FBA_LIB_DIR)/zlib \
-	$(FBA_BURN_DIR)/drv/capcom \
-	$(FBA_BURN_DIR)/drv/dataeast \
-	$(FBA_BURN_DIR)/drv/cave \
 	$(FBA_BURN_DIR)/drv/neogeo \
-	$(FBA_BURN_DIR)/drv/psikyo \
-	$(FBA_BURN_DIR)/drv/sega \
-	$(FBA_BURN_DIR)/drv/toaplan \
-	$(FBA_BURN_DIR)/drv/taito \
 	$(FBA_GENERATED_DIR) \
 	$(FBA_LIB_DIR)
 
