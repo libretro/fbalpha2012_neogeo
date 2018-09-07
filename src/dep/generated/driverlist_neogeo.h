@@ -2,6 +2,11 @@
 
 // Declaration of all drivers
 #define DRV extern struct BurnDriver
+DRV		BurnDrvdoubledrsp;  // no comment
+DRV		BurnDrvKof95sp;
+DRV		BurnDrvSamsho2sp;
+DRV		BurnDrvSamSho4sp;
+DRV		BurnDrvlastbladsp;
 DRV		BurnDrvbb2020;
 DRV		BurnDrvbba2020;
 DRV		BurnDrvbbh2020;
@@ -314,6 +319,11 @@ DRV		BurnDrvZupapa;
 // Structure containing addresses of all drivers
 // Needs to be kept sorted (using the full game name as the key) to prevent problems with the gamelist in Kaillera
 static struct BurnDriver* pDriver[] = {
+	&BurnDrvdoubledrsp,			// Double Dragon (Special 2017, hack) [no comment]
+   	&BurnDrvKof95sp,			// The King of Fighters '95 (Special 2017, hack)           
+   	&BurnDrvSamsho2sp,			// Samurai Shodown II / Shin Samurai Spirits - Haohmaru jigokuhen (Special 2017, hack)
+   	&BurnDrvSamSho4sp,			// Samurai Shodown IV - Amakusa's Revenge / Samurai Spirits - Amakusa Kourin (Special 2017, hack)
+   	&BurnDrvlastbladsp,			// The Last Soldier (Special 2017, hack)
 	&BurnDrvbb2020,				// 2020 Super Baseball (set 1)
 	&BurnDrvbba2020,			// 2020 Super Baseball (set 2)
 	&BurnDrvbbh2020,			// 2020 Super Baseball (set 3)
