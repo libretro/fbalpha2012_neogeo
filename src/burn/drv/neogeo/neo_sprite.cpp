@@ -3,6 +3,10 @@
 UINT8* NeoZoomROM;
 
 UINT8* NeoSpriteROM[MAX_SLOT] = { NULL, };
+#ifdef GEKKO
+UINT8* NeoSpriteROM_WIIVM[MAX_SLOT] = { NULL, };
+bool BurnUseCache = false;
+#endif
 
 UINT32 nNeoTileMask[MAX_SLOT];
 INT32 nNeoMaxTile[MAX_SLOT];
@@ -144,24 +148,57 @@ INT32 NeoInitSprites(INT32 nSlot)
 {
 	// Create a table that indicates if a tile is transparent
 	NeoTileAttrib[nSlot] = (UINT8*)BurnMalloc(nNeoTileMask[nSlot] + 1);
+#ifdef GEKKO
+	if(BurnUseCache)
+	{
+		char CacheFile[1024];
+		FILE *BurnCacheFile;
 
-	for (INT32 i = 0; i < nNeoMaxTile[nSlot]; i++) {
-		bool bTransparent = true;
-		for (INT32 j = i << 7; j < (i + 1) << 7; j++) {
-			if (NeoSpriteROM[nSlot][j]) {
-				bTransparent = false;
-				break;
+		// Read tile table cache
+		sprintf(CacheFile ,"%scache_info", CacheDir);
+		BurnCacheFile = fopen(CacheFile, "rb");
+		fread( NeoTileAttrib[nSlot], nNeoTileMask[nSlot] + 1, 1, BurnCacheFile);
+		fclose(BurnCacheFile);
+	}
+	else
+	{
+		for (INT32 i = 0; i < nNeoMaxTile[nSlot]; i++)
+		 {
+			bool bTransparent = true;
+			for (INT32 j = i << 7; j < (i + 1) << 7; j++)
+		    {
+				if (NeoSpriteROM[nSlot][j])
+		       {
+					bTransparent = false;
+					break;
+				}
 			}
-		}
-		if (bTransparent) {
-			NeoTileAttrib[nSlot][i] = 1;
-		} else {
-			NeoTileAttrib[nSlot][i] = 0;
+			if (bTransparent)
+				NeoTileAttrib[nSlot][i] = 1;
+		    else
+				NeoTileAttrib[nSlot][i] = 0;
 		}
 	}
-	for (UINT32 i = nNeoMaxTile[nSlot]; i < nNeoTileMask[nSlot] + 1; i++) {
+#else
+		for (INT32 i = 0; i < nNeoMaxTile[nSlot]; i++)
+		 {
+			bool bTransparent = true;
+			for (INT32 j = i << 7; j < (i + 1) << 7; j++)
+		    {
+				if (NeoSpriteROM[nSlot][j])
+		       {
+					bTransparent = false;
+					break;
+				}
+			}
+			if (bTransparent)
+				NeoTileAttrib[nSlot][i] = 1;
+		    else
+				NeoTileAttrib[nSlot][i] = 0;
+		}
+#endif
+	for (UINT32 i = nNeoMaxTile[nSlot]; i < nNeoTileMask[nSlot] + 1; i++)
 		NeoTileAttrib[nSlot][i] = 1;
-	}
 
 	NeoTileAttribActive = NeoTileAttrib[nSlot];
 	NeoSpriteROMActive  = NeoSpriteROM[nSlot];

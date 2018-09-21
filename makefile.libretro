@@ -228,7 +228,10 @@ else ifneq (,$(filter $(platform), ngc wii wiiu))
 
    # Nintendo Wii
    else ifneq (,$(findstring wii,$(platform)))
+      include $(DEVKITPPC)/wii_rules
       PLATFORM_DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+      CFLAGS += -I$(LIBOGC_INC) -I$(DEVKITPRO)/libogc/include -I$(DEVKITPRO)/libogc/include/ogc/machine
+      INCLUDE_7Z_SUPPORT = 0
 
    # Nintendo Game Cube
    else ifneq (,$(findstring ngc,$(platform)))
@@ -383,7 +386,13 @@ SOURCES_C += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wild
 FBA_CXXOBJ := $(SOURCES_CXX:.cpp=.o)
 FBA_COBJ := $(SOURCES_C:.c=.o)
 
+ifeq ($(platform), wii)
+FBA_SSRCS := $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.S)))
+FBA_SOBJ := $(FBA_SSRCS:.S=.o)
+OBJS := $(FBA_SOBJ) $(FBA_COBJ) $(FBA_CXXOBJ)
+else
 OBJS := $(FBA_COBJ) $(FBA_CXXOBJ)
+endif
 
 FBA_DEFINES += -DUSE_SPEEDHACKS -D__LIBRETRO__ \
 	-D__LIBRETRO_OPTIMIZATIONS__ \
@@ -496,6 +505,12 @@ generate-files:
 %.o: %.c
 	@$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
+ifeq ($(platform), wii)
+%.o: %.S
+	@echo "CS $<"
+	$(CC) -c -o $@ $< $(CFLAGS) $(INCDIRS)
+endif
+
 $(TARGET): $(OBJS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJS)
@@ -505,10 +520,20 @@ endif
 
 
 clean-objs:
+ifeq ($(platform), wii)
+	find . -name '*.o' -print0 | xargs -0r rm -f
+else
 	rm -f $(OBJS)
+endif
 
 clean:
+ifeq ($(platform), wii)
+	find . -name '*.o' -print0 | xargs -0r rm -f
+else
 	rm -f $(TARGET)
 	rm -f $(OBJS)
 	rm -f $(M68KMAKE_EXE)
+endif
+
+
 endif
