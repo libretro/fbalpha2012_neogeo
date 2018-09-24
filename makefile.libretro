@@ -345,6 +345,10 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 		$(FBA_BURN_DIR)/snd/ymf278b.c \
 		$(FBA_BURN_DIR)/snd/ymdeltat.c
 
+ifeq ($(platform), wii)
+   SOURCES_C += $(LIBRETRO_DIR)/wii_vm.c
+endif
+
    FBA_BURN_DIRS := $(NEOGEO_DIR) \
 		$(FBA_BURN_DIR) \
 		$(FBA_BURN_DRIVERS_DIR)
