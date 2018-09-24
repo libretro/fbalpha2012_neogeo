@@ -80,7 +80,9 @@ extern UINT8 NeoSystem;
 bool is_neogeo_game = false;
 bool allow_neogeo_mode = true;
 UINT16 switch_ncode = 0;
-
+#ifdef WII_VM
+bool is_large_game = false;
+#endif
 enum neo_geo_modes
 {
    /* MVS */
@@ -608,6 +610,19 @@ static void evaluate_neogeo_bios_mode(const char* drvname)
       {
          if (dipswitch_core_options[dip_idx].values.size() > 0)
          {
+#ifdef WII_VM
+            // When a game is large(gfx > 40MB), we force Unibios
+            // All other standard bioses take minutes to load!
+            if(is_large_game)
+            {
+               if (dipswitch_core_options[dip_idx].values[0].bdi.nSetting <= 0x0d)
+               {
+                  dipswitch_core_options[dip_idx].values[0].bdi.nSetting = 0x0e;
+                  is_neogeo_needs_specific_bios = true;
+                  break;
+            }
+         }
+#endif
             // values[0] is the default value of the dipswitch
             // if the default is different than 0, this means that a different Bios is needed
             if (dipswitch_core_options[dip_idx].values[0].bdi.nSetting != 0x00)
@@ -889,6 +904,17 @@ static int archive_load_rom(uint8_t *dest, int *wrote, int i)
    return 0;
 }
 
+#ifdef WII_VM
+/* Gets cache directory when using VM for large games. */
+int get_cache_path(char *path)
+{
+   const char *system_directory_c = NULL;
+   environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_directory_c);
+
+   sprintf(path, "%s/cache/%s_cache/", system_directory_c, BurnDrvGetTextA(DRV_NAME));
+}
+#endif
+
 // This code is very confusing. The original code is even more confusing :(
 static bool open_archive()
 {
@@ -896,8 +922,24 @@ static bool open_archive()
 
 	// FBA wants some roms ... Figure out how many.
 	g_rom_count = 0;
+#ifdef WII_VM
+   unsigned int gfx_size = 0;
+   is_large_game = false;
+
+   while (!BurnDrvGetRomInfo(&g_find_list[g_rom_count].ri, g_rom_count))
+   {
+      // Count graphics roms
+      if (g_find_list[g_rom_count].ri.nType & BRF_GRA)
+         gfx_size += g_find_list[g_rom_count].ri.nLen;
+      g_rom_count++;
+   }
+   // With graphics > 40 MB, the game is considered large.
+   if (gfx_size >= 0x2800000)
+      is_large_game = true;
+#else
 	while (!BurnDrvGetRomInfo(&g_find_list[g_rom_count].ri, g_rom_count))
 		g_rom_count++;
+#endif
 
 	g_find_list_path.clear();
 	
@@ -3292,3 +3334,4 @@ INT32 GameInpDefault()
 
 	return 0;
 }
+

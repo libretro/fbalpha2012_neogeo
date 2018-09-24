@@ -128,6 +128,11 @@ void NeoUpdateText(INT32 nOffset, const INT32 nSize, UINT8* pData, UINT8* pDest)
 // neo_sprite.cpp
 extern UINT8* NeoSpriteROM[MAX_SLOT];
 extern UINT8* NeoZoomROM;
+#ifdef WII_VM
+extern UINT8* NeoSpriteROM_WIIVM[MAX_SLOT];
+extern char CacheDir[1024];
+extern bool BurnUseCache;
+#endif
 
 extern INT32 nNeoSpriteFrame;
 extern UINT32 nNeoTileMask[MAX_SLOT];
