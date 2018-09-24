@@ -621,7 +621,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 
                if (nTransparent == 0)
                {
-#ifdef GEKKO
+#ifdef WII_VM
 									if(BurnUseCache)
 									{
 										// NeoSpriteROM fixed size is 2000000 (32MB) and contains 0x40000 tiles.

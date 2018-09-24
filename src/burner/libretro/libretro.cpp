@@ -80,7 +80,7 @@ extern UINT8 NeoSystem;
 bool is_neogeo_game = false;
 bool allow_neogeo_mode = true;
 UINT16 switch_ncode = 0;
-#ifdef GEKKO
+#ifdef WII_VM
 bool is_large_game = false;
 #endif
 enum neo_geo_modes
@@ -610,7 +610,7 @@ static void evaluate_neogeo_bios_mode(const char* drvname)
       {
          if (dipswitch_core_options[dip_idx].values.size() > 0)
          {
-#ifdef GEKKO
+#ifdef WII_VM
             // When a game is large(gfx > 40MB), we force Unibios
             // All other standard bioses take minutes to load!
             if(is_large_game)
@@ -904,7 +904,7 @@ static int archive_load_rom(uint8_t *dest, int *wrote, int i)
    return 0;
 }
 
-#ifdef GEKKO
+#ifdef WII_VM
 /* Gets cache directory when using VM for large games. */
 int get_cache_path(char *path)
 {
@@ -922,7 +922,7 @@ static bool open_archive()
 
 	// FBA wants some roms ... Figure out how many.
 	g_rom_count = 0;
-#ifdef GEKKO
+#ifdef WII_VM
    unsigned int gfx_size = 0;
    is_large_game = false;
 

@@ -3,7 +3,7 @@
 UINT8* NeoZoomROM;
 
 UINT8* NeoSpriteROM[MAX_SLOT] = { NULL, };
-#ifdef GEKKO
+#ifdef WII_VM
 UINT8* NeoSpriteROM_WIIVM[MAX_SLOT] = { NULL, };
 bool BurnUseCache = false;
 #endif
@@ -148,7 +148,7 @@ INT32 NeoInitSprites(INT32 nSlot)
 {
 	// Create a table that indicates if a tile is transparent
 	NeoTileAttrib[nSlot] = (UINT8*)BurnMalloc(nNeoTileMask[nSlot] + 1);
-#ifdef GEKKO
+#ifdef WII_VM
 	if(BurnUseCache)
 	{
 		char CacheFile[1024];

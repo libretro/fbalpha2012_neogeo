@@ -229,7 +229,7 @@ else ifneq (,$(filter $(platform), ngc wii wiiu))
    # Nintendo Wii
    else ifneq (,$(findstring wii,$(platform)))
       include $(DEVKITPPC)/wii_rules
-      PLATFORM_DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+      PLATFORM_DEFINES += -DWII_VM -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
       CFLAGS += -I$(LIBOGC_INC) -I$(DEVKITPRO)/libogc/include -I$(DEVKITPRO)/libogc/include/ogc/machine
       INCLUDE_7Z_SUPPORT = 0
 
