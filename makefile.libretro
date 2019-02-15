@@ -4,6 +4,7 @@ FRONTEND_SUPPORTS_RGB565 = 1
 HAVE_GRIFFIN = 0
 EXTERNAL_ZLIB = 0
 INCLUDE_7Z_SUPPORT = 1
+WANT_NEOGEOCD = 0
 
 # system platform
 ifeq ($(platform),)
@@ -22,9 +23,7 @@ ifeq ($(platform),)
       EXE_EXT=.exe
    endif
 else ifneq (,$(findstring armv,$(platform)))
-   ifeq (,$(findstring classic_,$(platform)))
-      override platform += unix
-   endif
+   override platform += unix
 endif
 
 
@@ -187,42 +186,6 @@ else ifeq ($(platform), vita)
    STATIC_LINKING = 1
    INCLUDE_7Z_SUPPORT = 0
 
-# Classic Platforms ####################
-# Platform affix = classic_<ISA>_<µARCH>
-# Help at https://modmyclassic.com/comp
-
-# (armv7 a7, hard point, neon based) ### 
-# NESC, SNESC, C64 mini 
-else ifeq ($(platform), classic_armv7_a7)
-	TARGET := $(TARGET_NAME)_libretro.so
-	fpic := -fPIC
-	SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
-	CFLAGS += -Ofast \
-	-flto=4 -fwhole-program -fuse-linker-plugin \
-	-fdata-sections -ffunction-sections -Wl,--gc-sections \
-	-fno-stack-protector -fno-ident -fomit-frame-pointer \
-	-falign-functions=1 -falign-jumps=1 -falign-loops=1 \
-	-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-unroll-loops \
-	-fmerge-all-constants -fno-math-errno \
-	-marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
-	CXXFLAGS += $(CFLAGS)
-	CPPFLAGS += $(CFLAGS)
-	ASFLAGS += $(CFLAGS)
-	HAVE_NEON = 1
-	ARCH = arm
-	BUILTIN_GPU = neon
-	USE_DYNAREC = 1
-	ifeq ($(shell echo `$(CC) -dumpversion` "< 4.9" | bc -l), 1)
-	  CFLAGS += -march=armv7-a
-	else
-	  CFLAGS += -march=armv7ve
-	  # If gcc is 5.0 or later
-	  ifeq ($(shell echo `$(CC) -dumpversion` ">= 5" | bc -l), 1)
-	    LDFLAGS += -static-libgcc -static-libstdc++
-	  endif
-	endif
-#######################################
-
 # CTR (3DS)
 else ifeq ($(platform), ctr)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -375,8 +338,11 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 		$(FBA_BURN_DIR)/snd/burn_ymf278b.cpp \
 		$(FBA_BURN_DIR)/snd/ymz280b.cpp \
 		$(FBA_CPU_DIR)/m68000_intf.cpp \
-		$(FBA_CPU_DIR)/z80_intf.cpp \
-		$(LIBRETRO_DIR)/neocdlist.cpp
+		$(FBA_CPU_DIR)/z80_intf.cpp
+
+ifeq ($(WANT_NEOGEOCD), 1)
+   SOURCES_C += $(LIBRETRO_DIR)/neocdlist.cpp
+endif
 
    SOURCES_C :=	$(FBA_BURN_DIR)/snd/ay8910.c \
 		$(FBA_BURN_DIR)/snd/fm.c \
@@ -384,7 +350,8 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 		$(FBA_BURN_DIR)/snd/ymdeltat.c
 
 ifeq ($(platform), wii)
-   SOURCES_C += $(LIBRETRO_DIR)/wii_vm.c
+   SOURCES_C += $(LIBRETRO_DIR)/wii_vm.c \
+		$(LIBRETRO_DIR)/wii_progressbar.c
 endif
 
    FBA_BURN_DIRS := $(NEOGEO_DIR) \
@@ -421,6 +388,10 @@ else
    BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp
 endif
 
+ifeq ($(WANT_NEOGEOCD), 1)
+   FBA_DEFINES += -DWANT_NEOGEOCD
+endif
+
 SOURCES_CXX += $(GRIFFIN_CXXSRCFILES) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
 SOURCES_CXX += $(LIBRETRO_DIR)/libretro.cpp
 SOURCES_C += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
@@ -438,7 +409,6 @@ endif
 
 FBA_DEFINES += -DUSE_SPEEDHACKS -D__LIBRETRO__ \
 	-D__LIBRETRO_OPTIMIZATIONS__ \
-	-DWANT_NEOGEOCD \
 	$(ENDIANNESS_DEFINES) \
 	$(PLATFORM_DEFINES)
 
@@ -554,13 +524,11 @@ ifeq ($(platform), wii)
 endif
 
 $(TARGET): $(OBJS)
-	@echo "** BUILDING $(TARGET) FOR PLATFORM $(platform) **"
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJS)
 else
 	@$(LD) $(LINKOUT)$@ $(SHARED) $(OBJS) $(LDFLAGS)
 endif
-	@echo "** BUILD SUCCESSFUL! GG NO RE **"
 
 
 clean-objs:

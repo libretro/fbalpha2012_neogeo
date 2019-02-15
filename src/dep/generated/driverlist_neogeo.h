@@ -129,7 +129,9 @@ DRV		BurnDrvneobombe;
 DRV		BurnDrvneocstlv;
 DRV		BurnDrvneodrift;
 DRV		BurnDrvNeoGeo;
+#ifdef WANT_NEOGEOCD
 DRV		BurnDrvneocdz;
+#endif
 DRV		BurnDrvNeoGeoMVS;
 DRV		BurnDrvneomrdo;
 DRV		BurnDrvneonopon;
@@ -446,7 +448,9 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvneocstlv,			// Neo CastleVania Demo
 	&BurnDrvneodrift,			// Neo Drift Out - New Technology
 	&BurnDrvNeoGeo,				// Neo Geo [BIOS only, NOT WORKING]
+#ifdef WANT_NEOGEOCD
 	&BurnDrvneocdz,				// Neo Geo CDZ system
+#endif
 	&BurnDrvNeoGeoMVS,			// Neo Geo MVS system
 	&BurnDrvneomrdo,			// Neo Mr. Do!
 	&BurnDrvneonopon,			// Neo No Panepon (beta)

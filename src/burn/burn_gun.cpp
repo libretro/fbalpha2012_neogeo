@@ -1,3 +1,4 @@
+#if 0
 #include "burnint.h"
 #include "burn_gun.h"
 
@@ -179,3 +180,4 @@ void BurnGunDrawTarget(INT32 num, INT32 x, INT32 y)
 		}
 	}
 }
+#endif
