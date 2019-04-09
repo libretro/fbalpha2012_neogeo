@@ -535,7 +535,7 @@ static INT32 InitCache(void)
 		// Reduce to minimum for these very large games
 		if (!strcmp(BurnDrvGetTextA(DRV_NAME), "garou") || !strcmp(BurnDrvGetTextA(DRV_NAME), "mslug3") || !strcmp(BurnDrvGetTextA(DRV_NAME), "kof2000") || !strcmp(BurnDrvGetTextA(DRV_NAME), "kof2003"))
 		{
-			RomCache = 256*KB;
+			RomCache = 512*KB;
 		}
 
 		NeoSpriteROM[nNeoActiveSlot] = (UINT8*)BurnMalloc(32*MB);
