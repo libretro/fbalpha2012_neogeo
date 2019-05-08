@@ -632,7 +632,7 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 										}
 										else
 										{
-											pTileData = (UINT32*)&NeoSpriteROM_WIIVM[nNeoActiveSlot][(nTileNumber - 0x40000)<< 7];
+											pTileData = (UINT32*)&NeoSpriteROM_WIIVM[(nTileNumber - 0x40000)<< 7];
 										}
 									}
 									else

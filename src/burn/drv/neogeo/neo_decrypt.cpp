@@ -670,3 +670,4 @@ void neogeo_cmc50_m1_decrypt()
 	memcpy(rom, buffer, 0x80000);
 	BurnFree(buffer);
 }
+

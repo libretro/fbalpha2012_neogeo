@@ -225,6 +225,7 @@ INT32 NeoLoadSprites(INT32 nOffset, INT32 nNum, UINT8* pDest, UINT32 nSpriteSize
 	return 0;
 }
 
+
 // ----------------------------------------------------------------------------
 // Graphics decoding for MVS/AES
 
@@ -314,7 +315,7 @@ void NeoDecodeText(UINT8* pDest, INT32 nSize)
 
 // ----------------------------------------------------------------------------
 // Graphics decoding for Neo CD
-
+#ifdef WANT_NEOGEOCD
 void NeoDecodeSpritesCD(UINT8* pData, UINT8* pDest, INT32 nSize)
 {
 	UINT8* pEnd = pData + nSize;
@@ -352,7 +353,7 @@ void NeoDecodeSpritesCD(UINT8* pData, UINT8* pDest, INT32 nSize)
 		}
 	}
 }
-
+#endif
 // ----------------------------------------------------------------------------
 
 INT32 NeoLoadADPCM(INT32 nOffset, INT32 nNum, UINT8* pDest)

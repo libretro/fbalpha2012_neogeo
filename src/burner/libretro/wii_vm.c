@@ -11,10 +11,7 @@
 #include <ogc/machine/processor.h>
 
 #include "wii_vm.h"
-#include "driver.h"
-
-static void *xfb = NULL;
-static GXRModeObj *rmode = NULL;
+#include "wii_progressbar.h"
 
 // maximum virtual memory size
 #define MAX_VM_SIZE      (256*1024*1024)
@@ -203,7 +200,7 @@ static PTE* insert_pte(u16 index, u32 physical, u8 WIMG, u8 PP)
 			return pte;
 	}
 
-	printf("Failed to insert PTE for %p\n", VM_Base+index);
+//	printf("Failed to insert PTE for %p\n", VM_Base+index);
 //	abort();
 
 	return NULL;
@@ -214,45 +211,6 @@ static void tlbia(void)
 	int i;
 	for (i=0; i < 64; i++)
 		asm volatile("tlbie %0" :: "r" (i*PAGE_SIZE));
-}
-
-static void init_video()
-{
-	// Initialise the video system
-	VIDEO_Init();
-	
-	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the Wii menu
-	rmode = VIDEO_GetPreferredMode(NULL);
-
-	// Allocate memory for the display in the uncached region
-	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-	
-	// Initialise the console, required for printf
-	console_init(xfb,20,20,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*VI_DISPLAY_PIX_SZ);
-	
-	// Set up the video registers with the chosen mode
-	VIDEO_Configure(rmode);
-	
-	// Tell the video hardware where our display memory is
-	VIDEO_SetNextFramebuffer(xfb);
-	
-	// Make the display visible
-	VIDEO_SetBlack(FALSE);
-
-	// Flush the video register changes to the hardware
-	VIDEO_Flush();
-
-	// Wait for Video setup to complete
-	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
-
-
-	// The console understands VT terminal escape codes
-	// This positions the cursor on row 2, column 0
-	// we can use variables for this with format codes too
-	// e.g. printf ("\x1b[%d;%dH", row, column );
-	printf("\x1b[2;0H");
 }
 
 /* This definition is wrong, pHndl does not take frame_context* as a parameter,
@@ -274,7 +232,7 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 		return VM_Base;
 	}
 
-	// initialize video to show progress and messages with printf 
+	// initialize video to display the progressbar and messages
 	init_video();
 
 	// parameter checking
@@ -337,6 +295,9 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 	 * plus we need to be able to quickly seek to any page
 	 * within the file.
 	 */
+// We'll write the pagefile later. Improves loading time.
+// No difference in speed.
+#if 0
 	printf("Creating Nand page\n");
 	ISFS_Seek(pagefile_fd, 0, SEEK_SET);
 	for (i=0; i<VMSize;)
@@ -360,7 +321,7 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 
 	}
 	printf("100%% done\r");
-
+#endif
 	// initial commit: map pmap_max pages to fill PTEs with valid RPNs
 	for (index=0,v_index=0; index<pmap_max; ++index,++v_index)
 	{
@@ -512,7 +473,8 @@ int vm_dsi_handler(frame_context* state, u32 DSISR)
 		phys_map[phys_index].dirty = 0;
 
 		// optimize by flushing up to four dirty pages at once
-		for (pages_to_flush=1; pages_to_flush < 4; pages_to_flush++)
+		// try with 64. We gain a few seconds. Is it safe?
+		for (pages_to_flush=1; pages_to_flush < 64; pages_to_flush++)
 		{
 			PTE *p;
 

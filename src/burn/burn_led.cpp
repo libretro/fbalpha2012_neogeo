@@ -1,3 +1,5 @@
+#if 0
+
 #include "burnint.h"
 #include "burn_led.h"
 
@@ -262,3 +264,4 @@ INT32 BurnLEDScan(INT32 nAction, INT32 *pnMin)
 
 	return 0;
 }
+#endif

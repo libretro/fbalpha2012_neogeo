@@ -269,6 +269,7 @@ static struct BurnDIPInfo kf2k3pcbDIPList[] = {
 
 STDDIPINFO(kf2k3pcb)
 
+#ifdef WANT_NEOGEOCD
 static struct BurnInputInfo neoCDInputList[] = {
 	{"P1 Start",	BIT_DIGITAL,	NeoButton1 + 0,	"p1 start"},		//	0
 	{"P1 Select",	BIT_DIGITAL,	NeoButton1 + 1,	"p1 select"},		//  1
@@ -301,6 +302,7 @@ static struct BurnInputInfo neoCDInputList[] = {
 };
 
 STDINPUTINFO(neoCD)
+#endif
 
 #define A(a, b, c, d) { a, b, (UINT8*)(c), d }
 
@@ -1157,7 +1159,7 @@ struct BurnDriver BurnDrvNeoGeoMVS = {
 	NeoInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
 	0x1000, 320, 224, 4, 3
 };
-
+#ifdef WANT_NEOGEOCD
 // ----------------------------------------------------------------------------
 // Neo Geo CDZ system
 
@@ -1178,7 +1180,7 @@ struct BurnDriver BurnDrvneocdz = {
 	NeoCDInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
 	0x1000, 320, 224, 4, 3
 };
-
+#endif
 // ----------------------------------------------------------------------------
 // Extra code for SMA protection
 

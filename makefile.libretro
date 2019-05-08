@@ -4,6 +4,7 @@ FRONTEND_SUPPORTS_RGB565 = 1
 HAVE_GRIFFIN = 0
 EXTERNAL_ZLIB = 0
 INCLUDE_7Z_SUPPORT = 1
+WANT_NEOGEOCD = 0
 
 # system platform
 ifeq ($(platform),)
@@ -24,7 +25,7 @@ ifeq ($(platform),)
 else ifneq (,$(findstring armv,$(platform)))
    ifeq (,$(findstring classic_,$(platform)))
       override platform += unix
-   endif
+		endif
 endif
 
 
@@ -375,8 +376,11 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 		$(FBA_BURN_DIR)/snd/burn_ymf278b.cpp \
 		$(FBA_BURN_DIR)/snd/ymz280b.cpp \
 		$(FBA_CPU_DIR)/m68000_intf.cpp \
-		$(FBA_CPU_DIR)/z80_intf.cpp \
-		$(LIBRETRO_DIR)/neocdlist.cpp
+		$(FBA_CPU_DIR)/z80_intf.cpp
+
+ifeq ($(WANT_NEOGEOCD), 1)
+   SOURCES_C += $(LIBRETRO_DIR)/neocdlist.cpp
+endif
 
    SOURCES_C :=	$(FBA_BURN_DIR)/snd/ay8910.c \
 		$(FBA_BURN_DIR)/snd/fm.c \
@@ -384,7 +388,8 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 		$(FBA_BURN_DIR)/snd/ymdeltat.c
 
 ifeq ($(platform), wii)
-   SOURCES_C += $(LIBRETRO_DIR)/wii_vm.c
+   SOURCES_C += $(LIBRETRO_DIR)/wii_vm.c \
+		$(LIBRETRO_DIR)/wii_progressbar.c
 endif
 
    FBA_BURN_DIRS := $(NEOGEO_DIR) \
@@ -421,6 +426,10 @@ else
    BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp
 endif
 
+ifeq ($(WANT_NEOGEOCD), 1)
+   FBA_DEFINES += -DWANT_NEOGEOCD
+endif
+
 SOURCES_CXX += $(GRIFFIN_CXXSRCFILES) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
 SOURCES_CXX += $(LIBRETRO_DIR)/libretro.cpp
 SOURCES_C += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
@@ -438,7 +447,6 @@ endif
 
 FBA_DEFINES += -DUSE_SPEEDHACKS -D__LIBRETRO__ \
 	-D__LIBRETRO_OPTIMIZATIONS__ \
-	-DWANT_NEOGEOCD \
 	$(ENDIANNESS_DEFINES) \
 	$(PLATFORM_DEFINES)
 

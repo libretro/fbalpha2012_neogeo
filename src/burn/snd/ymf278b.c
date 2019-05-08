@@ -32,6 +32,7 @@
 
 */
 
+#if 0
 #include <math.h>
 #include "driver.h"
 
@@ -46,6 +47,7 @@ MACHINE* Machine = &machine;
 #endif																/* !!! FBA */
 
 #undef VERBOSE
+
 
 typedef struct
 {
@@ -835,4 +837,8 @@ WRITE8_HANDLER( YMF278B_data_port_1_C_w )
 {
 	ymf278b_data_port_C_w(1, data);
 }
+
+
 #endif																/* !!! FBA */
+
+#endif

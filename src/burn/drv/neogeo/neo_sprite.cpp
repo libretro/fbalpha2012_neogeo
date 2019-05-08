@@ -4,7 +4,7 @@ UINT8* NeoZoomROM;
 
 UINT8* NeoSpriteROM[MAX_SLOT] = { NULL, };
 #ifdef WII_VM
-UINT8* NeoSpriteROM_WIIVM[MAX_SLOT] = { NULL, };
+UINT8* NeoSpriteROM_WIIVM = NULL;
 bool BurnUseCache = false;
 #endif
 
