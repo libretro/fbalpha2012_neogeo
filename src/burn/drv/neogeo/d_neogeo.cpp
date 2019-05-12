@@ -689,7 +689,7 @@ static struct BurnDIPInfo neogeoDIPList[] = {
 
 	// Fake DIPs
 	// BIOS
-	{0,	0xFD, 0,	26,   "BIOS"                     	         },
+	{0,	0xFD, 0,	29,   "BIOS"                     	         },
 	{0x02,	0x01, 0x1f,	0x00, "MVS Asia/Europe ver. 6 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x01, "MVS Asia/Europe ver. 5 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x02, "MVS Asia/Europe ver. 3 (4 slot)"  },
@@ -789,7 +789,7 @@ static struct BurnDIPInfo neoFakeDIPList[] = {
 
 	// Fake DIPs
 	// BIOS
-	{0,	0xFD, 0,	26,   "BIOS"                     	         },
+	{0,	0xFD, 0,	29,   "BIOS"                     	         },
 	{0x02,	0x01, 0x1f,	0x00, "MVS Asia/Europe ver. 6 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x01, "MVS Asia/Europe ver. 5 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x02, "MVS Asia/Europe ver. 3 (4 slot)"  },
