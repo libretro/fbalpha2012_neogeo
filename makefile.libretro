@@ -537,9 +537,9 @@ generate-files-clean:
 
 generate-files:
 	@mkdir -p $(FBA_GENERATED_DIR) 2>/dev/null || /bin/true
-	@echo "Generating $(FBA_GENERATED_DIR)/driverlist.h..."
+	@echo "Generating $(FBA_GENERATED_DIR)/driverlist_neogeo.h..."
 	@echo ""
-	$(PERL) $(FBA_SCRIPTS_DIR)/gamelist.pl -o $(FBA_GENERATED_DIR)/driverlist.h -l gamelist.txt $(FBA_BURN_DRIVERS_DIR)/neogeo
+	$(PERL) $(FBA_SCRIPTS_DIR)/gamelist.pl -o $(FBA_GENERATED_DIR)/driverlist_neogeo.h -l gamelist.txt $(FBA_BURN_DRIVERS_DIR)/neogeo
 	@echo ""
 	@echo "Generating $(FBA_GENERATED_DIR)/neo_sprite_func.h..."
 	@echo ""
