@@ -43,7 +43,7 @@ DRV		BurnDrvcnbe;
 DRV		BurnDrvcolumnsn;
 DRV		BurnDrvcrsword;
 DRV		BurnDrvcrswd2bl;
-cpDRV		BurnDrvcthd2003;
+DRV		BurnDrvcthd2003;
 DRV		BurnDrvcthd2k3a;
 DRV		BurnDrvct2k3sp;
 DRV		BurnDrvct2k3sa;
