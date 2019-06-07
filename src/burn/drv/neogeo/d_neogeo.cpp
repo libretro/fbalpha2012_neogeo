@@ -689,7 +689,7 @@ static struct BurnDIPInfo neogeoDIPList[] = {
 
 	// Fake DIPs
 	// BIOS
-	{0,	0xFD, 0,	26,   "BIOS"                     	         },
+	{0,	0xFD, 0,	29,   "BIOS"                     	         },
 	{0x02,	0x01, 0x1f,	0x00, "MVS Asia/Europe ver. 6 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x01, "MVS Asia/Europe ver. 5 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x02, "MVS Asia/Europe ver. 3 (4 slot)"  },
@@ -789,7 +789,7 @@ static struct BurnDIPInfo neoFakeDIPList[] = {
 
 	// Fake DIPs
 	// BIOS
-	{0,	0xFD, 0,	26,   "BIOS"                     	         },
+	{0,	0xFD, 0,	29,   "BIOS"                     	         },
 	{0x02,	0x01, 0x1f,	0x00, "MVS Asia/Europe ver. 6 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x01, "MVS Asia/Europe ver. 5 (1 slot)"  },
 	{0x02,	0x01, 0x1f,	0x02, "MVS Asia/Europe ver. 3 (4 slot)"  },
@@ -3391,7 +3391,7 @@ struct BurnDriver BurnDrvAof = {
         return NeoExit();
     }
 
-    struct BurnDriverD BurnDrvdoubledrsp = {
+    struct BurnDriver BurnDrvdoubledrsp = {
     	"doubledrsp", "doubledr", "neogeo", NULL, "2017",
     	"Double Dragon (Special 2017, hack)\0", NULL, "hack", "Neo Geo MVS",
     	NULL, NULL, NULL, NULL,
@@ -11884,6 +11884,49 @@ struct BurnDriver BurnDrvsdodgeb = {
 	0x1000,	304, 224, 4, 3
 };
 
+// Dragon's Heaven (development board)
+// same ID code as Voltage Fighter Gowkaizer, developed by ex-Technos staff
+
+static struct BurnRomInfo dragonshRomDesc[] = {
+	{ "ep1.bin",      0x080000,  0xf353448c, 1 | BRF_ESS | BRF_PRG }, 	 //  0 68K code
+	{ "ep2.bin",      0x080000,  0xf25c71ad, 1 | BRF_ESS | BRF_PRG }, 	 //  1 		
+
+	{ "s1.s1",    	  0x020000,  0x706477a7, 2 | BRF_GRA },           	 //  2 Text layer tiles 
+
+	{ "no3.bin",      0x1000000, 0x81821826, 3 | BRF_GRA },           	 //  3 Sprite data		
+	{ "no4.bin",      0x1000000, 0x3601d568, 3 | BRF_GRA },           	 //  4
+
+	{ "sm1.sm1",      0x020000,  0x94416d67, 4 | BRF_ESS | BRF_PRG }, 	 //  5 Z80 code			
+
+	{ "sram.v1",      0x200000,  0x00000000, 5 | BRF_SND | BRF_NODUMP }, //  6 Sound data		
+};
+
+STDROMPICKEXT(dragonsh, dragonsh, neogeo)
+STD_ROM_FN(dragonsh)
+
+static void DragonshCallback()
+{
+	BurnLoadRom(Neo68KROMActive + 0x000000, 0, 2);
+	BurnLoadRom(Neo68KROMActive + 0x000001, 1, 2);
+}
+
+static INT32 DragonshInit()
+{
+	NeoCallbackActive->pInitialise = DragonshCallback;
+	
+	return NeoInit();
+}
+
+struct BurnDriver BurnDrvdragonsh = {
+	"dragonsh", NULL, "neogeo", NULL, "1996",
+	"Dragon's Heaven (development board)\0", NULL, "Face", "Neo Geo MVS",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO | HARDWARE_SNK_SWAPP, GBF_SPORTSMISC, 0,
+	NULL, dragonshRomInfo, dragonshRomName, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
+	DragonshInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
+	0x1000,	304, 224, 4, 3
+};
+
 // Tecmo World Soccer '96
 
 static struct BurnRomInfo tws96RomDesc[] = {
@@ -13003,6 +13046,34 @@ struct BurnDriver BurnDrvbangbedp = {
 	0x1000,	304, 224, 4, 3
 };
 
+// Crossed Swords 2 (bootleg CD to cartridge conversion)
+
+static struct BurnRomInfo crswd2blRomDesc[] = {
+	{ "054-p1.p1",    0x200000, 0x64836147, 1 | BRF_ESS | BRF_PRG }, //  0 68K code 		
+
+	{ "054-s1.s1",    0x020000, 0x22e02ddd, 2 | BRF_GRA },           //  1 Text layer tiles 
+
+	{ "054-c1.c1",    0x400000, 0x8221b712, 3 | BRF_GRA },           //  2 Sprite data 		
+	{ "054-c2.c2",    0x400000, 0xd6c6183d, 3 | BRF_GRA },           //  3 					
+	
+	{ "054-m1.m1",    0x020000, 0x63e28343, 4 | BRF_ESS | BRF_PRG }, //  4 Z80 code 		
+
+	{ "054-v1.v1",    0x200000, 0x22d4b93b, 5 | BRF_SND },           //  5 Sound data 		
+};
+
+STDROMPICKEXT(crswd2bl, crswd2bl, neogeo)
+STD_ROM_FN(crswd2bl)
+
+struct BurnDriver BurnDrvcrswd2bl = {
+	"crswd2bl", NULL, "neogeo", NULL, "1991",
+	"Crossed Swords 2 (bootleg CD to cartridge conversion)\0", NULL, "bootleg (Razoola)", "Neo Geo MVS",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO | HARDWARE_SNK_SWAPP, GBF_SCRFIGHT, 0,
+	NULL, crswd2blRomInfo, crswd2blRomName, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
+	NeoInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
+	0x1000,	304, 224, 4, 3
+};
+
 // Crouching Tiger Hidden Dragon 2003 (The King of Fighters 2001 bootleg set 2)
 
 static struct BurnRomInfo cthd2k3aRomDesc[] = {
@@ -13964,6 +14035,39 @@ struct BurnDriver BurnDrvlhcdb = {
 	NULL, NULL, NULL, NULL,
 	BDF_GAME_WORKING | BDF_HACK, 2, HARDWARE_SNK_NEOGEO, GBF_PUZZLE, 0,
 	NULL, lhcdbRomInfo, lhcdbRomName, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
+	NeoInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
+	0x1000,	304, 224, 4, 3
+};
+
+// Last Hope (bootleg AES to MVS conversion, no coin support)
+// wasn't actually released on MVS but bootleg carts have been sold, this doesn't accept coins, runs like a console game
+ 
+static struct BurnRomInfo lasthopeRomDesc[] = {
+	{ "ngdt-300-p1.bin", 0x100000, 0x3776a88f, 1 | BRF_ESS | BRF_PRG }, //  0 68K Code
+
+	{ "ngdt-300-s1.bin", 0x010000, 0x0c0ff9e6, 2 | BRF_GRA },		 	//  1 Text data
+
+	{ "ngdt-300-c1.bin", 0x400000, 0x53ef41b5, 3 | BRF_GRA },		 	//  2 Sprite data
+	{ "ngdt-300-c2.bin", 0x400000, 0xf9b15ab3, 3 | BRF_GRA },		 	//  3
+	{ "ngdt-300-c3.bin", 0x400000, 0x50cc21cf, 3 | BRF_GRA },		 	//  4	
+	{ "ngdt-300-c4.bin", 0x400000, 0x8486ad9e, 3 | BRF_GRA },		 	//  5	
+
+	{ "ngdt-300-m1.bin", 0x020000, 0x113c870f, 4 | BRF_ESS | BRF_PRG }, //  6 Z80 code
+
+	{ "ngdt-300-v1.bin", 0x200000, 0xb765bafe, 5 | BRF_SND },		 	//  7 Sound data
+	{ "ngdt-300-v2.bin", 0x200000, 0x9fd0d559, 5 | BRF_SND },		 	//  8
+	{ "ngdt-300-v3.bin", 0x200000, 0x6d5107e2, 5 | BRF_SND },		 	//  9
+};
+
+STDROMPICKEXT(lasthope, lasthope, neogeo)
+STD_ROM_FN(lasthope)
+
+struct BurnDriver BurnDrvlasthope = {
+	"lasthope", NULL, "neogeo", NULL, "2005",
+	"Last Hope (bootleg AES to MVS conversion, no coin support)\0", NULL, "NG:Dev.Team", "Neo Geo MVS",
+	NULL, NULL, NULL, NULL,
+	BDF_GAME_WORKING, 2, HARDWARE_PREFIX_CARTRIDGE | HARDWARE_SNK_NEOGEO, GBF_HORSHOOT, 0,
+	NULL, lasthopeRomInfo, lasthopeRomName, NULL, NULL, neogeoInputInfo, neogeoDIPInfo,
 	NeoInit, NeoExit, NeoFrame, NeoRender, NeoScan, &NeoRecalcPalette,
 	0x1000,	304, 224, 4, 3
 };
