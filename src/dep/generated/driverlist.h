@@ -6093,6 +6093,43 @@ DRV		BurnDrvmd_zouzou;
 DRV		BurnDrvZupapa;
 DRV		BurnDrvzzyzzyxx;
 DRV		BurnDrvzzyzzyx2;
+// Pre-decrypted ROMsets
+DRV		BurnDrvbangbedd;
+DRV		BurnDrvganryud;
+DRV		BurnDrvgaroud;
+DRV		BurnDrvgarouhd;
+DRV		BurnDrvjockygpd;
+DRV		BurnDrvkf2k3bd;
+DRV		BurnDrvkf2k3pcd;   // Black screen [NOT WORKING]
+DRV		BurnDrvkf2k3pd;
+DRV		BurnDrvkf2k3upd;
+DRV		BurnDrvkof2001d;
+DRV		BurnDrvkof2002d;
+DRV		BurnDrvkof2003d;
+DRV		BurnDrvkof2k1hd;
+DRV		BurnDrvkof2k3hd;
+DRV		BurnDrvkof2knd;
+DRV		BurnDrvkof99kad;
+DRV		BurnDrvmatrimd;
+DRV		BurnDrvmslug3hd;
+DRV		BurnDrvmslug4d;
+DRV		BurnDrvmslug4hd;
+DRV		BurnDrvmslug5d;
+DRV		BurnDrvmslug5hd;
+DRV		BurnDrvnitdd;
+DRV		BurnDrvpnyaaad;
+DRV		BurnDrvpreisl2d;
+DRV		BurnDrvrotdd;
+DRV		BurnDrvs1945pd;
+DRV		BurnDrvsams5shd;
+DRV		BurnDrvsams5sod;
+DRV		BurnDrvsams5spd;
+DRV		BurnDrvsamsh5bd;
+DRV		BurnDrvsamsh5hd;
+DRV		BurnDrvsamsho5d;
+DRV		BurnDrvsengok3d;
+DRV		BurnDrvsvcd;
+DRV		BurnDrvzupapad;
 #undef DRV
 
 // Structure containing addresses of all drivers
@@ -12189,4 +12226,41 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvZupapa,				// Zupapa!
 	&BurnDrvzzyzzyxx,			// Zzyzzyxx (set 1)
 	&BurnDrvzzyzzyx2,			// Zzyzzyxx (set 2)
+// Pre-decrypted ROMsets
+	&BurnDrvbangbedd,			// Bang Bead (decrypted C)
+	&BurnDrvganryud,			// Ganryu / Musashi Ganryuki (decrypted C)
+	&BurnDrvgaroud,				// Garou - Mark of the Wolves (NGM-2530)(decrypted C)
+	&BurnDrvgarouhd,			// Garou - Mark of the Wolves (NGM-2530)(NGH-2530)(decrypted C)
+	&BurnDrvjockygpd,			// Jockey Grand Prix (decrypted C)
+	&BurnDrvkf2k3bd,			// The King of Fighters 2003 (bootleg, decrypted)
+	&BurnDrvkf2k3pcd,			// The King of Fighters 2003 (Japan, JAMMA PCB, decrypted C)
+	&BurnDrvkf2k3pd,			// The King of Fighters 2004 Plus / Hero (decrypted)
+	&BurnDrvkf2k3upd,			// The King of Fighters 2004 Ultra Plus (decrypted)
+	&BurnDrvkof2001d,			// The King of Fighters 2001 (NGM-262?)(decrypted C)
+	&BurnDrvkof2002d,			// The King of Fighters 2002 (NGM-2650)(NGH-2650)(decrypted C)
+	&BurnDrvkof2003d,			// The King of Fighters 2003 (NGM-2710, Export)(decrypted C)
+	&BurnDrvkof2k1hd,			// The King of Fighters 2001 (NGH-2621)(decrypted C)
+	&BurnDrvkof2k3hd,			// The King of Fighters 2003 (NGH-2710)(decrypted C)
+	&BurnDrvkof2knd,			// The King of Fighters 2000 (non encrypted P, decrypted C)
+	&BurnDrvkof99kad,			// The King of Fighters '99 - Millennium Battle (Korean release, non encrypted P, decrypted C)
+	&BurnDrvmatrimd,			// Matrimelee / Shin Gouketsuji Ichizoku Toukon (NGM-2660)(NGH-2660)(decrypted C)
+	&BurnDrvmslug3hd,			// Metal Slug 3 (NGH-2560)(decrypted C)
+	&BurnDrvmslug4d,			// Metal Slug 4 (NGM-2630)(decrypted C)
+	&BurnDrvmslug4hd,			// Metal Slug 4 (NGH-2630)(decrypted C)
+	&BurnDrvmslug5d,			// Metal Slug 5 (NGM-2680)(decrypted C)
+	&BurnDrvmslug5hd,			// Metal Slug 5 (NGH-2680)(decrypted C)
+	&BurnDrvnitdd,				// Nightmare in the Dark (decrypted C)
+	&BurnDrvpnyaaad,			// Pochi and Nyaa (ver 2.00, decrypted C)
+	&BurnDrvpreisl2d,			// Prehistoric Isle 2 (decrypted C)
+	&BurnDrvrotdd,				// Rage of the Dragons (NGM-2640?)(decrypted C)
+	&BurnDrvs1945pd,			// Strikers 1945 Plus (decrypted C)
+	&BurnDrvsams5shd,			// Samurai Shodown V Special / Samurai Spirits Zero Special (NGH-2720)(2nd release, less censored)(decrypted C)
+	&BurnDrvsams5sod,			// Samurai Shodown V Special / Samurai Spirits Zero Special (NGH-2720)(1st release, censored)(decrypted C)
+	&BurnDrvsams5spd,			// Samurai Shodown V Special / Samurai Spirits Zero Special (NGM-2720)(decrypted C)
+	&BurnDrvsamsh5bd,			// Samurai Shodown V / Samurai Spirits Zero (bootleg, decrypted)
+	&BurnDrvsamsh5hd,			// Samurai Shodown V / Samurai Spirits Zero (NGH-2700)(decrypted C)
+	&BurnDrvsamsho5d,			// Samurai Shodown V / Samurai Spirits Zero (NGM-2700, set 1)(decrypted C)
+	&BurnDrvsengok3d,			// Sengoku 3 / Sengoku Denshou 2001 (set 1, decrypted C)
+	&BurnDrvsvcd,				// SNK vs. Capcom - SVC Chaos (NGM-2690)(NGH-2690)(decrypted C)
+	&BurnDrvzupapad,			// Zupapa! (decrypted C)
 };
