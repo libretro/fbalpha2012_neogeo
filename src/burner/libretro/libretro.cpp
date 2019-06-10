@@ -624,7 +624,7 @@ static void evaluate_neogeo_bios_mode(const char* drvname)
             {
                if (dipswitch_core_options[dip_idx].values[0].bdi.nSetting <= 0x0d)
                {
-                  dipswitch_core_options[dip_idx].values[0].bdi.nSetting = 0x0e;
+                  dipswitch_core_options[dip_idx].values[0].bdi.nSetting = available_uni_bios->NeoSystem;
                   is_neogeo_needs_specific_bios = true;
                   break;
             }
