@@ -2166,6 +2166,11 @@ RETRO_API unsigned retro_get_region(void);
 RETRO_API void *retro_get_memory_data(unsigned id);
 RETRO_API size_t retro_get_memory_size(unsigned id);
 
+#ifdef WII_VM
+/* Gets cache directory when using virtual memory. */
+int get_cache_path(char *path);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -619,11 +619,32 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 
 					nTransparent = NeoTileAttribActive[nTileNumber];
 
-					if (nTransparent == 0) {
-						pTileData = (UINT32*)(NeoSpriteROMActive + (nTileNumber << 7));
-						pTilePalette = &NeoPalette[(nTileAttrib & 0xFF00) >> 4];
-					}
-				}
+               if (nTransparent == 0)
+               {
+#ifdef WII_VM
+									if(BurnUseCache)
+									{
+										// NeoSpriteROM fixed size is 2000000 (32MB) and contains 0x40000 tiles.
+										// When tile is beyond 0x40000 use NeoSpriteROM_WIIVM instead.
+										if(nTileNumber < 0x40000)
+										{
+											pTileData = (UINT32*)&NeoSpriteROM[nNeoActiveSlot][nTileNumber << 7];
+										}
+										else
+										{
+											pTileData = (UINT32*)&NeoSpriteROM_WIIVM[(nTileNumber - 0x40000)<< 7];
+										}
+									}
+									else
+									{
+                  	pTileData = (UINT32*)(NeoSpriteROMActive + (nTileNumber << 7));
+									}
+#else
+                  pTileData = (UINT32*)(NeoSpriteROMActive + (nTileNumber << 7));
+#endif
+                  pTilePalette = &NeoPalette[(nTileAttrib & 0xFF00) >> 4];
+               }
+            }
 
 				if (nTransparent == 0) {
 					nLine = (pZoomValue[nThisLine] & 0x0F) << 1;

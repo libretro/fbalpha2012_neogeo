@@ -1,4 +1,5 @@
 // Yamaha YMZ280B module
+#if 0 
 #include <math.h>
 #include "burnint.h"
 #include "ymz280b.h"
@@ -748,3 +749,4 @@ UINT32 YMZ280BReadRAM()
 
 	return 0;
 }
+#endif

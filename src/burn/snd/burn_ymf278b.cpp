@@ -12,7 +12,8 @@ static INT32 nFractionalPosition;
 
 static double YMF278BVolumes[2];
 static INT32 YMF278BRouteDirs[2];
-
+// This is not used for NeoGeo right?
+#if 0
 // ----------------------------------------------------------------------------
 // Dummy functions
 
@@ -259,3 +260,4 @@ void BurnYMF278BScan(INT32 nAction, INT32* pnMin)
 
 	BurnTimerScan(nAction, pnMin);
 }
+#endif

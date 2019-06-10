@@ -4,6 +4,7 @@ FRONTEND_SUPPORTS_RGB565 = 1
 HAVE_GRIFFIN = 0
 EXTERNAL_ZLIB = 0
 INCLUDE_7Z_SUPPORT = 1
+WANT_NEOGEOCD = 0
 
 # system platform
 ifeq ($(platform),)
@@ -22,7 +23,9 @@ ifeq ($(platform),)
       EXE_EXT=.exe
    endif
 else ifneq (,$(findstring armv,$(platform)))
-   override platform += unix
+   ifeq (,$(findstring classic_,$(platform)))
+      override platform += unix
+		endif
 endif
 
 
@@ -63,7 +66,7 @@ else
 endif
 else
 	OBJOUT   = -o
-	LINKOUT  = -o 
+	LINKOUT  = -o
 	LD = $(CXX)
 endif
 
@@ -107,7 +110,7 @@ else ifneq (,$(findstring ios,$(platform)))
    endif
    ifeq ($(platform),ios-arm64)
       CC = cc -arch arm64 -isysroot $(IOSSDK)
-      CXX = c++ -arch arm64 -isysroot $(IOSSDK)   
+      CXX = c++ -arch arm64 -isysroot $(IOSSDK)
    else
       CC = cc -arch armv7 -isysroot $(IOSSDK)
       CXX = c++ -arch armv7 -isysroot $(IOSSDK)
@@ -164,7 +167,7 @@ else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
       CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
       CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
       AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
-      
+
    # Lightweight PS3 Homebrew SDK
    else ifneq (,$(findstring psl1ght,$(platform)))
       TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -184,6 +187,42 @@ else ifeq ($(platform), vita)
    EXTERNAL_ZLIB = 1
    STATIC_LINKING = 1
    INCLUDE_7Z_SUPPORT = 0
+
+# Classic Platforms ####################
+# Platform affix = classic_<ISA>_<µARCH>
+# Help at https://modmyclassic.com/comp
+
+# (armv7 a7, hard point, neon based) ###
+# NESC, SNESC, C64 mini
+else ifeq ($(platform), classic_armv7_a7)
+	TARGET := $(TARGET_NAME)_libretro.so
+	fpic := -fPIC
+	SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+	CFLAGS += -Ofast \
+	-flto=4 -fwhole-program -fuse-linker-plugin \
+	-fdata-sections -ffunction-sections -Wl,--gc-sections \
+	-fno-stack-protector -fno-ident -fomit-frame-pointer \
+	-falign-functions=1 -falign-jumps=1 -falign-loops=1 \
+	-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-unroll-loops \
+	-fmerge-all-constants -fno-math-errno \
+	-marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
+	CXXFLAGS += $(CFLAGS)
+	CPPFLAGS += $(CFLAGS)
+	ASFLAGS += $(CFLAGS)
+	HAVE_NEON = 1
+	ARCH = arm
+	BUILTIN_GPU = neon
+	USE_DYNAREC = 1
+	ifeq ($(shell echo `$(CC) -dumpversion` "< 4.9" | bc -l), 1)
+	  CFLAGS += -march=armv7-a
+	else
+	  CFLAGS += -march=armv7ve
+	  # If gcc is 5.0 or later
+	  ifeq ($(shell echo `$(CC) -dumpversion` ">= 5" | bc -l), 1)
+	    LDFLAGS += -static-libgcc -static-libstdc++
+	  endif
+	endif
+#######################################
 
 # CTR (3DS)
 else ifeq ($(platform), ctr)
@@ -228,7 +267,10 @@ else ifneq (,$(filter $(platform), ngc wii wiiu))
 
    # Nintendo Wii
    else ifneq (,$(findstring wii,$(platform)))
-      PLATFORM_DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+      include $(DEVKITPPC)/wii_rules
+      PLATFORM_DEFINES += -DWII_VM -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
+      CFLAGS += -I$(LIBOGC_INC) -I$(DEVKITPRO)/libogc/include -I$(DEVKITPRO)/libogc/include/ogc/machine
+      INCLUDE_7Z_SUPPORT = 0
 
    # Nintendo Game Cube
    else ifneq (,$(findstring ngc,$(platform)))
@@ -334,13 +376,21 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 		$(FBA_BURN_DIR)/snd/burn_ymf278b.cpp \
 		$(FBA_BURN_DIR)/snd/ymz280b.cpp \
 		$(FBA_CPU_DIR)/m68000_intf.cpp \
-		$(FBA_CPU_DIR)/z80_intf.cpp \
-		$(LIBRETRO_DIR)/neocdlist.cpp
+		$(FBA_CPU_DIR)/z80_intf.cpp
+
+ifeq ($(WANT_NEOGEOCD), 1)
+   SOURCES_C += $(LIBRETRO_DIR)/neocdlist.cpp
+endif
 
    SOURCES_C :=	$(FBA_BURN_DIR)/snd/ay8910.c \
 		$(FBA_BURN_DIR)/snd/fm.c \
 		$(FBA_BURN_DIR)/snd/ymf278b.c \
 		$(FBA_BURN_DIR)/snd/ymdeltat.c
+
+ifeq ($(platform), wii)
+   SOURCES_C += $(LIBRETRO_DIR)/wii_vm.c \
+		$(LIBRETRO_DIR)/wii_progressbar.c
+endif
 
    FBA_BURN_DIRS := $(NEOGEO_DIR) \
 		$(FBA_BURN_DIR) \
@@ -376,6 +426,10 @@ else
    BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp
 endif
 
+ifeq ($(WANT_NEOGEOCD), 1)
+   FBA_DEFINES += -DWANT_NEOGEOCD
+endif
+
 SOURCES_CXX += $(GRIFFIN_CXXSRCFILES) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
 SOURCES_CXX += $(LIBRETRO_DIR)/libretro.cpp
 SOURCES_C += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
@@ -383,11 +437,16 @@ SOURCES_C += $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wild
 FBA_CXXOBJ := $(SOURCES_CXX:.cpp=.o)
 FBA_COBJ := $(SOURCES_C:.c=.o)
 
+ifeq ($(platform), wii)
+FBA_SSRCS := $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.S)))
+FBA_SOBJ := $(FBA_SSRCS:.S=.o)
+OBJS := $(FBA_SOBJ) $(FBA_COBJ) $(FBA_CXXOBJ)
+else
 OBJS := $(FBA_COBJ) $(FBA_CXXOBJ)
+endif
 
 FBA_DEFINES += -DUSE_SPEEDHACKS -D__LIBRETRO__ \
 	-D__LIBRETRO_OPTIMIZATIONS__ \
-	-DWANT_NEOGEOCD \
 	$(ENDIANNESS_DEFINES) \
 	$(PLATFORM_DEFINES)
 
@@ -478,9 +537,9 @@ generate-files-clean:
 
 generate-files:
 	@mkdir -p $(FBA_GENERATED_DIR) 2>/dev/null || /bin/true
-	@echo "Generating $(FBA_GENERATED_DIR)/driverlist.h..."
+	@echo "Generating $(FBA_GENERATED_DIR)/driverlist_neogeo.h..."
 	@echo ""
-	$(PERL) $(FBA_SCRIPTS_DIR)/gamelist.pl -o $(FBA_GENERATED_DIR)/driverlist.h -l gamelist.txt $(FBA_BURN_DRIVERS_DIR)/neogeo
+	$(PERL) $(FBA_SCRIPTS_DIR)/gamelist.pl -o $(FBA_GENERATED_DIR)/driverlist_neogeo.h -l gamelist.txt $(FBA_BURN_DRIVERS_DIR)/neogeo
 	@echo ""
 	@echo "Generating $(FBA_GENERATED_DIR)/neo_sprite_func.h..."
 	@echo ""
@@ -496,6 +555,12 @@ generate-files:
 %.o: %.c
 	@$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
+ifeq ($(platform), wii)
+%.o: %.S
+	@echo "CS $<"
+	$(CC) -c -o $@ $< $(CFLAGS) $(INCDIRS)
+endif
+
 $(TARGET): $(OBJS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJS)
@@ -505,10 +570,20 @@ endif
 
 
 clean-objs:
+ifeq ($(platform), wii)
+	find . -name '*.o' -print0 | xargs -0r rm -f
+else
 	rm -f $(OBJS)
+endif
 
 clean:
+ifeq ($(platform), wii)
+	find . -name '*.o' -print0 | xargs -0r rm -f
+else
 	rm -f $(TARGET)
 	rm -f $(OBJS)
 	rm -f $(M68KMAKE_EXE)
+endif
+
+
 endif

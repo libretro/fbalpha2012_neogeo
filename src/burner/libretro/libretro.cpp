@@ -4,7 +4,9 @@
 #include <vector>
 #include <string>
 
+#ifdef WANT_NEOGEOCD
 #include "cd/cd_interface.h"
+#endif
 
 #define FBA_VERSION "v0.2.97.29" // Sept 16, 2013 (SVN)
 
@@ -80,7 +82,9 @@ extern UINT8 NeoSystem;
 bool is_neogeo_game = false;
 bool allow_neogeo_mode = true;
 UINT16 switch_ncode = 0;
-
+#ifdef WII_VM
+bool is_large_game = false;
+#endif
 enum neo_geo_modes
 {
    /* MVS */
@@ -218,22 +222,25 @@ static struct RomBiosInfo aes_bioses[] = {
 };
 
 static struct RomBiosInfo uni_bioses[] = {
-   {"uni-bios_3_0.rom",  0xa97c89a9, 0x0e, "Universe BIOS ver. 3.0"         ,  1 },
-   {"uni-bios_2_3.rom",  0x27664eb5, 0x0f, "Universe BIOS ver. 2.3"         ,  2 },
-   {"uni-bios_2_3o.rom", 0x601720ae, 0x10, "Universe BIOS ver. 2.3 (alt)"   ,  3 },
-   {"uni-bios_2_2.rom",  0x2d50996a, 0x11, "Universe BIOS ver. 2.2"         ,  4 },
-   {"uni-bios_2_1.rom",  0x8dabf76b, 0x12, "Universe BIOS ver. 2.1"         ,  5 },
-   {"uni-bios_2_0.rom",  0x0c12c2ad, 0x13, "Universe BIOS ver. 2.0"         ,  6 },
-   {"uni-bios_1_3.rom",  0xb24b44a0, 0x14, "Universe BIOS ver. 1.3"         ,  7 },
-   {"uni-bios_1_2.rom",  0x4fa698e9, 0x15, "Universe BIOS ver. 1.2"         ,  8 },
-   {"uni-bios_1_2o.rom", 0xe19d3ce9, 0x16, "Universe BIOS ver. 1.2 (alt)"   ,  9 },
-   {"uni-bios_1_1.rom",  0x5dda0d84, 0x17, "Universe BIOS ver. 1.1"         , 10 },
-   {"uni-bios_1_0.rom",  0x0ce453a0, 0x18, "Universe BIOS ver. 1.0"         , 11 },
+   {"uni-bios_3_3.rom",  0x24858466, 0x0e, "Universe BIOS ver. 3.3"         ,  1 },
+   {"uni-bios_3_2.rom",  0xa4e8b9b3, 0x0f, "Universe BIOS ver. 3.2"         ,  2 },
+   {"uni-bios_3_1.rom",  0x0c58093f, 0x10, "Universe BIOS ver. 3.1"         ,  3 },
+   {"uni-bios_3_0.rom",  0xa97c89a9, 0x11, "Universe BIOS ver. 3.0"         ,  4 },
+   {"uni-bios_2_3.rom",  0x27664eb5, 0x12, "Universe BIOS ver. 2.3"         ,  5 },
+   {"uni-bios_2_3o.rom", 0x601720ae, 0x13, "Universe BIOS ver. 2.3 (alt)"   ,  6 },
+   {"uni-bios_2_2.rom",  0x2d50996a, 0x14, "Universe BIOS ver. 2.2"         ,  7 },
+   {"uni-bios_2_1.rom",  0x8dabf76b, 0x15, "Universe BIOS ver. 2.1"         ,  8 },
+   {"uni-bios_2_0.rom",  0x0c12c2ad, 0x16, "Universe BIOS ver. 2.0"         ,  9 },
+   {"uni-bios_1_3.rom",  0xb24b44a0, 0x17, "Universe BIOS ver. 1.3"         , 10 },
+   {"uni-bios_1_2.rom",  0x4fa698e9, 0x18, "Universe BIOS ver. 1.2"         , 11 },
+   {"uni-bios_1_2o.rom", 0xe19d3ce9, 0x19, "Universe BIOS ver. 1.2 (alt)"   , 12 },
+   {"uni-bios_1_1.rom",  0x5dda0d84, 0x1a, "Universe BIOS ver. 1.1"         , 13 },
+   {"uni-bios_1_0.rom",  0x0ce453a0, 0x1b, "Universe BIOS ver. 1.0"         , 14 },
    {NULL, 0, 0, NULL, 0 }
 };
 
 static struct RomBiosInfo unknown_bioses[] = {
-   {"neopen.sp1",        0xcb915e76, 0x1a, "NeoOpen BIOS v0.1 beta"         ,  1 },
+   {"neopen.sp1",        0xcb915e76, 0x1d, "NeoOpen BIOS v0.1 beta"         ,  1 },
    {NULL, 0, 0, NULL, 0 }
 };
 
@@ -336,7 +343,7 @@ static void InputMake();
 static bool init_input();
 static void check_variables();
 
-void wav_exit() { }
+//void wav_exit() { }
 
 // FBA stubs
 unsigned ArcadeJoystick;
@@ -352,6 +359,7 @@ TCHAR szAppHiscorePath[MAX_PATH];
 TCHAR szAppSamplesPath[MAX_PATH];
 TCHAR szAppBurnVer[16];
 
+#ifdef WANT_NEOGEOCD
 CDEmuStatusValue CDEmuStatus;
 
 const char* isowavLBAToMSF(const int LBA) { return ""; }
@@ -365,6 +373,7 @@ INT32 CDEmuLoadSector(INT32 LBA, char* pBuffer) { return 0; }
 UINT8* CDEmuReadTOC(INT32 track) { return 0; }
 UINT8* CDEmuReadQChannel() { return 0; }
 INT32 CDEmuGetSoundBuffer(INT16* buffer, INT32 samples) { return 0; }
+#endif
 
 // Replace the char c_find by the char c_replace in the destination c string
 char* str_char_replace(char* destination, char c_find, char c_replace)
@@ -608,6 +617,19 @@ static void evaluate_neogeo_bios_mode(const char* drvname)
       {
          if (dipswitch_core_options[dip_idx].values.size() > 0)
          {
+#ifdef WII_VM
+            // When a game is large(gfx > 40MB), we force Unibios
+            // All other standard bioses take minutes to load!
+            if(is_large_game)
+            {
+               if (dipswitch_core_options[dip_idx].values[0].bdi.nSetting <= 0x0d)
+               {
+                  dipswitch_core_options[dip_idx].values[0].bdi.nSetting = 0x0e;
+                  is_neogeo_needs_specific_bios = true;
+                  break;
+            }
+         }
+#endif
             // values[0] is the default value of the dipswitch
             // if the default is different than 0, this means that a different Bios is needed
             if (dipswitch_core_options[dip_idx].values[0].bdi.nSetting != 0x00)
@@ -889,6 +911,17 @@ static int archive_load_rom(uint8_t *dest, int *wrote, int i)
    return 0;
 }
 
+#ifdef WII_VM
+/* Gets cache directory when using VM for large games. */
+int get_cache_path(char *path)
+{
+   const char *system_directory_c = NULL;
+   environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_directory_c);
+
+   sprintf(path, "%s/cache/%s_cache/", system_directory_c, BurnDrvGetTextA(DRV_NAME));
+}
+#endif
+
 // This code is very confusing. The original code is even more confusing :(
 static bool open_archive()
 {
@@ -896,8 +929,24 @@ static bool open_archive()
 
 	// FBA wants some roms ... Figure out how many.
 	g_rom_count = 0;
+#ifdef WII_VM
+   unsigned int gfx_size = 0;
+   is_large_game = false;
+
+   while (!BurnDrvGetRomInfo(&g_find_list[g_rom_count].ri, g_rom_count))
+   {
+      // Count graphics roms
+      if (g_find_list[g_rom_count].ri.nType & BRF_GRA)
+         gfx_size += g_find_list[g_rom_count].ri.nLen;
+      g_rom_count++;
+   }
+   // With graphics > 40 MB, the game is considered large.
+   if (gfx_size >= 0x2800000)
+      is_large_game = true;
+#else
 	while (!BurnDrvGetRomInfo(&g_find_list[g_rom_count].ri, g_rom_count))
 		g_rom_count++;
+#endif
 
 	g_find_list_path.clear();
 	
@@ -2266,15 +2315,8 @@ static void GameInpInitMacros()
 					pgi->nType = BIT_DIGITAL;
 					pgi->Macro.nMode = 0;
 					pgi->Macro.nSysMacro = 15; // 15 = Auto-Fire mode
-					if ((BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SEGA_MEGADRIVE) {
-						if (i < 3) {
-							sprintf(pgi->Macro.szName, "P%d Auto-Fire Button %c", nPlayer+1, i+'A'); // A,B,C
-						} else {
-							sprintf(pgi->Macro.szName, "P%d Auto-Fire Button %c", nPlayer+1, i+'X'-3); // X,Y,Z
-						}
-					} else {
-						sprintf(pgi->Macro.szName, "P%d Auto-Fire Button %d", nPlayer+1, i+1);
-					}
+					sprintf(pgi->Macro.szName, "P%d Auto-Fire Button %d", nPlayer+1, i+1);
+
 					if ((BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO) {
 						BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][i]);
 					} else {
@@ -2483,169 +2525,6 @@ static void GameInpInitMacros()
 			nMacroCount++;
 			pgi++;
 		}
-
-		if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_IGS_PGM) {
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 12", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 13", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 14", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 23", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 24", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 34", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 123", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 124", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 134", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 234", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons 1234", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][3]);
-			pgi->Macro.pVal[3] = bii.pVal;
-			pgi->Macro.nVal[3] = 1;
-			nMacroCount++;
-			pgi++;
-		}
 	}
 
 	if ((nPunchx3[0] == 7) && (nKickx3[0] == 7)) {
@@ -2793,6 +2672,7 @@ INT32 GameInpAnalog2RetroInpDualKeys(struct GameInp* pgi, UINT32 nJoy, UINT8 nAx
 
 // [WIP]
 // All inputs which needs special handling need to go in the next function
+#if 0
 INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn, char *description)
 {
 	const char * parentrom	= BurnDrvGetTextA(DRV_PARENT);
@@ -3103,6 +2983,7 @@ INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn
 
 	return 0;
 }
+#endif
 
 // Handle mapping of an input
 // Will delegate to GameInpSpecialOne for cases which needs "fine tuning"
@@ -3129,7 +3010,7 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 		char* description = szn + offset_player_x;
 
 		bButtonMapped = false;
-		GameInpSpecialOne(pgi, nPlayer, szi, szn, description);
+		//GameInpSpecialOne(pgi, nPlayer, szi, szn, description);
 		if(bButtonMapped) return 0;
 
 		if (strncmp("select", szb, 6) == 0)
@@ -3292,3 +3173,4 @@ INT32 GameInpDefault()
 
 	return 0;
 }
+

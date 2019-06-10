@@ -477,3 +477,4 @@ void CheatSearchExcludeAddressRange(UINT32 nStart, UINT32 nEnd)
 
 #undef NOT_IN_RESULTS
 #undef IN_RESULTS
+

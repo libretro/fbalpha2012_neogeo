@@ -46,8 +46,9 @@ INT32 NeoLoadSprites(INT32 nOffset, INT32 nNum, UINT8* pDest, UINT32 nSpriteSize
 INT32 NeoLoadADPCM(INT32 nOffset, INT32 nNum, UINT8* pDest);
 
 void NeoDecodeSprites(UINT8* pDest, INT32 nSize);
+#ifdef WANT_NEOGEOCD
 void NeoDecodeSpritesCD(UINT8* pData, UINT8* pDest, INT32 nSize);
-
+#endif
 // neo_run.cpp
 extern UINT8* NeoGraphicsRAM;
 
@@ -84,7 +85,9 @@ extern bool bNeoEnableGraphics;
 extern bool bDisableNeoWatchdog;
 
 INT32 NeoInit();
+#ifdef WANT_NEOGEOCD
 INT32 NeoCDInit();
+#endif
 INT32 NeoExit();
 INT32 NeoScan(INT32 nAction, INT32* pnMin);
 INT32 NeoRender();
@@ -128,6 +131,11 @@ void NeoUpdateText(INT32 nOffset, const INT32 nSize, UINT8* pData, UINT8* pDest)
 // neo_sprite.cpp
 extern UINT8* NeoSpriteROM[MAX_SLOT];
 extern UINT8* NeoZoomROM;
+#ifdef WII_VM
+extern UINT8* NeoSpriteROM_WIIVM;
+extern char CacheDir[1024];
+extern bool BurnUseCache;
+#endif
 
 extern INT32 nNeoSpriteFrame;
 extern UINT32 nNeoTileMask[MAX_SLOT];
