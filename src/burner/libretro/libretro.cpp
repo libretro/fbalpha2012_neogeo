@@ -3014,7 +3014,7 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 		if(bButtonMapped) return 0;
 
 		if (strncmp("select", szb, 6) == 0)
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_SELECT, description);
+			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
 		if (strncmp("coin", szb, 4) == 0)
 			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_SELECT, description);
 		if (strncmp("start", szb, 5) == 0)
