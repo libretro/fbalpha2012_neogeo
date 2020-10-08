@@ -570,14 +570,13 @@ generate-files:
 	$(EXE_PREFIX)$(M68KMAKE_EXE) $(FBA_CPU_DIR)/m68k/ $(FBA_CPU_DIR)/m68k/m68k_in.c
 
 %.o: %.cpp
-	@$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS)
+	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS)
 
 %.o: %.c
-	@$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
+	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
 ifeq ($(platform), wii)
 %.o: %.S
-	@echo "CS $<"
 	$(CC) -c -o $@ $< $(CFLAGS) $(INCDIRS)
 endif
 
@@ -585,7 +584,7 @@ $(TARGET): $(OBJS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJS)
 else
-	@$(LD) $(LINKOUT)$@ $(SHARED) $(OBJS) $(LDFLAGS)
+	$(LD) $(LINKOUT)$@ $(SHARED) $(OBJS) $(LDFLAGS)
 endif
 
 
