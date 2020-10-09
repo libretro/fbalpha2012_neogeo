@@ -109,36 +109,6 @@ INT32 BurnClearScreen();
 
 // load.cpp
 INT32 BurnLoadRom(UINT8* Dest, INT32 i, INT32 nGap);
-INT32 BurnXorRom(UINT8* Dest, INT32 i, INT32 nGap);
-INT32 BurnLoadBitField(UINT8* pDest, UINT8* pSrc, INT32 nField, INT32 nSrcLen);
-
-// ---------------------------------------------------------------------------
-// Colour-depth independant image transfer
-
-extern UINT16* pTransDraw;
-
-void BurnTransferClear();
-INT32 BurnTransferCopy(UINT32* pPalette);
-void BurnTransferExit();
-INT32 BurnTransferInit();
-
-// ---------------------------------------------------------------------------
-// Plotting pixels
-
-inline static void PutPix(UINT8* pPix, UINT32 c)
-{
-	if (nBurnBpp >= 4) {
-		*((UINT32*)pPix) = c;
-	} else {
-		if (nBurnBpp == 2) {
-			*((UINT16*)pPix) = (UINT16)c;
-		} else {
-			pPix[0] = (UINT8)(c >>  0);
-			pPix[1] = (UINT8)(c >>  8);
-			pPix[2] = (UINT8)(c >> 16);
-		}
-	}
-}
 
 // ---------------------------------------------------------------------------
 // Setting up cpus for cheats
