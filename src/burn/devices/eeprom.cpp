@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "burnint.h"
 #include "eeprom.h"
 

@@ -1,4 +1,5 @@
 // Driver Save State module
+#include <stdio.h>
 #include "burner.h"
 
 // from dynhuff.cpp

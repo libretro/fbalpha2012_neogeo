@@ -1,5 +1,5 @@
 // Burn - Drivers module
-
+#include <stdio.h>
 #include "version.h"
 #include "burnint.h"
 #include "burn_sound.h"

@@ -9,7 +9,7 @@
   Tatsuyuki Satoh, Fabrice Frances, Nicola Salmoria.
 
 ***************************************************************************/
-
+#include <stdio.h>
 #include "driver.h"
 #include "state.h"
 #include "ay8910.h"

@@ -46,10 +46,12 @@
 	Adapted for use outside MAME by Barry Harris (FB Alpha)
 ***************************************************************************/
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
 #include "un7z.h"
 
-#include <ctype.h>
-#include <stdlib.h>
 #include "zlib.h"
 
 /***************************************************************************
