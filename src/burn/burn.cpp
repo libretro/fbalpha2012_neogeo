@@ -18,10 +18,6 @@ bool bBurnUseASMCPUEmulation = true;
 bool bBurnUseASMCPUEmulation = false;
 #endif
 
-#if defined (FBA_DEBUG)
- clock_t starttime = 0;
-#endif
-
 UINT32 nCurrentFrame;			// Framecount for emulated game
 
 UINT32 nFramesEmulated;		// Counters for FPS	display
@@ -612,37 +608,12 @@ extern "C" INT32 BurnDrvInit()
 
 	nMaxPlayers = pDriver[nBurnDrvActive]->Players;
 	
-#if defined (FBA_DEBUG)
-	if (!nReturnValue) {
-		starttime = clock();
-		nFramesEmulated = 0;
-		nFramesRendered = 0;
-		nCurrentFrame = 0;
-	} else {
-		starttime = 0;
-	}
-#endif
-
 	return nReturnValue;
 }
 
 // Exit game emulation
 extern "C" INT32 BurnDrvExit()
 {
-#if defined (FBA_DEBUG)
-	if (starttime) {
-		clock_t endtime;
-		clock_t nElapsedSecs;
-
-		endtime = clock();
-		nElapsedSecs = (endtime - starttime);
-		bprintf(PRINT_IMPORTANT, _T(" ** Emulation ended (running for %.2f seconds).\n"), (float)nElapsedSecs / CLOCKS_PER_SEC);
-		bprintf(PRINT_IMPORTANT, _T("    %.2f%% of frames rendered (%d out of a total %d).\n"), (float)nFramesRendered / nFramesEmulated * 100, nFramesRendered, nFramesEmulated);
-		bprintf(PRINT_IMPORTANT, _T("    %.2f frames per second (average).\n"), (float)nFramesRendered / nFramesEmulated * nBurnFPS / 100);
-		bprintf(PRINT_NORMAL, _T("\n"));
-	}
-#endif
-
 	CheatExit();
 	CheatSearchExit();
 	HiscoreExit();
