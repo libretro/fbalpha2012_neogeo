@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "neogeo.h"
 
 UINT8* NeoZoomROM;
