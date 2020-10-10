@@ -99,6 +99,7 @@ struct NeoMediaInfo {
  *
  */
  
+#include <stdio.h>
 #include "neogeo.h"
 #include "cd_interface.h"
 #include "burn_ym2610.h"
