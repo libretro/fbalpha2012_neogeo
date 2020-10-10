@@ -2,16 +2,6 @@
 #include <stdio.h>
 #include "burner.h"
 
-// from dynhuff.cpp
-INT32 FreezeDecode(UINT8 **buffer, INT32 *size);
-INT32 UnfreezeDecode(const UINT8* buffer, INT32 size);
-INT32 FreezeEncode(UINT8 **buffer, INT32 *size);
-INT32 UnfreezeEncode(const UINT8* buffer, INT32 size);
-
-// from replay.cpp
-INT32 FreezeInput(UINT8** buf, int* size);
-INT32 UnfreezeInput(const UINT8* buf, INT32 size);
-
 UINT32 nReplayCurrentFrame;
 UINT32 nStartFrame;
 
