@@ -15,37 +15,12 @@
 #define MAKE_STRING_2(s) #s
 #define MAKE_STRING(s) MAKE_STRING_2(s)
 
-#define BZIP_MAX (20)								// Maximum zip files to search through
-#if defined (BUILD_QT)
- #define DIRS_MAX (4)								// Maximum number of directories to search
-#else
- #define DIRS_MAX (20)								// Maximum number of directories to search
-#endif
-
 #include "title.h"
 #include "burn.h"
-
-// ---------------------------------------------------------------------------
-// OS dependent functionality
-typedef struct tagIMAGE {
-	unsigned int	width;
-	unsigned int	height;
-	unsigned int	rowbytes;
-	unsigned int	imgbytes;
-	unsigned char**	rowptr;
-	unsigned char*	bmpbits;
-	unsigned int	flags;
-} IMAGE;
-
 #include "burner_libretro.h"
 
 // ---------------------------------------------------------------------------
 // OS independent functionality
-
-// Macros for parsing text
-#define SKIP_WS(s) while (_istspace(*s)) { s++; }			// Skip whitespace
-#define FIND_WS(s) while (*s && !_istspace(*s)) { s++; }	// Find whitespace
-#define FIND_QT(s) while (*s && *s != _T('\"')) { s++; }	// Find quote
 
 // gami.cpp
 extern struct GameInp* GameInp;
