@@ -1,6 +1,7 @@
 #include "libretro.h"
 #include "burner.h"
 
+#include <stdio.h>
 #include <vector>
 #include <string>
 
