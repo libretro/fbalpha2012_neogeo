@@ -312,11 +312,12 @@ else ifeq ($(platform), gcw0)
    CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
    AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar
    fpic := -fPIC
-   SHARED := -shared -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
+   SHARED := -shared -Wl,--gc-sections -Wl,-no-undefined -Wl,--version-script=$(LIBRETRO_DIR)/link.T
    LDFLAGS += $(PTHREAD_FLAGS)
    CFLAGS += $(PTHREAD_FLAGS) -DHAVE_MKDIR
    CFLAGS += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
-   CXXFLAGS += -std=gnu++11 -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
+   CFLAGS +=  -fomit-frame-pointer -ffunction-sections -fdata-sections
+   CXXFLAGS += -std=gnu++11 $(CFLAGS)
 
 # Windows MSVC 2003 Xbox 1
 else ifeq ($(platform), xbox1_msvc2003)
