@@ -4798,6 +4798,10 @@ INT32 NeoFrame()
 	bRenderImage = false;
 	bForceUpdateOnStatusRead = false;
 
+	if (nSkipFrame) {
+		pBurnDraw = NULL;
+	}
+
 	if (pBurnDraw) {
 		NeoUpdatePalette();											// Update the palette
 		NeoClearScreen();
