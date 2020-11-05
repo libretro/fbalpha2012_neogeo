@@ -586,7 +586,6 @@ extern "C" INT32 BurnDrvInit()
 	BurnSetRefreshRate(60.0);
 
 	CheatInit();
-	HiscoreInit();
 	BurnStateInit();	
 	BurnInitMemoryManager();
 
@@ -602,7 +601,6 @@ extern "C" INT32 BurnDrvExit()
 {
 	CheatExit();
 	CheatSearchExit();
-	HiscoreExit();
 	BurnStateExit();
 	
 	nBurnCPUSpeedAdjust = 0x0100;
@@ -656,7 +654,6 @@ INT32 BurnDrvCartridgeSetup(BurnCartrigeCommand nCommand)
 extern "C" INT32 BurnDrvFrame()
 {
 	CheatApply();									// Apply cheats (if any)
-	HiscoreApply();
 	return pDriver[nBurnDrvActive]->Frame();		// Forward to drivers function
 }
 

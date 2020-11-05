@@ -112,6 +112,8 @@ struct NeoMediaInfo {
 #include "libretro.h"
 #include "wii_vm.h"
 #include "wii_progressbar.h"
+
+extern int get_cache_path(char *path);
 #endif
 
 // #undef USE_SPEEDHACKS
