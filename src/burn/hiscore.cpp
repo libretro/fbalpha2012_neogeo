@@ -214,7 +214,8 @@ void HiscoreInit()
 	
 	HiscoresInUse = 0;
 	
-	snprintf(szDatFilename, sizeof(szDatFilename), "%s%chiscore.dat", g_save_dir, slash);
+	snprintf(szDatFilename, sizeof(szDatFilename), "%s%cfbalpha2012%chiscore.dat",
+			g_system_dir, slash, slash);
 
 	fp = _tfopen(szDatFilename, _T("r"));
 	if (fp)

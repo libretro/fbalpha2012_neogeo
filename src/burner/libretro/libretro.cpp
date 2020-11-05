@@ -177,19 +177,202 @@ void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_c
 void retro_set_input_poll(retro_input_poll_t cb) { poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
 
-static const struct retro_variable var_empty = { NULL, NULL };
+/* Core options */
 
-static const struct retro_variable var_fba_aspect = { CORE_OPTION_NAME "_aspect", "Core-provided aspect ratio; DAR|PAR" };
-static const struct retro_variable var_fba_cpu_speed_adjust = { CORE_OPTION_NAME "_cpu_speed_adjust", "CPU overclock; 100|110|120|130|140|150|160|170|180|190|200" };
-static const struct retro_variable var_fba_diagnostic_input = { CORE_OPTION_NAME "_diagnostic_input", "Diagnostic Input; None|Hold Start|Start + A + B|Hold Start + A + B|Start + L + R|Hold Start + L + R|Hold Select|Select + A + B|Hold Select + A + B|Select + L + R|Hold Select + L + R" };
-static const struct retro_variable var_fba_hiscores = { CORE_OPTION_NAME "_hiscores", "Hiscores; enabled|disabled" };
+static const struct retro_core_option_definition option_empty = { NULL, NULL, NULL, {{0}}, NULL };
 
-// Neo Geo core options
-static const struct retro_variable var_fba_neogeo_mode = { CORE_OPTION_NAME "_neogeo_mode", "Neo Geo mode; MVS|AES|UNIBIOS|DIPSWITCH" };
+static const struct retro_core_option_definition option_fba_aspect = {
+   CORE_OPTION_NAME "_aspect",
+   "Core-Provided Aspect Ratio",
+   "Choose the preferred content aspect ratio. This will only apply when RetroArch's aspect ratio is set to 'Core provided' in the Video settings.",
+   {
+      { "DAR", NULL },
+      { "PAR", NULL },
+      { NULL, NULL },
+   },
+   "DAR"
+};
+
+static const struct retro_core_option_definition option_fba_cpu_speed_adjust = {
+   CORE_OPTION_NAME "_cpu_speed_adjust",
+   "CPU Speed (%)",
+   "Enables overclocking of the emulated CPU. Can reduce slowdown, but may cause glitches.",
+   {
+      { "100", NULL },
+      { "110", NULL },
+      { "120", NULL },
+      { "130", NULL },
+      { "140", NULL },
+      { "150", NULL },
+      { "160", NULL },
+      { "170", NULL },
+      { "180", NULL },
+      { "190", NULL },
+      { "200", NULL },
+      { NULL, NULL },
+   },
+   "100"
+};
+
+static const struct retro_core_option_definition option_fba_diagnostic_input = {
+   CORE_OPTION_NAME "_diagnostic_input",
+   "Diagnostic Input",
+   "Enables access to the service menu via the selected key combination.",
+   {
+      { "None",                NULL },
+      { "Hold Start",          NULL },
+      { "Start + A + B",       NULL },
+      { "Hold Start + A + B",  NULL },
+      { "Start + L + R",       NULL },
+      { "Hold Start + L + R",  NULL },
+      { "Hold Select",         NULL },
+      { "Select + A + B",      NULL },
+      { "Hold Select + A + B", NULL },
+      { "Select + L + R",      NULL },
+      { "Hold Select + L + R", NULL },
+      { NULL, NULL },
+   },
+   "None"
+};
+
+static const struct retro_core_option_definition option_fba_hiscores = {
+   CORE_OPTION_NAME "_hiscores",
+   "Hiscores",
+   "Enable high scores support. Requires the file 'hiscore.dat' to be placed in your system/fbalpha2012/ folder.",
+   {
+      { "enabled",  NULL },
+      { "disabled", NULL },
+      { NULL, NULL },
+   },
+   "enabled"
+};
+
+static const struct retro_core_option_definition option_fba_frameskip = {
+   CORE_OPTION_NAME "_frameskip",
+   "Frameskip",
+   "Skip frames to avoid audio buffer under-run (crackling). Improves performance at the expense of visual smoothness. 'Auto' skips frames when advised by the frontend. 'Manual' utilises the 'Frameskip Threshold (%)' setting.",
+   {
+      { "disabled", NULL },
+      { "Auto",     NULL },
+      { "Manual",   NULL },
+      { NULL, NULL },
+   },
+   "disabled"
+};
+
+static const struct retro_core_option_definition option_fba_frameskip_threshold = {
+   CORE_OPTION_NAME "_frameskip_threshold",
+   "Frameskip Threshold (%)",
+   "When 'Frameskip' is set to 'Manual', specifies the audio buffer occupancy threshold (percentage) below which frames will be skipped. Higher values reduce the risk of crackling by causing frames to be dropped more frequently.",
+   {
+      { "15", NULL },
+      { "18", NULL },
+      { "21", NULL },
+      { "24", NULL },
+      { "27", NULL },
+      { "30", NULL },
+      { "33", NULL },
+      { "36", NULL },
+      { "39", NULL },
+      { "42", NULL },
+      { "45", NULL },
+      { "48", NULL },
+      { "51", NULL },
+      { "54", NULL },
+      { "57", NULL },
+      { "60", NULL },
+      { NULL, NULL },
+   },
+   "33"
+};
+
+/* > Neo Geo core options */
+
+static const struct retro_core_option_definition option_fba_neogeo_mode = {
+   CORE_OPTION_NAME "_neogeo_mode",
+   "Neo Geo Mode",
+   "Choose operating mode by selecting which bios to load: MVS - Arcade; AES - Home; UNIBIOS - Hold A+B+C at UNIBIOS boot screen to configure system; DIPSWITCH - Use DIP switch setting.",
+   {
+      { "MVS", NULL },
+      { "AES", NULL },
+      { "UNIBIOS", NULL },
+      { "DIPSWITCH", NULL },
+      { NULL, NULL },
+   },
+   "MVS"
+};
 
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
+}
+
+/* Frameskipping Support */
+
+static unsigned frameskip_type             = 0;
+static unsigned frameskip_threshold        = 0;
+static uint16_t frameskip_counter          = 0;
+
+static bool retro_audio_buff_active        = false;
+static unsigned retro_audio_buff_occupancy = 0;
+static bool retro_audio_buff_underrun      = false;
+/* Maximum number of consecutive frames that
+ * can be skipped */
+#define FRAMESKIP_MAX 30
+
+static unsigned audio_latency              = 0;
+static bool update_audio_latency           = false;
+
+static void retro_audio_buff_status_cb(
+      bool active, unsigned occupancy, bool underrun_likely)
+{
+   retro_audio_buff_active    = active;
+   retro_audio_buff_occupancy = occupancy;
+   retro_audio_buff_underrun  = underrun_likely;
+}
+
+static void init_frameskip(void)
+{
+   if (frameskip_type > 0)
+   {
+      struct retro_audio_buffer_status_callback buf_status_cb;
+
+      buf_status_cb.callback = retro_audio_buff_status_cb;
+      if (!environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK,
+            &buf_status_cb))
+      {
+         if (log_cb)
+            log_cb(RETRO_LOG_WARN, "Frameskip disabled - frontend does not support audio buffer status monitoring.\n");
+
+         retro_audio_buff_active    = false;
+         retro_audio_buff_occupancy = 0;
+         retro_audio_buff_underrun  = false;
+         audio_latency              = 0;
+      }
+      else
+      {
+         /* Frameskip is enabled - increase frontend
+          * audio latency to minimise potential
+          * buffer underruns */
+#ifdef FBACORES_CPS
+         float frame_time_msec = 1000.0f / 59.629403f;
+#else
+         float frame_time_msec = 1000.0f / ((float)nBurnFPS / 100.0f);
+#endif
+         /* Set latency to 6x current frame time... */
+         audio_latency = (unsigned)((6.0f * frame_time_msec) + 0.5f);
+
+         /* ...then round up to nearest multiple of 32 */
+         audio_latency = (audio_latency + 0x1F) & ~0x1F;
+      }
+   }
+   else
+   {
+      environ_cb(RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK, NULL);
+      audio_latency = 0;
+   }
+
+   update_audio_latency = true;
 }
 
 struct RomBiosInfo {
@@ -342,7 +525,7 @@ void retro_get_system_info(struct retro_system_info *info)
 static INT32 InputTick();
 static void InputMake();
 static bool init_input();
-static void check_variables();
+static void check_variables(bool first_run);
 
 //void wav_exit() { }
 
@@ -405,7 +588,6 @@ struct dipswitch_core_option
    char option_name[100];
    char friendly_name[100];
 
-   std::string values_str;
    std::vector<dipswitch_core_option_value> values;
 };
 
@@ -577,20 +759,9 @@ static int InpDIPSWInit(void)
 
          pgi = GameInp + bdi.nInput + nDIPOffset;
 
-         // Create the string values for the core option
-         dip_option->values_str.assign(dip_option->friendly_name);
-         dip_option->values_str.append("; ");
-
          log_cb(RETRO_LOG_INFO, "'%s' (%d)\n", dip_option->friendly_name, dip_option->values.size() - 1); // -1 to exclude the Default from the DIP Switch count
          for (int dip_value_idx = 0; dip_value_idx < dip_option->values.size(); dip_value_idx++)
-         {
-            dip_option->values_str.append(dip_option->values[dip_value_idx].friendly_name);
-            if (dip_value_idx != dip_option->values.size() - 1)
-               dip_option->values_str.append("|");
-
             log_cb(RETRO_LOG_INFO, "   '%s'\n", dip_option->values[dip_value_idx].friendly_name);
-         }         
-         //dip_option->values_str.shrink_to_fit(); // C++ 11 feature
 
          j++;
       }
@@ -675,54 +846,206 @@ static void set_controller_infos()
 
 static void set_environment()
 {
-   std::vector<const retro_variable*> vars_systems;
-   struct retro_variable *vars;
+   std::vector<const struct retro_core_option_definition*> options_system;
+   struct retro_core_option_definition *options = NULL;
+   unsigned options_version = 0;
 
    // Add the Global core options
-   vars_systems.push_back(&var_fba_aspect);
-   vars_systems.push_back(&var_fba_cpu_speed_adjust);
-   vars_systems.push_back(&var_fba_hiscores);
+   options_system.push_back(&option_fba_aspect);
+   options_system.push_back(&option_fba_cpu_speed_adjust);
+
+   if (!is_neogeo_game)
+   {
+      /* hiscore.dat is irrelevant for Neo Geo content */
+      options_system.push_back(&option_fba_hiscores);
+   }
+
+   options_system.push_back(&option_fba_frameskip);
+   options_system.push_back(&option_fba_frameskip_threshold);
 
    if (pgi_diag)
    {
-      vars_systems.push_back(&var_fba_diagnostic_input);
+      options_system.push_back(&option_fba_diagnostic_input);
    }
 
    if (is_neogeo_game)
    {
       // Add the Neo Geo core options
       if (allow_neogeo_mode)
-         vars_systems.push_back(&var_fba_neogeo_mode);
+         options_system.push_back(&option_fba_neogeo_mode);
    }
 
-   int nbr_vars = vars_systems.size();
-   int nbr_dips = dipswitch_core_options.size();
+   int nbr_options = options_system.size();
+   int nbr_dips    = dipswitch_core_options.size();
 
-   log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d\n", nbr_vars, nbr_dips);
+   log_cb(RETRO_LOG_INFO, "set_environment: SYSTEM: %d, DIPSWITCH: %d\n", nbr_options, nbr_dips);
 
-   vars = (struct retro_variable*)calloc(nbr_vars + nbr_dips + 1, sizeof(struct retro_variable));
+   options = (struct retro_core_option_definition*)calloc(
+         nbr_options + nbr_dips + 1, sizeof(struct retro_core_option_definition));
    
-   int idx_var = 0;
+   int idx_option = 0;
 
    // Add the System core options
-   for (int i = 0; i < nbr_vars; i++, idx_var++)
+   for (int i = 0; i < nbr_options; i++, idx_option++)
    {
-      vars[idx_var] = *vars_systems[i];
-      log_cb(RETRO_LOG_INFO, "retro_variable (SYSTEM)    { '%s', '%s' }\n", vars[idx_var].key, vars[idx_var].value);
+      options[idx_option] = *options_system[i];
+      log_cb(RETRO_LOG_INFO,
+            "retro_core_option_definition (SYSTEM)    { '%s', '%s' }\n",
+            options[idx_option].key, options[idx_option].desc);
    }
 
    // Add the DIP switches core options
-   for (int dip_idx = 0; dip_idx < nbr_dips; dip_idx++, idx_var++)
+   for (int dip_idx = 0; dip_idx < nbr_dips; dip_idx++, idx_option++)
    {
-      vars[idx_var].key = dipswitch_core_options[dip_idx].option_name;
-      vars[idx_var].value = dipswitch_core_options[dip_idx].values_str.c_str();
-      log_cb(RETRO_LOG_INFO, "retro_variable (DIPSWITCH) { '%s', '%s' }\n", vars[idx_var].key, vars[idx_var].value);
+      dipswitch_core_option *dip_option = &dipswitch_core_options[dip_idx];
+
+      options[idx_option].key  = dip_option->option_name;
+      options[idx_option].desc = dip_option->friendly_name;
+      options[idx_option].info = "DIP switch setting, specific to running content.";
+
+      if (dip_option->values.size() > 0)
+      {
+         options[idx_option].default_value = dip_option->values[0].friendly_name;
+
+         for (int dip_value_idx = 0; dip_value_idx < dip_option->values.size(); dip_value_idx++)
+         {
+            if (dip_value_idx >= RETRO_NUM_CORE_OPTION_VALUES_MAX - 1)
+               break;
+
+            options[idx_option].values[dip_value_idx].value = dip_option->values[dip_value_idx].friendly_name;
+            options[idx_option].values[dip_value_idx].label = NULL;
+         }
+
+         if (dip_option->values.size() < RETRO_NUM_CORE_OPTION_VALUES_MAX - 1)
+         {
+            options[idx_option].values[dip_option->values.size()].value = NULL;
+            options[idx_option].values[dip_option->values.size()].label = NULL;
+         }
+         else
+         {
+            options[idx_option].values[RETRO_NUM_CORE_OPTION_VALUES_MAX - 1].value = NULL;
+            options[idx_option].values[RETRO_NUM_CORE_OPTION_VALUES_MAX - 1].label = NULL;
+         }
+      }
+
+      log_cb(RETRO_LOG_INFO,
+            "retro_core_option_definition (DIPSWITCH) { '%s', '%s' }\n",
+            options[idx_option].key, options[idx_option].desc);
    }
 
-   vars[idx_var] = var_empty;
-   
-   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
-   free(vars);
+   options[idx_option] = option_empty;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &options_version) &&
+       (options_version >= 1))
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS, (void*)options);
+   else
+   {
+      /* Have to convert options to and old format
+       * retro_variable array... */
+      unsigned i;
+      unsigned num_options             = nbr_options + nbr_dips;
+      struct retro_variable *variables = NULL;
+      char **values_buf                = NULL;
+
+      /* Allocate arrays */
+      variables  = (struct retro_variable *)calloc(num_options + 1, sizeof(struct retro_variable));
+      values_buf = (char **)calloc(num_options, sizeof(char *));
+
+      if (!variables || !values_buf)
+         goto end;
+
+      /* Copy parameters from options array */
+      for (i = 0; i < num_options; i++)
+      {
+         const char *key                        = options[i].key;
+         const char *desc                       = options[i].desc;
+         const char *default_value              = options[i].default_value;
+         struct retro_core_option_value *values = options[i].values;
+         unsigned buf_len                       = 3;
+         unsigned default_index                 = 0;
+
+         values_buf[i] = NULL;
+
+         if (desc)
+         {
+            size_t num_values = 0;
+
+            /* Determine number of values */
+            for (;;)
+            {
+               if (!values[num_values].value)
+                  break;
+
+               /* Check if this is the default value */
+               if (default_value)
+                  if (strcmp(values[num_values].value, default_value) == 0)
+                     default_index = num_values;
+
+               buf_len += strlen(values[num_values].value);
+               num_values++;
+            }
+
+            /* Build values string */
+            if (num_values > 0)
+            {
+               unsigned j;
+
+               buf_len += num_values - 1;
+               buf_len += strlen(desc);
+
+               values_buf[i] = (char *)calloc(buf_len, sizeof(char));
+               if (!values_buf[i])
+                  goto end;
+
+               strcpy(values_buf[i], desc);
+               strcat(values_buf[i], "; ");
+
+               /* Default value goes first */
+               strcat(values_buf[i], values[default_index].value);
+
+               /* Add remaining values */
+               for (j = 0; j < num_values; j++)
+               {
+                  if (j != default_index)
+                  {
+                     strcat(values_buf[i], "|");
+                     strcat(values_buf[i], values[j].value);
+                  }
+               }
+            }
+         }
+
+         variables[i].key   = key;
+         variables[i].value = values_buf[i];
+      }
+
+      /* Set variables */
+      environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
+end:
+      /* Clean up */
+      if (values_buf)
+      {
+         for (i = 0; i < num_options; i++)
+         {
+            if (values_buf[i])
+            {
+               free(values_buf[i]);
+               values_buf[i] = NULL;
+            }
+         }
+
+         free(values_buf);
+         values_buf = NULL;
+      }
+
+      if (variables)
+      {
+         free(variables);
+         variables = NULL;
+      }
+   }
+
+   free(options);
 }
 
 // Update DIP switches value  depending of the choice the user made in core options
@@ -1120,7 +1443,16 @@ void retro_init()
    else
       log_cb = log_dummy;
 
-	BurnLibInit();
+   BurnLibInit();
+
+   frameskip_type             = 0;
+   frameskip_threshold        = 0;
+   frameskip_counter          = 0;
+   retro_audio_buff_active    = false;
+   retro_audio_buff_occupancy = 0;
+   retro_audio_buff_underrun  = false;
+   audio_latency              = 0;
+   update_audio_latency       = false;
 }
 
 void retro_deinit()
@@ -1156,11 +1488,12 @@ void retro_reset()
    ForceFrameStep();
 }
 
-static void check_variables(void)
+static void check_variables(bool first_run)
 {
    struct retro_variable var = {0};
+   unsigned last_frameskip_type;
 
-   var.key = var_fba_cpu_speed_adjust.key;
+   var.key = option_fba_cpu_speed_adjust.key;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
    {
       if (strcmp(var.value, "110") == 0)
@@ -1187,7 +1520,7 @@ static void check_variables(void)
          nBurnCPUSpeedAdjust = 0x0100;
    }
 
-   var.key = var_fba_aspect.key;
+   var.key = option_fba_aspect.key;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
    {
       if (strcmp(var.value, "PAR") == 0)
@@ -1198,7 +1531,7 @@ static void check_variables(void)
 
    if (pgi_diag)
    {
-      var.key = var_fba_diagnostic_input.key;
+      var.key = option_fba_diagnostic_input.key;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
       {
          diag_input = NULL;
@@ -1260,7 +1593,7 @@ static void check_variables(void)
    {
       if (allow_neogeo_mode)
       {
-         var.key = var_fba_neogeo_mode.key;
+         var.key = option_fba_neogeo_mode.key;
          if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
          {
             if (strcmp(var.value, "MVS") == 0)
@@ -1274,15 +1607,44 @@ static void check_variables(void)
          }
       }
    }
-   
-   var.key = var_fba_hiscores.key;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+
+   if (is_neogeo_game)
+      EnableHiscores = 0;
+   else
    {
-      if (strcmp(var.value, "enabled") == 0)
-         EnableHiscores = true;
-      else
-         EnableHiscores = false;
+      var.key = option_fba_hiscores.key;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+      {
+         if (strcmp(var.value, "enabled") == 0)
+            EnableHiscores = 1;
+         else
+            EnableHiscores = 0;
+      }
    }
+
+   var.key             = option_fba_frameskip.key;
+   var.value           = NULL;
+   last_frameskip_type = frameskip_type;
+   frameskip_type      = 0;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "Auto") == 0)
+         frameskip_type = 1;
+      else if (strcmp(var.value, "Manual") == 0)
+         frameskip_type = 2;
+   }
+
+   var.key             = option_fba_frameskip_threshold.key;
+   var.value           = NULL;
+   frameskip_threshold = 33;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+      frameskip_threshold = strtol(var.value, NULL, 10);
+
+   /* (Re)Initialise frameskipping, if required */
+   if ((frameskip_type != last_frameskip_type) || first_run)
+      init_frameskip();
 }
 
 void retro_run()
@@ -1290,8 +1652,44 @@ void retro_run()
    int width, height;
    BurnDrvGetVisibleSize(&width, &height);
    pBurnDraw = (uint8_t*)g_fba_frame;
+   nSkipFrame = 0;
 
    InputMake();
+
+   /* Check whether current frame should
+    * be skipped */
+   if ((frameskip_type > 0) && retro_audio_buff_active)
+   {
+      switch (frameskip_type)
+      {
+         case 1: /* auto */
+            nSkipFrame = retro_audio_buff_underrun ? 1 : 0;
+            break;
+         case 2: /* manual */
+            nSkipFrame = (retro_audio_buff_occupancy < frameskip_threshold) ? 1 : 0;
+            break;
+         default:
+            nSkipFrame = 0;
+            break;
+      }
+
+      if (!nSkipFrame || (frameskip_counter >= FRAMESKIP_MAX))
+      {
+         nSkipFrame        = 0;
+         frameskip_counter = 0;
+      }
+      else
+         frameskip_counter++;
+   }
+
+   /* If frameskip settings have changed, update
+    * frontend audio latency */
+   if (update_audio_latency)
+   {
+      environ_cb(RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY,
+            &audio_latency);
+      update_audio_latency = false;
+   }
 
    ForceFrameStep();
 
@@ -1312,7 +1710,11 @@ void retro_run()
          nBurnPitch = width * pitch_size;
    }
 
-   video_cb(g_fba_frame, width, height, nBurnPitch);
+   if (!nSkipFrame)
+      video_cb(g_fba_frame, width, height, nBurnPitch);
+   else
+      video_cb(NULL, width, height, nBurnPitch);
+
    audio_batch_cb(g_audio_buf, nBurnSoundLen);
 
    bool updated = false;
@@ -1321,7 +1723,7 @@ void retro_run()
       bool old_core_aspect_par = core_aspect_par;
       neo_geo_modes old_g_opt_neo_geo_mode = g_opt_neo_geo_mode;
 
-      check_variables();
+      check_variables(false);
 
       apply_dipswitch_from_variables();
 
@@ -1647,7 +2049,7 @@ bool retro_load_game(const struct retro_game_info *info)
       set_controller_infos();
 
       set_environment();
-      check_variables();
+      check_variables(true);
 
       pBurnSoundOut = g_audio_buf;
       nBurnSoundRate = AUDIO_SAMPLERATE;
@@ -1774,7 +2176,7 @@ static bool init_input(void)
    // Update core option for diagnostic input
    set_environment();
    // Read the user core option values
-   check_variables();
+   check_variables(false);
 
    // The list of normal and macro input_descriptors are filled, we can assign all the input_descriptors to retroarch
    set_input_descriptors();
@@ -2575,61 +2977,79 @@ INT32 GameInpInit()
 // Analog to analog mapping
 INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis, UINT32 nKey, UINT32 nIndex, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0E00, INT16 nSliderCenter = 10)
 {
-	if(bButtonMapped) return 0;
-	switch (nInput)
-	{
-		case GIT_JOYAXIS_FULL:
-			pgi->nInput = GIT_JOYAXIS_FULL;
-			pgi->Input.JoyAxis.nAxis = nAxis;
-			pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
-			axibinds[nJoy][nAxis][0] = nIndex;
-			axibinds[nJoy][nAxis][1] = nKey;
-			normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_ANALOG, nIndex, nKey, szn));
-			break;
-		case GIT_JOYSLIDER:
-			pgi->nInput = GIT_JOYSLIDER;
-			pgi->Input.Slider.nSliderValue = nSliderValue;
-			pgi->Input.Slider.nSliderSpeed = nSliderSpeed;
-			pgi->Input.Slider.nSliderCenter = nSliderCenter;
-			pgi->Input.Slider.JoyAxis.nAxis = nAxis;
-			pgi->Input.Slider.JoyAxis.nJoy = (UINT8)nJoy;
-			axibinds[nJoy][nAxis][0] = nIndex;
-			axibinds[nJoy][nAxis][1] = nKey;
-			normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_ANALOG, nIndex, nKey, szn));
-			break;
-		// I'm not sure the 2 following settings are needed in the libretro port
-		case GIT_JOYAXIS_NEG:
-			pgi->nInput = GIT_JOYAXIS_NEG;
-			pgi->Input.JoyAxis.nAxis = nAxis;
-			pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
-			axibinds[nJoy][nAxis][0] = nIndex;
-			axibinds[nJoy][nAxis][1] = nKey;
-			normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_ANALOG, nIndex, nKey, szn));
-			break;
-		case GIT_JOYAXIS_POS:
-			pgi->nInput = GIT_JOYAXIS_POS;
-			pgi->Input.JoyAxis.nAxis = nAxis;
-			pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
-			axibinds[nJoy][nAxis][0] = nIndex;
-			axibinds[nJoy][nAxis][1] = nKey;
-			normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_ANALOG, nIndex, nKey, szn));
-			break;
-	}
-	bButtonMapped = true;
-	return 0;
+   struct retro_input_descriptor input_descriptor;
+
+   if(bButtonMapped) return 0;
+
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_ANALOG;
+   input_descriptor.index       = nIndex;
+   input_descriptor.id          = nKey;
+   input_descriptor.description = szn;
+
+   switch (nInput)
+   {
+      case GIT_JOYAXIS_FULL:
+         pgi->nInput = GIT_JOYAXIS_FULL;
+         pgi->Input.JoyAxis.nAxis = nAxis;
+         pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
+         axibinds[nJoy][nAxis][0] = nIndex;
+         axibinds[nJoy][nAxis][1] = nKey;
+         normal_input_descriptors.push_back(input_descriptor);
+         break;
+      case GIT_JOYSLIDER:
+         pgi->nInput = GIT_JOYSLIDER;
+         pgi->Input.Slider.nSliderValue = nSliderValue;
+         pgi->Input.Slider.nSliderSpeed = nSliderSpeed;
+         pgi->Input.Slider.nSliderCenter = nSliderCenter;
+         pgi->Input.Slider.JoyAxis.nAxis = nAxis;
+         pgi->Input.Slider.JoyAxis.nJoy = (UINT8)nJoy;
+         axibinds[nJoy][nAxis][0] = nIndex;
+         axibinds[nJoy][nAxis][1] = nKey;
+         normal_input_descriptors.push_back(input_descriptor);
+         break;
+      // I'm not sure the 2 following settings are needed in the libretro port
+      case GIT_JOYAXIS_NEG:
+         pgi->nInput = GIT_JOYAXIS_NEG;
+         pgi->Input.JoyAxis.nAxis = nAxis;
+         pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
+         axibinds[nJoy][nAxis][0] = nIndex;
+         axibinds[nJoy][nAxis][1] = nKey;
+         normal_input_descriptors.push_back(input_descriptor);
+         break;
+      case GIT_JOYAXIS_POS:
+         pgi->nInput = GIT_JOYAXIS_POS;
+         pgi->Input.JoyAxis.nAxis = nAxis;
+         pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
+         axibinds[nJoy][nAxis][0] = nIndex;
+         axibinds[nJoy][nAxis][1] = nKey;
+         normal_input_descriptors.push_back(input_descriptor);
+         break;
+   }
+   bButtonMapped = true;
+   return 0;
 }
 
 // Digital to digital mapping
 INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, char *szn)
 {
-	if(bButtonMapped) return 0;
-	pgi->nInput = GIT_SWITCH;
-	pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
-	keybinds[pgi->Input.Switch.nCode][0] = nKey;
-	keybinds[pgi->Input.Switch.nCode][1] = nJoy;
-	normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_JOYPAD, 0, nKey, szn));
-	bButtonMapped = true;
-	return 0;
+   struct retro_input_descriptor input_descriptor;
+
+   if(bButtonMapped) return 0;
+
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
+   input_descriptor.index       = 0;
+   input_descriptor.id          = nKey;
+   input_descriptor.description = szn;
+
+   pgi->nInput = GIT_SWITCH;
+   pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
+   keybinds[pgi->Input.Switch.nCode][0] = nKey;
+   keybinds[pgi->Input.Switch.nCode][1] = nJoy;
+   normal_input_descriptors.push_back(input_descriptor);
+   bButtonMapped = true;
+   return 0;
 }
 
 // 2 digital to 1 analog mapping
@@ -2639,36 +3059,62 @@ INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, 
 // szn is the descriptor text
 INT32 GameInpDigital2RetroInpAnalogRight(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, UINT32 position, char *szn)
 {
-	if(bButtonMapped) return 0;
-	pgi->nInput = GIT_SWITCH;
-	pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
-	keybinds[pgi->Input.Switch.nCode][0] = nKey;
-	keybinds[pgi->Input.Switch.nCode][1] = nJoy;
-	keybinds[pgi->Input.Switch.nCode][2] = RETRO_DEVICE_INDEX_ANALOG_RIGHT;
-	keybinds[pgi->Input.Switch.nCode][3] = position;
-	bAnalogRightMappingDone[nJoy][nKey][position] = true;
-	if(bAnalogRightMappingDone[nJoy][nKey][JOY_POS] && bAnalogRightMappingDone[nJoy][nKey][JOY_NEG]) {
-		normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT, nKey, szn));
-	}
-	bButtonMapped = true;
-	return 0;
+   struct retro_input_descriptor input_descriptor;
+
+   if(bButtonMapped) return 0;
+
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_ANALOG;
+   input_descriptor.index       = RETRO_DEVICE_INDEX_ANALOG_RIGHT;
+   input_descriptor.id          = nKey;
+   input_descriptor.description = szn;
+
+   pgi->nInput = GIT_SWITCH;
+   pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
+   keybinds[pgi->Input.Switch.nCode][0] = nKey;
+   keybinds[pgi->Input.Switch.nCode][1] = nJoy;
+   keybinds[pgi->Input.Switch.nCode][2] = RETRO_DEVICE_INDEX_ANALOG_RIGHT;
+   keybinds[pgi->Input.Switch.nCode][3] = position;
+   bAnalogRightMappingDone[nJoy][nKey][position] = true;
+   if(bAnalogRightMappingDone[nJoy][nKey][JOY_POS] && bAnalogRightMappingDone[nJoy][nKey][JOY_NEG]) {
+      normal_input_descriptors.push_back(input_descriptor);
+   }
+   bButtonMapped = true;
+   return 0;
 }
 
 // 1 analog to 2 digital mapping
 // Needs pgi, player, axis, 2 buttons retropad id and 2 descriptions
 INT32 GameInpAnalog2RetroInpDualKeys(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis, UINT32 nKeyPos, UINT32 nKeyNeg, char *sznpos, char *sznneg)
 {
-	if(bButtonMapped) return 0;
-	pgi->nInput = GIT_JOYAXIS_FULL;
-	pgi->Input.JoyAxis.nAxis = nAxis;
-	pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
-	axibinds[nJoy][nAxis][0] = 0xff;
-	axibinds[nJoy][nAxis][1] = nKeyPos;
-	axibinds[nJoy][nAxis][2] = nKeyNeg;
-	normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_JOYPAD, 0, nKeyPos, sznpos));
-	normal_input_descriptors.push_back(retro_input_descriptor(nJoy, RETRO_DEVICE_JOYPAD, 0, nKeyNeg, sznneg));
-	bButtonMapped = true;
-	return 0;
+   struct retro_input_descriptor input_descriptor;
+
+   if(bButtonMapped) return 0;
+
+   pgi->nInput = GIT_JOYAXIS_FULL;
+   pgi->Input.JoyAxis.nAxis = nAxis;
+   pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
+   axibinds[nJoy][nAxis][0] = 0xff;
+   axibinds[nJoy][nAxis][1] = nKeyPos;
+   axibinds[nJoy][nAxis][2] = nKeyNeg;
+
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
+   input_descriptor.index       = 0;
+   input_descriptor.id          = nKeyPos;
+   input_descriptor.description = sznpos;
+
+   normal_input_descriptors.push_back(input_descriptor);
+
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
+   input_descriptor.index       = 0;
+   input_descriptor.id          = nKeyNeg;
+   input_descriptor.description = sznneg;
+
+   normal_input_descriptors.push_back(input_descriptor);
+   bButtonMapped = true;
+   return 0;
 }
 
 // [WIP]
