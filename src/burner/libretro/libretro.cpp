@@ -126,8 +126,6 @@ static unsigned int BurnDrvGetIndexByName(const char* name);
 static neo_geo_modes g_opt_neo_geo_mode = NEO_GEO_MODE_MVS;
 static bool core_aspect_par = false;
 
-extern INT32 EnableHiscores;
-
 #define STAT_NOFIND  0
 #define STAT_OK      1
 #define STAT_CRC     2
@@ -235,16 +233,45 @@ static const struct retro_core_option_definition option_fba_diagnostic_input = {
    "None"
 };
 
-static const struct retro_core_option_definition option_fba_hiscores = {
-   CORE_OPTION_NAME "_hiscores",
-   "Hiscores",
-   "Enable high scores support. Requires the file 'hiscore.dat' to be placed in your system/fbalpha2012/ folder.",
+static const struct retro_core_option_definition option_fba_lowpass_filter = {
+   CORE_OPTION_NAME "_lowpass_filter",
+   "Audio Filter",
+   "Enables a low pass audio filter to soften the 'harsh' sound of some arcade games.",
    {
-      { "enabled",  NULL },
       { "disabled", NULL },
+      { "enabled",  NULL },
       { NULL, NULL },
    },
-   "enabled"
+   "disabled"
+};
+
+static const struct retro_core_option_definition option_fba_lowpass_range = {
+   CORE_OPTION_NAME "_lowpass_range",
+   "Audio Filter Level (%)",
+   "Specifies the cut-off frequency of the low pass audio filter. A higher value increases the perceived 'strength' of the filter, since a wider range of the high frequency spectrum is attenuated.",
+   {
+      { "5",  NULL },
+      { "10", NULL },
+      { "15", NULL },
+      { "20", NULL },
+      { "25", NULL },
+      { "30", NULL },
+      { "35", NULL },
+      { "40", NULL },
+      { "45", NULL },
+      { "50", NULL },
+      { "55", NULL },
+      { "60", NULL },
+      { "65", NULL },
+      { "70", NULL },
+      { "75", NULL },
+      { "80", NULL },
+      { "85", NULL },
+      { "90", NULL },
+      { "95", NULL },
+      { NULL, NULL },
+   },
+   "60"
 };
 
 static const struct retro_core_option_definition option_fba_frameskip = {
@@ -373,6 +400,48 @@ static void init_frameskip(void)
    }
 
    update_audio_latency = true;
+}
+
+/* Low pass audio filter */
+
+static bool low_pass_enabled       = false;
+static int32_t low_pass_range      = 0;
+/* Previous samples */
+static int32_t low_pass_left_prev  = 0;
+static int32_t low_pass_right_prev = 0;
+
+static void low_pass_filter_stereo(int16_t *buf, int length)
+{
+   int samples            = length;
+   int16_t *out           = buf;
+
+   /* Restore previous samples */
+   int32_t low_pass_left  = low_pass_left_prev;
+   int32_t low_pass_right = low_pass_right_prev;
+
+   /* Single-pole low-pass filter (6 dB/octave) */
+   int32_t factor_a       = low_pass_range;
+   int32_t factor_b       = 0x10000 - factor_a;
+
+   do
+   {
+      /* Apply low-pass filter */
+      low_pass_left  = (low_pass_left  * factor_a) + (*out       * factor_b);
+      low_pass_right = (low_pass_right * factor_a) + (*(out + 1) * factor_b);
+
+      /* 16.16 fixed point */
+      low_pass_left  >>= 16;
+      low_pass_right >>= 16;
+
+      /* Update sound buffer */
+      *out++ = (int16_t)low_pass_left;
+      *out++ = (int16_t)low_pass_right;
+   }
+   while (--samples);
+
+   /* Save last samples for next frame */
+   low_pass_left_prev  = low_pass_left;
+   low_pass_right_prev = low_pass_right;
 }
 
 struct RomBiosInfo {
@@ -539,7 +608,6 @@ bool bAlwaysProcessKeyboardInput;
 bool bDoIpsPatch;
 void IpsApplyPatches(UINT8 *, char *) {}
 
-TCHAR szAppHiscorePath[MAX_PATH];
 TCHAR szAppSamplesPath[MAX_PATH];
 TCHAR szAppBurnVer[16];
 
@@ -853,13 +921,8 @@ static void set_environment()
    // Add the Global core options
    options_system.push_back(&option_fba_aspect);
    options_system.push_back(&option_fba_cpu_speed_adjust);
-
-   if (!is_neogeo_game)
-   {
-      /* hiscore.dat is irrelevant for Neo Geo content */
-      options_system.push_back(&option_fba_hiscores);
-   }
-
+   options_system.push_back(&option_fba_lowpass_filter);
+   options_system.push_back(&option_fba_lowpass_range);
    options_system.push_back(&option_fba_frameskip);
    options_system.push_back(&option_fba_frameskip_threshold);
 
@@ -1453,16 +1516,21 @@ void retro_init()
    retro_audio_buff_underrun  = false;
    audio_latency              = 0;
    update_audio_latency       = false;
+
+   low_pass_enabled           = false;
+   low_pass_range             = 0;
+   low_pass_left_prev         = 0;
+   low_pass_right_prev        = 0;
 }
 
 void retro_deinit()
 {
-   char output[128];
-
    if (driver_inited)
    {
-      snprintf (output, sizeof(output), "%s%c%s.fs", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
-      BurnStateSave(output, 0);
+      char output_fs[1024];
+
+      snprintf(output_fs, sizeof(output_fs), "%s%c%s.fs", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
+      BurnStateSave(output_fs, 0);
       BurnDrvExit();
    }
    driver_inited = false;
@@ -1486,6 +1554,9 @@ void retro_reset()
    }
 
    ForceFrameStep();
+
+   low_pass_left_prev  = 0;
+   low_pass_right_prev = 0;
 }
 
 static void check_variables(bool first_run)
@@ -1525,7 +1596,7 @@ static void check_variables(bool first_run)
    {
       if (strcmp(var.value, "PAR") == 0)
          core_aspect_par = true;
-	  else
+      else
          core_aspect_par = false;
    }
 
@@ -1608,19 +1679,20 @@ static void check_variables(bool first_run)
       }
    }
 
-   if (is_neogeo_game)
-      EnableHiscores = 0;
-   else
-   {
-      var.key = option_fba_hiscores.key;
-      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
-      {
-         if (strcmp(var.value, "enabled") == 0)
-            EnableHiscores = 1;
-         else
-            EnableHiscores = 0;
-      }
-   }
+   var.key             = option_fba_lowpass_filter.key;
+   var.value           = NULL;
+   low_pass_enabled    = false;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+      if (strcmp(var.value, "enabled") == 0)
+         low_pass_enabled = true;
+
+   var.key             = option_fba_lowpass_range.key;
+   var.value           = NULL;
+   low_pass_range      = (60 * 65536) / 100;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+      low_pass_range = (strtol(var.value, NULL, 10) * 65536) / 100;
 
    var.key             = option_fba_frameskip.key;
    var.value           = NULL;
@@ -1693,27 +1765,15 @@ void retro_run()
 
    ForceFrameStep();
 
-   unsigned drv_flags = BurnDrvGetFlags();
-   uint32_t height_tmp = height;
-   size_t pitch_size = nBurnBpp == 2 ? sizeof(uint16_t) : sizeof(uint32_t);
-
-   switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
-   {
-      case BDF_ORIENTATION_VERTICAL:
-      case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-         nBurnPitch = height * pitch_size;
-         height = width;
-         width = height_tmp;
-         break;
-      case BDF_ORIENTATION_FLIPPED:
-      default:
-         nBurnPitch = width * pitch_size;
-   }
+   nBurnPitch = width * ((nBurnBpp == 2) ? sizeof(uint16_t) : sizeof(uint32_t));
 
    if (!nSkipFrame)
       video_cb(g_fba_frame, width, height, nBurnPitch);
    else
       video_cb(NULL, width, height, nBurnPitch);
+
+   if (low_pass_enabled)
+      low_pass_filter_stereo(g_audio_buf, nBurnSoundLen);
 
    audio_batch_cb(g_audio_buf, nBurnSoundLen);
 
@@ -1816,8 +1876,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    int width, height;
    BurnDrvGetVisibleSize(&width, &height);
-   int maximum = width > height ? width : height;
-   struct retro_game_geometry geom = { (unsigned)width, (unsigned)height, (unsigned)maximum, (unsigned)maximum };
+   struct retro_game_geometry geom = { (unsigned)width, (unsigned)height, (unsigned)width, (unsigned)height };
    
    int game_aspect_x, game_aspect_y;
    BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
@@ -1828,9 +1887,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
       log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: (%d/%d) = %f (core_aspect_par: %d)\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, game_aspect_x, game_aspect_y, geom.aspect_ratio, core_aspect_par);
    }
    else
-   {
       log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: %f\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, geom.aspect_ratio);
-   }
 
 #ifdef FBACORES_CPS
    struct retro_system_timing timing = { 59.629403, 59.629403 * AUDIO_SEGMENT_LENGTH };
@@ -1867,43 +1924,20 @@ static bool fba_init(unsigned driver, const char *game_zip_name)
 
    BurnDrvInit();
 
-   char input[128];
-   snprintf (input, sizeof(input), "%s%c%s.fs", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
-   BurnStateLoad(input, 0, NULL);
+   char input_fs[1024];
+   snprintf(input_fs, sizeof(input_fs), "%s%c%s.fs", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
+   BurnStateLoad(input_fs, 0, NULL);
 
    int width, height;
    BurnDrvGetVisibleSize(&width, &height);
-   unsigned drv_flags = BurnDrvGetFlags();
+   nBurnPitch = width * ((nBurnBpp == 2) ? sizeof(uint16_t) : sizeof(uint32_t));
 
    if (!(BurnDrvIsWorking()))
    {
       log_cb(RETRO_LOG_ERROR, "[FBA] Game %s is not marked as working\n", game_zip_name);
       return false;
    }
-   size_t pitch_size = nBurnBpp == 2 ? sizeof(uint16_t) : sizeof(uint32_t);
-   if (drv_flags & BDF_ORIENTATION_VERTICAL)
-      nBurnPitch = height * pitch_size;
-   else
-      nBurnPitch = width * pitch_size;
 
-   unsigned rotation;
-   switch (drv_flags & (BDF_ORIENTATION_FLIPPED | BDF_ORIENTATION_VERTICAL))
-   {
-      case BDF_ORIENTATION_VERTICAL:
-         rotation = 1;
-         break;
-
-      case BDF_ORIENTATION_FLIPPED:
-         rotation = 2;
-         break;
-
-      case BDF_ORIENTATION_VERTICAL | BDF_ORIENTATION_FLIPPED:
-         rotation = 3;
-         break;
-
-      default:
-         rotation = 0;
-   }
 /*
    if(
          (strcmp("gunbird2", game_zip_name) == 0) ||
@@ -1925,8 +1959,6 @@ static bool fba_init(unsigned driver, const char *game_zip_name)
    }
 */
    log_cb(RETRO_LOG_INFO, "Game: %s\n", game_zip_name);
-
-   environ_cb(RETRO_ENVIRONMENT_SET_ROTATION, &rotation);
 
    VidRecalcPal();
 

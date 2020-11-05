@@ -26,7 +26,6 @@
 
 #include <time.h>
 
-extern TCHAR szAppHiscorePath[MAX_PATH];
 extern TCHAR szAppSamplesPath[MAX_PATH];
 
 // Enable the MAME logerror() function in debug builds
@@ -84,7 +83,6 @@ __extension__ typedef long long				INT64;
 
 #include "state.h"
 #include "cheat.h"
-#include "hiscore.h"
 
 extern INT32 nBurnVer;						// Version number of the library
 
