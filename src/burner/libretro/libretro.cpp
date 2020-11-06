@@ -151,7 +151,7 @@ static unsigned fba_devices[5] = { RETROPAD_CLASSIC, RETROPAD_CLASSIC, RETROPAD_
 #define AUDIO_SAMPLERATE 32000
 #define AUDIO_SEGMENT_LENGTH 534 // <-- Hardcoded value that corresponds well to 32kHz audio.
 
-static uint32_t *g_fba_frame;
+static uint16_t *g_fba_frame;
 static int16_t g_audio_buf[AUDIO_SEGMENT_LENGTH * 2];
 
 #define JOY_NEG 0
@@ -1724,6 +1724,7 @@ void retro_run()
    int width, height;
    BurnDrvGetVisibleSize(&width, &height);
    pBurnDraw = (uint8_t*)g_fba_frame;
+   nBurnPitch = width * sizeof(uint16_t);
    nSkipFrame = 0;
 
    InputMake();
@@ -1764,8 +1765,6 @@ void retro_run()
    }
 
    ForceFrameStep();
-
-   nBurnPitch = width * ((nBurnBpp == 2) ? sizeof(uint16_t) : sizeof(uint32_t));
 
    if (!nSkipFrame)
       video_cb(g_fba_frame, width, height, nBurnPitch);
@@ -1930,7 +1929,7 @@ static bool fba_init(unsigned driver, const char *game_zip_name)
 
    int width, height;
    BurnDrvGetVisibleSize(&width, &height);
-   nBurnPitch = width * ((nBurnBpp == 2) ? sizeof(uint16_t) : sizeof(uint32_t));
+   nBurnPitch = width * sizeof(uint16_t);
 
    if (!(BurnDrvIsWorking()))
    {
@@ -1938,45 +1937,15 @@ static bool fba_init(unsigned driver, const char *game_zip_name)
       return false;
    }
 
-/*
-   if(
-         (strcmp("gunbird2", game_zip_name) == 0) ||
-         (strcmp("s1945ii", game_zip_name) == 0) ||
-         (strcmp("s1945iii", game_zip_name) == 0) ||
-         (strcmp("dragnblz", game_zip_name) == 0) ||
-         (strcmp("gnbarich", game_zip_name) == 0) ||
-         (strcmp("mjgtaste", game_zip_name) == 0) ||
-         (strcmp("tgm2", game_zip_name) == 0) ||
-         (strcmp("tgm2p", game_zip_name) == 0) ||
-         (strcmp("soldivid", game_zip_name) == 0) ||
-         (strcmp("daraku", game_zip_name) == 0) ||
-         (strcmp("sbomber", game_zip_name) == 0) ||
-         (strcmp("sbombera", game_zip_name) == 0) 
-
-         )
-   {
-      nBurnBpp = 4;
-   }
-*/
    log_cb(RETRO_LOG_INFO, "Game: %s\n", game_zip_name);
 
    VidRecalcPal();
 
 #ifdef FRONTEND_SUPPORTS_RGB565
-   if(nBurnBpp == 4)
-   {
-      enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+   enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
 
-      if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-         log_cb(RETRO_LOG_INFO, "Frontend supports XRGB888 - will use that instead of XRGB1555.\n");
-   }
-   else
-   {
-      enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
-
-      if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt)) 
-         log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
-   }
+   if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+      log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
 
    return true;
@@ -2094,7 +2063,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
       BurnDrvGetFullSize(&width, &height);
 
-      g_fba_frame = (uint32_t*)malloc(width * height * sizeof(uint32_t));
+      g_fba_frame = (uint16_t*)malloc(width * height * sizeof(uint16_t));
 
       return true;
    }
