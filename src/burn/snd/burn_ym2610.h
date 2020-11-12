@@ -18,8 +18,6 @@ void BurnYM2610Exit();
 extern void (*BurnYM2610Update)(INT16* pSoundBuf, INT32 nSegmentEnd);
 void BurnYM2610Scan(INT32 nAction, INT32* pnMin);
 
-extern INT32 bYM2610UseSeperateVolumes;
-
 #define BURN_SND_YM2610_YM2610_ROUTE_1		0
 #define BURN_SND_YM2610_YM2610_ROUTE_2		1
 #define BURN_SND_YM2610_AY8910_ROUTE		2
