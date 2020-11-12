@@ -19,8 +19,6 @@ bool bBurnUseASMCPUEmulation = false;
 
 UINT32 nCurrentFrame;			// Framecount for emulated game
 
-UINT32 nFramesEmulated;		// Counters for FPS	display
-UINT32 nFramesRendered;		//
 bool bForce60Hz = false;
 INT32 nBurnFPS = 6000;
 INT32 nBurnCPUSpeedAdjust = 0x0100;	// CPU speed adjustment (clock * nBurnCPUSpeedAdjust / 0x0100)
@@ -44,8 +42,6 @@ UINT8 nSkipFrame = 0;		// Can be used to skip rendering of the current frame
 INT32 nMaxPlayers;
 
 bool bSaveCRoms = 0;
-
-UINT32 *pBurnDrvPalette;
 
 extern "C" INT32 BurnLibInit()
 {
@@ -605,8 +601,6 @@ extern "C" INT32 BurnDrvExit()
 	
 	nBurnCPUSpeedAdjust = 0x0100;
 	
-	pBurnDrvPalette = NULL;	
-	
 	INT32 nRet = pDriver[nBurnDrvActive]->Exit();			// Forward to drivers function
 	
 	BurnExitMemoryManager();
@@ -657,16 +651,6 @@ extern "C" INT32 BurnDrvFrame()
 	return pDriver[nBurnDrvActive]->Frame();		// Forward to drivers function
 }
 
-// Force redraw of the screen
-extern "C" INT32 BurnDrvRedraw()
-{
-	if (pDriver[nBurnDrvActive]->Redraw) {
-		return pDriver[nBurnDrvActive]->Redraw();	// Forward to drivers function
-	}
-
-	return 1;										// No funtion provide, so simply return
-}
-
 // Refresh Palette
 extern "C" INT32 BurnRecalcPal()
 {
@@ -677,11 +661,6 @@ extern "C" INT32 BurnRecalcPal()
 	}
 
 	return 0;
-}
-
-extern "C" INT32 BurnDrvGetPaletteEntries()
-{
-	return pDriver[nBurnDrvActive]->nPaletteEntries;
 }
 
 // ----------------------------------------------------------------------------
@@ -713,34 +692,6 @@ INT32 BurnSetRefreshRate(double dFrameRate)
 {
 	if (!bForce60Hz) {
 		nBurnFPS = (INT32)(100.0 * dFrameRate);
-	}
-
-	return 0;
-}
-
-inline static INT32 BurnClearSize(INT32 w, INT32 h)
-{
-	UINT8 *pl;
-	INT32 y;
-
-	w *= nBurnBpp;
-
-	// clear the screen to zero
-	for (pl = pBurnDraw, y = 0; y < h; pl += nBurnPitch, y++) {
-		memset(pl, 0x00, w);
-	}
-
-	return 0;
-}
-
-INT32 BurnClearScreen()
-{
-	struct BurnDriver* pbd = pDriver[nBurnDrvActive];
-
-	if (pbd->Flags & BDF_ORIENTATION_VERTICAL) {
-		BurnClearSize(pbd->nHeight, pbd->nWidth);
-	} else {
-		BurnClearSize(pbd->nWidth, pbd->nHeight);
 	}
 
 	return 0;
@@ -812,8 +763,6 @@ void logerror(char* szFormat, ...)
 	va_end(vaFormat);
 
 	bprintf(PRINT_ERROR, _T("%hs"), szLogMessage);
-
-	return;
 }
 #endif
 

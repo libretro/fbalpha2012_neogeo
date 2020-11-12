@@ -1169,15 +1169,7 @@ int InputSetCooperativeLevel(const bool bExclusive, const bool bForeGround)
    return 0;
 }
 
-void Reinitialise(void)
-{
-   // Update the geometry, some games (sfiii2) and systems (megadrive) need it.
-   struct retro_system_av_info av_info;
-   retro_get_system_av_info(&av_info);
-   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
-}
-
-static void ForceFrameStep()
+static void ForceFrameStep(void)
 {
    nBurnLayer = 0xff;
    pBurnSoundOut = g_audio_buf;

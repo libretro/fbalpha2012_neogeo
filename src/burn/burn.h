@@ -112,10 +112,6 @@ inline static INT32 GetCurrentFrame() {
 	return nCurrentFrame;
 }
 
-inline static void SetCurrentFrame(const UINT32 n) {
-	nCurrentFrame = n;
-}
-
 // ---------------------------------------------------------------------------
 // Driver info structures
 
@@ -179,9 +175,6 @@ struct BurnDIPInfo {
 
 extern bool bBurnUseASMCPUEmulation;
 
-extern UINT32 nFramesEmulated;
-extern UINT32 nFramesRendered;
-
 extern bool bForce60Hz;
 
 extern INT32 nBurnFPS;
@@ -208,8 +201,6 @@ extern INT16* pBurnSoundOut;				// Pointer to output buffer
 extern INT32 nInterpolation;					// Desired interpolation level for ADPCM/PCM sound
 extern INT32 nFMInterpolation;				// Desired interpolation level for FM sound
 
-extern UINT32 *pBurnDrvPalette;
-
 #define PRINT_NORMAL	(0)
 #define PRINT_UI		(1)
 #define PRINT_IMPORTANT (2)
@@ -227,10 +218,8 @@ INT32 BurnDrvExit();
 
 INT32 BurnDrvCartridgeSetup(BurnCartrigeCommand nCommand);
 
-INT32 BurnDrvFrame();
-INT32 BurnDrvRedraw();
-INT32 BurnRecalcPal();
-INT32 BurnDrvGetPaletteEntries();
+INT32 BurnDrvFrame(void);
+INT32 BurnRecalcPal(void);
 
 INT32 BurnSetProgressRange(double dProgressRange);
 INT32 BurnUpdateProgress(double dProgressStep, const TCHAR* pszText, bool bAbs);
@@ -277,8 +266,6 @@ INT32 BurnDrvGetGenreFlags();
 INT32 BurnDrvGetFamilyFlags();
 INT32 BurnDrvGetSampleInfo(struct BurnSampleInfo *pri, UINT32 i);
 INT32 BurnDrvGetSampleName(char** pszName, UINT32 i, INT32 nAka);
-
-void Reinitialise();
 
 extern bool bDoIpsPatch;
 void IpsApplyPatches(UINT8* base, char* rom_name);
