@@ -394,8 +394,6 @@ FBA_CPU_DIRS := $(FBA_CPU_DIR) \
 # Neo Geo Only
    SOURCES_CXX := $(FBA_BURN_DIR)/devices/eeprom.cpp \
 		$(FBA_BURN_DIR)/snd/burn_ym2610.cpp \
-		$(FBA_BURN_DIR)/snd/burn_ymf278b.cpp \
-		$(FBA_BURN_DIR)/snd/ymz280b.cpp \
 		$(FBA_CPU_DIR)/m68000_intf.cpp \
 		$(FBA_CPU_DIR)/z80_intf.cpp
 
@@ -405,7 +403,6 @@ endif
 
    SOURCES_C :=	$(FBA_BURN_DIR)/snd/ay8910.c \
 		$(FBA_BURN_DIR)/snd/fm.c \
-		$(FBA_BURN_DIR)/snd/ymf278b.c \
 		$(FBA_BURN_DIR)/snd/ymdeltat.c
 
 ifeq ($(platform), wii)

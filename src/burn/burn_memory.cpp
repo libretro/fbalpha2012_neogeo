@@ -28,18 +28,14 @@ UINT8 *BurnMalloc(INT32 size)
 		if (memptr[i] == NULL) {
 			memptr[i] = (UINT8*)malloc(size);
 
-			if (memptr[i] == NULL) {
-				bprintf (0, _T("BurnMalloc failed to allocate %d bytes of memory!\n"), size);
+			if (memptr[i] == NULL)
 				return NULL;
-			}
 
 			memset (memptr[i], 0, size); // set contents to 0
 
 			return memptr[i];
 		}
 	}
-
-	bprintf (0, _T("BurnMalloc called too many times!\n"));
 
 	return NULL; // Freak out!
 }
@@ -66,10 +62,8 @@ void BurnExitMemoryManager()
 {
 	for (INT32 i = 0; i < MAX_MEM_PTR; i++)
 	{
-		if (memptr[i] != NULL) {
-#if defined FBA_DEBUG
-			bprintf(PRINT_ERROR, _T("BurnExitMemoryManager had to free mem pointer %i\n"), i);
-#endif
+		if (memptr[i] != NULL)
+      {
 			free (memptr[i]);
 			memptr[i] = NULL;
 		}
