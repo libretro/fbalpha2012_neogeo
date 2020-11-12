@@ -210,9 +210,6 @@ inline static UINT8 ReadByte(UINT32 a)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("read8 0x%08X\n"), a);
-
 	pr = FIND_R(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		a ^= 1;
@@ -226,9 +223,6 @@ inline static UINT8 FetchByte(UINT32 a)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("fetch8 0x%08X\n"), a);
-
 	pr = FIND_F(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		a ^= 1;
@@ -242,9 +236,6 @@ inline static void WriteByte(UINT32 a, UINT8 d)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("write8 0x%08X\n"), a);
-
 	pr = FIND_W(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		a ^= 1;
@@ -274,9 +265,6 @@ inline static UINT16 ReadWord(UINT32 a)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("read16 0x%08X\n"), a);
-
 	pr = FIND_R(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		UINT16 r = BURN_UNALIGNED_READ16(pr + (a & SEK_PAGEM));
@@ -290,9 +278,6 @@ inline static UINT16 FetchWord(UINT32 a)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("fetch16 0x%08X\n"), a);
-
 	pr = FIND_F(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		UINT16 r = BURN_UNALIGNED_READ16(pr + (a & SEK_PAGEM));
@@ -306,9 +291,6 @@ inline static void WriteWord(UINT32 a, UINT16 d)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("write16 0x%08X\n"), a);
-
 	pr = FIND_W(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		BURN_UNALIGNED_WRITE16(pr + (a & SEK_PAGEM), BURN_ENDIAN_SWAP_INT16(d));
@@ -336,9 +318,6 @@ inline static UINT32 ReadLong(UINT32 a)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("read32 0x%08X\n"), a);
-
 	pr = FIND_R(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		UINT32 r = BURN_UNALIGNED_READ32(pr + (a & SEK_PAGEM));
@@ -353,9 +332,6 @@ inline static UINT32 FetchLong(UINT32 a)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("fetch32 0x%08X\n"), a);
-
 	pr = FIND_F(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		UINT32 r = BURN_UNALIGNED_READ32(pr + (a & SEK_PAGEM));
@@ -370,9 +346,6 @@ inline static void WriteLong(UINT32 a, UINT32 d)
 	UINT8* pr;
 
 	a &= 0xFFFFFF;
-
-//	bprintf(PRINT_NORMAL, _T("write32 0x%08X\n"), a);
-
 	pr = FIND_W(a);
 	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
 		d = (d >> 16) | (d << 16);
@@ -1137,8 +1110,6 @@ INT32 SekGetActive(void)
 // Set the status of an IRQ line on the active CPU
 void SekSetIRQLine(const INT32 line, const INT32 status)
 {
-   //	bprintf(PRINT_NORMAL, _T("  - irq line %i -> %i\n"), line, status);
-
 	if (status) {
 		nSekIRQPending[nSekActive] = line | status;
 
