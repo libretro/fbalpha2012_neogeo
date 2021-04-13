@@ -7,7 +7,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <boolean.h>
 #include <math.h>
 
 #if !defined (_WIN32)

@@ -19,10 +19,6 @@
 #include "burn.h"
 #include "burner_libretro.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // ---------------------------------------------------------------------------
 // OS independent functionality
 
@@ -39,15 +35,15 @@ extern INT32 nFireButtons;
 extern bool bStreetFighterLayout;
 extern bool bLeftAltkeyMapped;
 
-INT32 GameInpInit(void);
-INT32 GameInpExit(void);
+INT32 GameInpInit();
+INT32 GameInpExit();
 TCHAR* InputCodeDesc(INT32 c);
 TCHAR* InpToDesc(struct GameInp* pgi);
 TCHAR* InpMacroToDesc(struct GameInp* pgi);
 INT32 GameInpBlank(INT32 bDipSwitch);
 INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, bool bOverWrite);
 INT32 ConfigGameLoadHardwareDefaults();
-INT32 GameInpDefault(void);
+INT32 GameInpDefault();
 INT32 GameInpWrite(FILE* h);
 INT32 GameInpRead(TCHAR* szVal, bool bOverWrite);
 INT32 GameInpMacroRead(TCHAR* szVal, bool bOverWrite);
@@ -115,11 +111,7 @@ INT32 BurnStateDecompress(UINT8* Def, INT32 nDefLen, INT32 bAll);
 struct ZipEntry { char* szName;	UINT32 nLen; UINT32 nCrc; };
 
 INT32 ZipOpen(char* szZip);
-INT32 ZipClose(void);
+INT32 ZipClose();
 INT32 ZipGetList(struct ZipEntry** pList, INT32* pnListCount);
 INT32 ZipLoadFile(UINT8* Dest, INT32 nLen, INT32* pnWrote, INT32 nEntry);
 INT32 __cdecl ZipLoadOneFile(char* arcName, const char* fileName, void** Dest, INT32* pnWrote);
-
-#ifdef __cplusplus
-}
-#endif

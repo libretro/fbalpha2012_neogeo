@@ -58,7 +58,7 @@
     7Zip Memory / File handling (adapted from 7zfile.c/.h and 7zalloc.c/.h)
 ***************************************************************************/
 
-void *SZipAlloc(void *a, size_t size)
+void *SZipAlloc(void *, size_t size)
 {
 	if (size == 0)
 		return 0;
@@ -66,11 +66,128 @@ void *SZipAlloc(void *a, size_t size)
 	return malloc(size);
 }
 
-void SZipFree(void *a, void *address)
+void SZipFree(void *, void *address)
 {
 	free(address);
 }
 
+
+
+void File_Construct(CSzFile *p)
+{
+	p->_7z_osdfile = NULL;
+}
+
+static WRes File_Open(CSzFile *p, const char *, int)
+{
+	/* we handle this ourselves ... */
+	if (!p->_7z_osdfile) return 1;
+	else return 0;
+}
+
+WRes InFile_Open(CSzFile *p, const char *name) { return File_Open(p, name, 0); }
+WRes OutFile_Open(CSzFile *p, const char *name) { return File_Open(p, name, 1); }
+
+
+WRes File_Close(CSzFile *)
+{
+	/* we handle this ourselves ... */
+	return 0;
+}
+
+WRes File_Read(CSzFile *p, void *data, size_t *size)
+{
+	UINT32 read_length;
+
+	if (!p->_7z_osdfile)
+	{
+		printf("un7z.c: called File_Read without file\n");
+		return 1;
+	}
+
+	size_t originalSize = *size;
+	if (originalSize == 0)
+		return 0;
+
+	fseek(p->_7z_osdfile, p->_7z_currfpos, SEEK_SET);
+	*size = read_length = fread(data, 1, originalSize, p->_7z_osdfile);
+	p->_7z_currfpos += read_length;
+
+	if (*size == originalSize)
+		return 0;
+
+	return 0;
+}
+
+WRes File_Write(CSzFile *, const void *, size_t *)
+{
+	return 0;
+}
+
+WRes File_Seek(CSzFile *p, Int64 *pos, ESzSeek origin)
+{
+	if (origin==0) p->_7z_currfpos = *pos;
+	if (origin==1) p->_7z_currfpos = p->_7z_currfpos + *pos;
+	if (origin==2) p->_7z_currfpos = p->_7z_length - *pos;
+
+	*pos = p->_7z_currfpos;
+	
+	return 0;
+}
+
+WRes File_GetLength(CSzFile *p, UInt64 *length)
+{
+	*length = p->_7z_length;
+	return 0;
+}
+
+/* ---------- FileSeqInStream ---------- */
+
+static SRes FileSeqInStream_Read(void *pp, void *buf, size_t *size)
+{
+  CFileSeqInStream *p = (CFileSeqInStream *)pp;
+  return File_Read(&p->file, buf, size) == 0 ? SZ_OK : SZ_ERROR_READ;
+}
+
+void FileSeqInStream_CreateVTable(CFileSeqInStream *p)
+{
+  p->s.Read = FileSeqInStream_Read;
+}
+
+
+/* ---------- FileInStream ---------- */
+
+static SRes FileInStream_Read(void *pp, void *buf, size_t *size)
+{
+	CFileInStream *p = (CFileInStream *)pp;
+	return (File_Read(&p->file, buf, size) == 0) ? SZ_OK : SZ_ERROR_READ;
+}
+
+static SRes FileInStream_Seek(void *pp, Int64 *pos, ESzSeek origin)
+{
+	CFileInStream *p = (CFileInStream *)pp;
+	return File_Seek(&p->file, pos, origin);
+}
+
+void FileInStream_CreateVTable(CFileInStream *p)
+{
+	p->s.Read = FileInStream_Read;
+	p->s.Seek = FileInStream_Seek;
+}
+
+/* ---------- FileOutStream ---------- */
+
+static size_t FileOutStream_Write(void *, const void *, size_t size)
+{
+//  CFileOutStream *p = (CFileOutStream *)pp;
+//  File_Write(&p->file, data, &size);
+  return size;
+}
+
+void FileOutStream_CreateVTable(CFileOutStream *p)
+{
+  p->s.Write = FileOutStream_Write;
+}
 
 /***************************************************************************
     CONSTANTS

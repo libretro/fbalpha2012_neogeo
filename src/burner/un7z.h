@@ -59,9 +59,6 @@
 #include "7zCrc.h"
 #include "7zVersion.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void *SZipAlloc(void *p, size_t size);
 void SZipFree(void *p, void *address);
@@ -182,8 +179,5 @@ int _7z_search_crc_match(_7z_file *new_7z, UINT32 crc, const char *search_filena
 /* decompress the most recently found file in the _7Z */
 _7z_error _7z_file_decompress(_7z_file *new_7z, void *buffer, UINT32 length, UINT32 *Processed);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif	/* __UN_7Z_H__ */

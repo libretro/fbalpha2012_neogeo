@@ -273,8 +273,8 @@ UINT32 CacheRead;
 
 static bool bMemoryCardInserted, bMemoryCardWritable;
 
-struct NEO_CALLBACK NeoCallback[MAX_SLOT] = { { NULL, NULL, NULL, NULL, NULL }, };
-struct NEO_CALLBACK* NeoCallbackActive = &NeoCallback[0];
+NEO_CALLBACK NeoCallback[MAX_SLOT] = { { NULL, NULL, NULL, NULL, NULL }, };
+NEO_CALLBACK* NeoCallbackActive = &NeoCallback[0];
 
 static INT32 nCyclesTotal[2];
 static INT32 nCyclesSegment;
@@ -647,10 +647,10 @@ static INT32 ReadSoundCache(UINT8* Audio)
 }
 #endif
 
-static INT32 LoadRoms(void)
+static INT32 LoadRoms()
 {
-	struct NeoGameInfo info;
-	struct NeoGameInfo* pInfo = &info;
+	NeoGameInfo info;
+	NeoGameInfo* pInfo = &info;
 
 	{
 		struct BurnRomInfo ri;
@@ -1171,14 +1171,15 @@ static inline void neogeoSynchroniseZ80(INT32 nExtraCycles)
 
 // Callbacks for the FM chip
 
-static void neogeoFMIRQHandler(INT32 a, INT32 nStatus)
+static void neogeoFMIRQHandler(INT32, INT32 nStatus)
 {
 //	bprintf(PRINT_NORMAL, _T("    YM2610 IRQ status: 0x%02X (%6i cycles)\n"), nStatus, ZetTotalCycles());
 
-	if (nStatus & 1)
+	if (nStatus & 1) {
 		ZetSetIRQLine(0xFF, ZET_IRQSTATUS_ACK);
-   else
+	} else {
 		ZetSetIRQLine(0,    ZET_IRQSTATUS_NONE);
+	}
 }
 
 static INT32 neogeoSynchroniseStream(INT32 nSoundRate)
@@ -2154,102 +2155,101 @@ static void WriteIO1(INT32 nOffset, UINT8 byteValue)
 	return;
 }
 
-static void WriteIO2(INT32 nOffset, UINT8 byteValue)
+static void WriteIO2(INT32 nOffset, UINT8 /*byteValue*/)
 {
-	switch (nOffset)
-   {
-      case 0x01:											// Enable display
-         if (nNeoSystemType & NEO_SYS_CART) {
-            bNeoEnableGraphics = true;
-            //				bprintf(PRINT_NORMAL, _T("  - Display  enabled (0x%02X, at scanline %i).\n"), byteValue, SekCurrentScanline());
-            break;
-         }
+	switch (nOffset) {
+		case 0x01:											// Enable display
+			if (nNeoSystemType & NEO_SYS_CART) {
+				bNeoEnableGraphics = true;
+//				bprintf(PRINT_NORMAL, _T("  - Display  enabled (0x%02X, at scanline %i).\n"), byteValue, SekCurrentScanline());
+				break;
+			}
 
-      case 0x03:											// Select BIOS vector table
-         if (nNeoSystemType & NEO_SYS_CART) {
-            if (!b68KBoardROMBankedIn) {
-               MapVectorTable(true);
-               b68KBoardROMBankedIn = true;
-            }
-            //				bprintf(PRINT_NORMAL, _T("  - BIOS vector table banked in (0x%02X).\n"), byteValue);
-         }
-         break;
+		case 0x03:											// Select BIOS vector table
+			if (nNeoSystemType & NEO_SYS_CART) {
+				if (!b68KBoardROMBankedIn) {
+					MapVectorTable(true);
+					b68KBoardROMBankedIn = true;
+				}
+//				bprintf(PRINT_NORMAL, _T("  - BIOS vector table banked in (0x%02X).\n"), byteValue);
+			}
+			break;
 
-      case 0x0B:											// Select BIOS text ROM
-         //			bprintf(PRINT_NORMAL, _T("  - BIOS text/Z80 ROM banked in (0x%02X).\n"), byteValue);
+		case 0x0B:											// Select BIOS text ROM
+//			bprintf(PRINT_NORMAL, _T("  - BIOS text/Z80 ROM banked in (0x%02X).\n"), byteValue);
 
-         bBIOSTextROMEnabled = !(nNeoSystemType & (NEO_SYS_PCB | NEO_SYS_AES));
+			bBIOSTextROMEnabled = !(nNeoSystemType & (NEO_SYS_PCB | NEO_SYS_AES));
 
-         if (bZ80BIOS) {
-            if (!bZ80BoardROMBankedIn) {
-               bZ80BoardROMBankedIn = true;
-               NeoZ80MapROM(true);
-            }
-
-#if defined Z80_RESET_ON_BANKSWITCH
-            nSoundStatus |= 1;
-            ZetReset();
-#endif
-         }
-
-         break;
-
-      case 0x0D:											// Write-protect SRAM
-         bSRAMWritable = false;
-         //			bprintf(PRINT_NORMAL, _T("  - SRAM write-protected (0x%02X).\n"), byteValue);
-         break;
-
-      case 0x0F:											// Select palette bank 1
-         //			bprintf(PRINT_NORMAL, _T("  - Palette 1 banked in (0x%02X).\n"), byteValue);
-         MapPalette(1);
-         break;
-
-      case 0x11:											// Disable display
-         if (nNeoSystemType & NEO_SYS_CART) {
-            bNeoEnableGraphics = false;
-            //				bprintf(PRINT_NORMAL, _T("  - Display disabled (0x%02X, at scanline %i).\n"), byteValue, SekCurrentScanline());
-            break;
-         }
-
-      case 0x13:											// Select game vector table
-         if (nNeoSystemType & NEO_SYS_CART) {
-            if (b68KBoardROMBankedIn) {
-               MapVectorTable(false);
-               b68KBoardROMBankedIn = false;
-            }
-            //				bprintf(PRINT_NORMAL, _T("  - ROM vector table banked in (0x%02X).\n"), byteValue);
-         }
-         break;
-
-      case 0x1B:											// Select game text ROM
-         //			bprintf(PRINT_NORMAL, _T("  - Cartridge text/Z80 ROM banked in (0x%02X).\n"), byteValue);
-
-         bBIOSTextROMEnabled = false;
-
-         if (bZ80BIOS) {
-            if (bZ80BoardROMBankedIn) {
-               bZ80BoardROMBankedIn = false;
-               NeoZ80MapROM(false);
-            }
+			if (bZ80BIOS) {
+				if (!bZ80BoardROMBankedIn) {
+					bZ80BoardROMBankedIn = true;
+					NeoZ80MapROM(true);
+				}
 
 #if defined Z80_RESET_ON_BANKSWITCH
-            nSoundStatus |= 1;
-            ZetReset();
+				nSoundStatus |= 1;
+				ZetReset();
 #endif
-         }
+			}
 
-         break;
+			break;
 
-      case 0x1D:											// Write-enable SRAM
-         bSRAMWritable = true;
-         //			bprintf(PRINT_NORMAL, _T("  - SRAM writable (0x%02X).\n"), byteValue);
-         break;
+		case 0x0D:											// Write-protect SRAM
+			bSRAMWritable = false;
+//			bprintf(PRINT_NORMAL, _T("  - SRAM write-protected (0x%02X).\n"), byteValue);
+			break;
 
-      case 0x1F:											// Select palette bank 0
-         //			bprintf(PRINT_NORMAL, _T("  - Palette 0 banked in (0x%02X).\n"), byteValue);
-         MapPalette(0);
-         break;
-   }
+		case 0x0F:											// Select palette bank 1
+//			bprintf(PRINT_NORMAL, _T("  - Palette 1 banked in (0x%02X).\n"), byteValue);
+			MapPalette(1);
+			break;
+
+		case 0x11:											// Disable display
+			if (nNeoSystemType & NEO_SYS_CART) {
+				bNeoEnableGraphics = false;
+//				bprintf(PRINT_NORMAL, _T("  - Display disabled (0x%02X, at scanline %i).\n"), byteValue, SekCurrentScanline());
+				break;
+			}
+
+		case 0x13:											// Select game vector table
+			if (nNeoSystemType & NEO_SYS_CART) {
+				if (b68KBoardROMBankedIn) {
+					MapVectorTable(false);
+					b68KBoardROMBankedIn = false;
+				}
+//				bprintf(PRINT_NORMAL, _T("  - ROM vector table banked in (0x%02X).\n"), byteValue);
+			}
+			break;
+
+		case 0x1B:											// Select game text ROM
+//			bprintf(PRINT_NORMAL, _T("  - Cartridge text/Z80 ROM banked in (0x%02X).\n"), byteValue);
+
+			bBIOSTextROMEnabled = false;
+
+			if (bZ80BIOS) {
+				if (bZ80BoardROMBankedIn) {
+					bZ80BoardROMBankedIn = false;
+					NeoZ80MapROM(false);
+				}
+
+#if defined Z80_RESET_ON_BANKSWITCH
+				nSoundStatus |= 1;
+				ZetReset();
+#endif
+			}
+
+			break;
+
+		case 0x1D:											// Write-enable SRAM
+			bSRAMWritable = true;
+//			bprintf(PRINT_NORMAL, _T("  - SRAM writable (0x%02X).\n"), byteValue);
+			break;
+
+		case 0x1F:											// Select palette bank 0
+//			bprintf(PRINT_NORMAL, _T("  - Palette 0 banked in (0x%02X).\n"), byteValue);
+			MapPalette(0);
+			break;
+	}
 
 	return;
 }

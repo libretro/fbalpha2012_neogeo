@@ -8,32 +8,32 @@ enum CDEmuStatusValue { idle = 0, reading, playing, paused, seeking, fastforward
 
 extern TCHAR CDEmuImage[MAX_PATH];
 
-INT32 CDEmuInit(void);
-INT32 CDEmuExit(void);
-INT32 CDEmuStop(void);
+INT32 CDEmuInit();
+INT32 CDEmuExit();
+INT32 CDEmuStop();
 INT32 CDEmuPlay(UINT8 M, UINT8 S, UINT8 F);
 INT32 CDEmuLoadSector(INT32 LBA, char* pBuffer);
 UINT8* CDEmuReadTOC(INT32 track);
-UINT8* CDEmuReadQChannel(void);
+UINT8* CDEmuReadQChannel();
 INT32 CDEmuGetSoundBuffer(INT16* buffer, INT32 samples);
 
-static inline enum CDEmuStatusValue CDEmuGetStatus(void)
+static inline CDEmuStatusValue CDEmuGetStatus()
 {
-	extern enum CDEmuStatusValue CDEmuStatus;
+	extern CDEmuStatusValue CDEmuStatus;
 
 	return CDEmuStatus;
 }
 
-static inline void CDEmuStartRead(void)
+static inline void CDEmuStartRead()
 {
-	extern enum CDEmuStatusValue CDEmuStatus;
+	extern CDEmuStatusValue CDEmuStatus;
 
 	CDEmuStatus = seeking;
 }
 
-static inline void CDEmuPause(void)
+static inline void CDEmuPause()
 {
-	extern enum CDEmuStatusValue CDEmuStatus;
+	extern CDEmuStatusValue CDEmuStatus;
 
 	CDEmuStatus = paused;
 }

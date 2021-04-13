@@ -12,22 +12,22 @@ static INT32 nTimerCount[2], nTimerStart[2];
 
 // Callbacks
 static INT32 (*pTimerOverCallback)(INT32, INT32);
-static double (*pTimerTimeCallback)(void);
+static double (*pTimerTimeCallback)();
 
 static INT32 nCPUClockspeed = 0;
-static INT32 (*pCPUTotalCycles)(void) = NULL;
+static INT32 (*pCPUTotalCycles)() = NULL;
 static INT32 (*pCPURun)(INT32) = NULL;
-static void (*pCPURunEnd)(void) = NULL;
+static void (*pCPURunEnd)() = NULL;
 
 // ---------------------------------------------------------------------------
 // Running time
 
-static double BurnTimerTimeCallbackDummy(void)
+static double BurnTimerTimeCallbackDummy()
 {
 	return 0.0;
 }
 
-double BurnTimerGetTime(void)
+extern "C" double BurnTimerGetTime()
 {
 	return dTime + pTimerTimeCallback();
 }
@@ -151,21 +151,21 @@ void BurnOPMTimerCallback(INT32 c, double period)
 	nTimerCount[c] += MAKE_TIMER_TICKS(pCPUTotalCycles(), nCPUClockspeed);
 }
 
-void BurnOPNTimerCallback(INT32 n, INT32 c, INT32 cnt, double stepTime)
+void BurnOPNTimerCallback(INT32  /*n */, INT32 c, INT32 cnt, double stepTime)
 {
-   pCPURunEnd();
-
-   if (cnt == 0)
+	pCPURunEnd();
+	
+	if (cnt == 0)
    {
-      nTimerCount[c] = MAX_TIMER_VALUE;
-      return;
-   }
+		nTimerCount[c] = MAX_TIMER_VALUE;
+		return;
+	}
 
-   nTimerCount[c]  = (INT32)(stepTime * cnt * (double)TIMER_TICKS_PER_SECOND);
-   nTimerCount[c] += MAKE_TIMER_TICKS(pCPUTotalCycles(), nCPUClockspeed);
+	nTimerCount[c]  = (INT32)(stepTime * cnt * (double)TIMER_TICKS_PER_SECOND);
+	nTimerCount[c] += MAKE_TIMER_TICKS(pCPUTotalCycles(), nCPUClockspeed);
 }
 
-void BurnYMFTimerCallback(INT32 n, INT32 c, double period)
+void BurnYMFTimerCallback(INT32 /* n */, INT32 c, double period)
 {
 	pCPURunEnd();
 
@@ -225,7 +225,7 @@ void BurnTimerScan(INT32 nAction, INT32* pnMin)
 	}
 }
 
-void BurnTimerExit(void)
+void BurnTimerExit()
 {
 	nCPUClockspeed = 0;
 	pCPUTotalCycles = NULL;
@@ -235,7 +235,7 @@ void BurnTimerExit(void)
 	return;
 }
 
-void BurnTimerReset(void)
+void BurnTimerReset()
 {
 	nTimerCount[0] = nTimerCount[1] = MAX_TIMER_VALUE;
 	nTimerStart[0] = nTimerStart[1] = MAX_TIMER_VALUE;
@@ -245,7 +245,7 @@ void BurnTimerReset(void)
 	nTicksDone = 0;
 }
 
-INT32 BurnTimerInit(INT32 (*pOverCallback)(INT32, INT32), double (*pTimeCallback)(void))
+INT32 BurnTimerInit(INT32 (*pOverCallback)(INT32, INT32), double (*pTimeCallback)())
 {
 	BurnTimerExit();
 
