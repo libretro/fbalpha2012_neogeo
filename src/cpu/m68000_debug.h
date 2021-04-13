@@ -13,9 +13,9 @@ extern void (*SekDbgBreakpointHandlerRead)(UINT32, INT32);
 extern void (*SekDbgBreakpointHandlerFetch)(UINT32, INT32);
 extern void (*SekDbgBreakpointHandlerWrite)(UINT32, INT32);
 
-void SekDbgDisableBreakpoints();
-void SekDbgEnableBreakpoints();
-void SekDbgEnableSingleStep();
+void SekDbgDisableBreakpoints(void);
+void SekDbgEnableBreakpoints(void);
+void SekDbgEnableSingleStep(void);
 
 INT32 SekDbgSetBreakpointDataRead(UINT32 nAddress, INT32 nIdentifier);
 INT32 SekDbgSetBreakpointDataWrite(UINT32 nAddress, INT32 nIdentifier);
@@ -23,5 +23,5 @@ INT32 SekDbgSetBreakpointFetch(UINT32 nAddress, INT32 nIdentifier);
 
 INT32 SekDbgGetCPUType();
 INT32 SekDbgGetPendingIRQ();
-UINT32 SekDbgGetRegister(SekRegister nRegister);
-bool SekDbgSetRegister(SekRegister nRegister, UINT32 nValue);
+UINT32 SekDbgGetRegister(enum SekRegister nRegister);
+bool SekDbgSetRegister(enum SekRegister nRegister, UINT32 nValue);

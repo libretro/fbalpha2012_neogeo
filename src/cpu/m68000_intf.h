@@ -32,8 +32,8 @@
 #endif
 
 #ifdef EMU_A68K
- extern "C" void __cdecl M68000_RUN();
- extern "C" void __cdecl M68000_RESET();
+ extern void __cdecl M68000_RUN(void);
+ extern void __cdecl M68000_RESET(void);
 #endif
 
 #ifdef EMU_A68K
@@ -49,19 +49,19 @@
 	UINT32 sfc, dfc, usp, vbr;
 	UINT32 nAsmBank, nCpuVersion;
  };
- extern "C" struct A68KContext M68000_regs;
- extern     struct A68KContext* SekRegs[SEK_MAX];
+ extern struct A68KContext M68000_regs;
+ extern struct A68KContext* SekRegs[SEK_MAX];
 
- extern "C" UINT8* OP_ROM;
- extern "C" UINT8* OP_RAM;
+ extern UINT8* OP_ROM;
+ extern UINT8* OP_RAM;
 
  void __fastcall AsekChangePc(UINT32 pc);
 #endif
 
 #ifdef EMU_M68K
- extern "C" INT32 nSekM68KContextSize[SEK_MAX];
- extern "C" INT8* SekM68KContext[SEK_MAX];
- extern "C" INT32 m68k_ICount;
+ extern INT32 nSekM68KContextSize[SEK_MAX];
+ extern INT8* SekM68KContext[SEK_MAX];
+ extern INT32 m68k_ICount;
 #endif
 
 typedef UINT8 (__fastcall *pSekReadByteHandler)(UINT32 a);

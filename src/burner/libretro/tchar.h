@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <wchar.h>
+#include <boolean.h>
 
 #include "inp_keys.h"
 #define TCHAR char

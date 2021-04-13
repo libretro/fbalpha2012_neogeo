@@ -30,7 +30,7 @@ struct CheatInfo {
 	struct CheatOption* pOption[CHEAT_MAX_OPTIONS];
 };
 
-extern CheatInfo* pCheatInfo;
+extern struct CheatInfo* pCheatInfo;
 
 INT32 CheatUpdate();
 INT32 CheatEnable(INT32 nCheat, INT32 nOption);

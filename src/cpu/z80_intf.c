@@ -32,10 +32,10 @@ static INT32 nOpenedCPU = -1;
 static INT32 nCPUCount = 0;
 INT32 nHasZet = -1;
 
-UINT8 __fastcall ZetDummyReadHandler(UINT16) { return 0; }
-void __fastcall ZetDummyWriteHandler(UINT16, UINT8) { }
-UINT8 __fastcall ZetDummyInHandler(UINT16) { return 0; }
-void __fastcall ZetDummyOutHandler(UINT16, UINT8) { }
+UINT8 __fastcall ZetDummyReadHandler(UINT16 a) { return 0; }
+void __fastcall ZetDummyWriteHandler(UINT16 a, UINT8 b) { }
+UINT8 __fastcall ZetDummyInHandler(UINT16 a) { return 0; }
+void __fastcall ZetDummyOutHandler(UINT16 a, UINT8 b) { }
 
 UINT8 __fastcall ZetReadIO(UINT32 a)
 {
@@ -149,7 +149,7 @@ static UINT8 ZetCheatRead(UINT32 a)
 	return ZetReadByte(a);
 }
 
-static cpu_core_config ZetCheatCpuConfig =
+static struct cpu_core_config ZetCheatCpuConfig =
 {
 	ZetOpen,
 	ZetClose,
@@ -169,8 +169,8 @@ INT32 ZetInit(INT32 nCPU)
 {
 	nOpenedCPU = -1;
 
-	ZetCPUContext[nCPU] = (struct ZetExt*)BurnMalloc(sizeof(ZetExt));
-	memset (ZetCPUContext[nCPU], 0, sizeof(ZetExt));
+	ZetCPUContext[nCPU] = (struct ZetExt*)BurnMalloc(sizeof(struct ZetExt));
+	memset (ZetCPUContext[nCPU], 0, sizeof(struct ZetExt));
 
 	if (nCPU == 0) { // not safe!
 		Z80Init();
@@ -329,7 +329,7 @@ INT32 ZetRun(INT32 nCycles)
 	return nCycles;
 }
 
-void ZetRunAdjust(INT32 /*nCycles*/)
+void ZetRunAdjust(INT32 nCycles)
 {
 }
 
@@ -433,7 +433,7 @@ INT32 ZetMapArea(INT32 nStart, INT32 nEnd, INT32 nMode, UINT8 *Mem)
 	return 0;
 }
 
-INT32 ZetMapArea(INT32 nStart, INT32 nEnd, INT32 nMode, UINT8 *Mem01, UINT8 *Mem02)
+INT32 ZetMapAreaSpecial(INT32 nStart, INT32 nEnd, INT32 nMode, UINT8 *Mem01, UINT8 *Mem02)
 {
 	UINT8 cStart = (nStart >> 8);
 	UINT8 **pMemMap = ZetCPUContext[nOpenedCPU]->pZetMemMap;

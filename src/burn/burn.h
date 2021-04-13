@@ -86,7 +86,7 @@ __extension__ typedef long long				INT64;
 
 extern INT32 nBurnVer;						// Version number of the library
 
-enum BurnCartrigeCommand { CART_INIT_START, CART_INIT_END, CART_EXIT };
+enum BurnCartridgeCommand { CART_INIT_START, CART_INIT_END, CART_EXIT };
 
 // ---------------------------------------------------------------------------
 // Callbacks
@@ -99,7 +99,7 @@ extern INT32 (__cdecl *BurnExtProgressRangeCallback)(double dProgressRange);
 extern INT32 (__cdecl *BurnExtProgressUpdateCallback)(double dProgress, const TCHAR* pszText, bool bAbs);
 
 // Application-defined catridge initialisation function
-extern INT32 (__cdecl *BurnExtCartridgeSetupCallback)(BurnCartrigeCommand nCommand);
+extern INT32 (__cdecl *BurnExtCartridgeSetupCallback)(enum BurnCartridgeCommand nCommand);
 
 // Application-defined colour conversion function
 extern UINT32 (__cdecl *BurnHighCol) (INT32 r, INT32 g, INT32 b, INT32 i);
@@ -216,7 +216,7 @@ INT32 BurnLibExit();
 INT32 BurnDrvInit();
 INT32 BurnDrvExit();
 
-INT32 BurnDrvCartridgeSetup(BurnCartrigeCommand nCommand);
+INT32 BurnDrvCartridgeSetup(enum BurnCartridgeCommand nCommand);
 
 INT32 BurnDrvFrame(void);
 INT32 BurnRecalcPal(void);

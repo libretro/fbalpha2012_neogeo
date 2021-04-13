@@ -36,8 +36,8 @@ struct NEO_CALLBACK {
 	INT32 (*pScan)(INT32, INT32*);
 };
 
-extern NEO_CALLBACK  NeoCallback[MAX_SLOT];
-extern NEO_CALLBACK* NeoCallbackActive;
+extern struct NEO_CALLBACK  NeoCallback[MAX_SLOT];
+extern struct NEO_CALLBACK* NeoCallbackActive;
 
 // neogeo.cpp
 void NeoClearScreen();

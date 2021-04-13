@@ -25,6 +25,9 @@ static UINT32 nOneSecond;
 
 INT32 uPD4990AInit(UINT32 nTicksPerSecond)
 {
+   time_t nLocalTime;
+   struct tm* tmLocalTime;
+
 	nOneSecond = nTicksPerSecond;
 
 	uPD4990A.nRegister[0] = uPD4990A.nRegister[1] = 0;
@@ -40,8 +43,8 @@ INT32 uPD4990AInit(UINT32 nTicksPerSecond)
 	uPD4990A.TP = 0;
 
 	// Set the time of the uPD4990A to the current local time
-	time_t nLocalTime = time(NULL);
-	tm* tmLocalTime = localtime(&nLocalTime);
+	nLocalTime  = time(NULL);
+	tmLocalTime = localtime(&nLocalTime);
 
 	uPD4990A.nSeconds = tmLocalTime->tm_sec;
 	uPD4990A.nMinutes = tmLocalTime->tm_min;

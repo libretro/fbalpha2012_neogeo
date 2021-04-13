@@ -130,7 +130,7 @@ struct cpu_core_config {
 	UINT32 nAddressXor;		// fix endianness for some cpus
 };
 
-void CpuCheatRegister(INT32 type, cpu_core_config *config);
+void CpuCheatRegister(INT32 type, struct cpu_core_config *config);
 
 // burn_memory.cpp
 void BurnInitMemoryManager();

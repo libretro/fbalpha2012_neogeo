@@ -28,12 +28,9 @@ static double YM2610RightVolumes[3];
 // ----------------------------------------------------------------------------
 // Dummy functions
 
-static void YM2610UpdateDummy(INT16*, INT32)
-{
-	return;
-}
+static void YM2610UpdateDummy(INT16 *a, INT32 b) { }
 
-static INT32 YM2610StreamCallbackDummy(INT32)
+static INT32 YM2610StreamCallbackDummy(INT32 a)
 {
 	return 0;
 }
@@ -268,7 +265,7 @@ void BurnYM2610UpdateRequest(void)
 	YM2610Render(BurnYM2610StreamCallback(nBurnYM2610SoundRate));
 }
 
-static void BurnAY8910UpdateRequest()
+static void BurnAY8910UpdateRequest(void)
 {
 	AY8910Render(BurnYM2610StreamCallback(nBurnYM2610SoundRate));
 }
@@ -305,7 +302,7 @@ void BurnYM2610MapADPCMROM(UINT8* YM2610ADPCMAROM, INT32 nYM2610ADPCMASize, UINT
 	YM2610SetRom(0, YM2610ADPCMAROM, nYM2610ADPCMASize, YM2610ADPCMBROM, nYM2610ADPCMBSize);
 }
 
-INT32 BurnYM2610Init(INT32 nClockFrequency, UINT8* YM2610ADPCMAROM, INT32* nYM2610ADPCMASize, UINT8* YM2610ADPCMBROM, INT32* nYM2610ADPCMBSize, FM_IRQHANDLER IRQCallback, INT32 (*StreamCallback)(INT32), double (*GetTimeCallback)(), INT32 bAddSignal)
+INT32 BurnYM2610Init(INT32 nClockFrequency, UINT8* YM2610ADPCMAROM, INT32* nYM2610ADPCMASize, UINT8* YM2610ADPCMBROM, INT32* nYM2610ADPCMBSize, FM_IRQHANDLER IRQCallback, INT32 (*StreamCallback)(INT32), double (*GetTimeCallback)(void), INT32 bAddSignal)
 {
 	BurnTimerInit(&YM2610TimerOver, GetTimeCallback);
 
