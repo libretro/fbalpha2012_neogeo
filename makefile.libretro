@@ -378,6 +378,10 @@ endif
 CC_SYSTEM = gcc
 CXX_SYSTEM = g++
 
+ifeq ($(STATIC_LINKING), 1)
+INCLUDE_7Z_SUPPORT = 0
+endif
+
 BURN_BLACKLIST := \
 	$(FBA_CPU_DIR)/m68k/m68k_in.c \
 	$(FBA_CPU_DIR)/m68k/m68kmake.c \
