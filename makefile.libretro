@@ -256,6 +256,7 @@ else ifeq ($(platform), ctr)
    PLATFORM_DEFINES += -march=armv6k -mtune=mpcore -mfloat-abi=hard
    PLATFORM_DEFINES += -Wall -mword-relocations
    PLATFORM_DEFINES += -fomit-frame-pointer -ffast-math
+   CFLAGS += -I$(DEVKITPRO)/libctru/include
    CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
    CPU_ARCH := arm
    STATIC_LINKING = 1
@@ -435,6 +436,10 @@ endif
 
 FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS)
 
+ifeq ($(platform), ctr)
+	BURN_BLACKLIST += $(FBA_BURN_DIR)/burn_memory.cpp
+	FBA_SRC_DIRS += $(LIBRETRO_DIR)/ctr
+endif
 
 ifeq ($(EXTERNAL_ZLIB), 1)
    FBA_DEFINES += -DEXTERNAL_ZLIB
