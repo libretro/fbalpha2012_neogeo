@@ -43,19 +43,17 @@ static 	UINT16 BankAttrib01, BankAttrib02, BankAttrib03;
 // Include the tile rendering functions
 #include "neo_sprite_func.h"
 
-INT32 NeoRenderSprites()
+INT32 NeoRenderSprites(void)
 {
-	if (nLastBPP != nBurnBpp ) {
+	if (nLastBPP != nBurnBpp )
+   {
 		nLastBPP = nBurnBpp;
 
 		RenderBank = RenderBankNormal[nBurnBpp - 2];
 	}
 
-	if (!NeoSpriteROMActive || !(nBurnLayer & 1)) {
+	if (!NeoSpriteROMActive || !(nBurnLayer & 1))
 		return 0;
-	}
-
-//	UINT16 BankAttrib01, BankAttrib02, BankAttrib03;
 
 	nNeoSpriteFrame04 = nNeoSpriteFrame & 3;
 	nNeoSpriteFrame08 = nNeoSpriteFrame & 7;
@@ -93,8 +91,6 @@ INT32 NeoRenderSprites()
 
 			nBankYZoom = BankAttrib01 & 0xFF;
 			nBankSize  = BankAttrib02 & 0x3F;
-
-//			if (nBankSize > 0x10 && nSliceStart == 0x10) bprintf(PRINT_NORMAL, _T("bank: %04X, x: %04X, y: %04X, zoom: %02X, size: %02X.\n"), zBank, nBankXPos, nBankYPos, nBankYZoom, nBankSize);
 		}
 
 		if (nBankSize) {
@@ -113,8 +109,6 @@ INT32 NeoRenderSprites()
 			}
 		}
 	}
-
-//	bprintf(PRINT_NORMAL, _T("\n"));
 
 	return 0;
 }

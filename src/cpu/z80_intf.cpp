@@ -83,14 +83,12 @@ UINT8 __fastcall ZetReadOp(UINT32 a)
 {
 	// check mem map
 	UINT8 * pr = ZetCPUContext[nOpenedCPU]->pZetMemMap[0x200 | (a >> 8)];
-	if (pr != NULL) {
+	if (pr != NULL)
 		return pr[a & 0xff];
-	}
 	
 	// check read handler
-	if (ZetCPUContext[nOpenedCPU]->ZetRead != NULL) {
+	if (ZetCPUContext[nOpenedCPU]->ZetRead != NULL)
 		return ZetCPUContext[nOpenedCPU]->ZetRead(a);
-	}
 	
 	return 0;
 }
@@ -99,14 +97,12 @@ UINT8 __fastcall ZetReadOpArg(UINT32 a)
 {
 	// check mem map
 	UINT8 * pr = ZetCPUContext[nOpenedCPU]->pZetMemMap[0x300 | (a >> 8)];
-	if (pr != NULL) {
+	if (pr != NULL)
 		return pr[a & 0xff];
-	}
 	
 	// check read handler
-	if (ZetCPUContext[nOpenedCPU]->ZetRead != NULL) {
+	if (ZetCPUContext[nOpenedCPU]->ZetRead != NULL)
 		return ZetCPUContext[nOpenedCPU]->ZetRead(a);
-	}
 	
 	return 0;
 }
@@ -188,9 +184,8 @@ INT32 ZetInit(INT32 nCPU)
 		nZetCyclesDone[nCPU] = 0;
 		nZ80ICount[nCPU] = 0;
 		
-		for (INT32 j = 0; j < (0x0100 * 4); j++) {
+		for (INT32 j = 0; j < (0x0100 * 4); j++)
 			ZetCPUContext[nCPU]->pZetMemMap[j] = NULL;
-		}
 	}
 
 	nZetCyclesTotal = 0;
@@ -210,54 +205,6 @@ INT32 ZetInit(INT32 nCPU)
 
 	return 0;
 }
-
-#if 0
-INT32 ZetInit(INT32 nCount)
-{
-	nOpenedCPU = -1;
-	
-	ZetCPUContext = (struct ZetExt *) malloc(nCount * sizeof(ZetExt));
-	if (ZetCPUContext == NULL) return 1;
-	memset(ZetCPUContext, 0, nCount * sizeof(ZetExt));
-	
-	Z80Init();
-	
-	for (INT32 i = 0; i < nCount; i++) {
-		ZetCPUContext[i].ZetIn = ZetDummyInHandler;
-		ZetCPUContext[i].ZetOut = ZetDummyOutHandler;
-		ZetCPUContext[i].ZetRead = ZetDummyReadHandler;
-		ZetCPUContext[i].ZetWrite = ZetDummyWriteHandler;
-		ZetCPUContext[i].BusReq = 0;
-		// TODO: Z80Init() will set IX IY F regs with default value, so get them ...
-		Z80GetContext(&ZetCPUContext[i].reg);
-		
-		nZetCyclesDone[i] = 0;
-		nZ80ICount[i] = 0;
-		
-		for (INT32 j = 0; j < (0x0100 * 4); j++) {
-			ZetCPUContext[i].pZetMemMap[j] = NULL;
-		}
-	}
-	
-	nZetCyclesTotal = 0;
-	
-	Z80SetIOReadHandler(ZetReadIO);
-	Z80SetIOWriteHandler(ZetWriteIO);
-	Z80SetProgramReadHandler(ZetReadProg);
-	Z80SetProgramWriteHandler(ZetWriteProg);
-	Z80SetCPUOpReadHandler(ZetReadOp);
-	Z80SetCPUOpArgReadHandler(ZetReadOpArg);
-	
-	nCPUCount = nCount % MAX_Z80;
-
-	nHasZet = nCount;
-
-	for (INT32 i = 0; i < nCount; i++)
-		CpuCheatRegister(0x0004, i);
-
-	return 0;
-}
-#endif
 
 UINT8 ZetReadByte(UINT16 address)
 {
@@ -333,9 +280,7 @@ void ZetRunAdjust(INT32 /*nCycles*/)
 {
 }
 
-void ZetRunEnd(void)
-{
-}
+void ZetRunEnd(void) { }
 
 // This function will make an area callback ZetRead/ZetWrite
 INT32 ZetMemCallback(INT32 nStart, INT32 nEnd, INT32 nMode)
@@ -343,20 +288,22 @@ INT32 ZetMemCallback(INT32 nStart, INT32 nEnd, INT32 nMode)
 	UINT8 cStart = (nStart >> 8);
 	UINT8 **pMemMap = ZetCPUContext[nOpenedCPU]->pZetMemMap;
 
-	for (UINT16 i = cStart; i <= (nEnd >> 8); i++) {
-		switch (nMode) {
-			case 0:
-				pMemMap[0     + i] = NULL;
-				break;
-			case 1:
-				pMemMap[0x100 + i] = NULL;
-				break;
-			case 2:
-				pMemMap[0x200 + i] = NULL;
-				pMemMap[0x300 + i] = NULL;
-				break;
-		}
-	}
+	for (UINT16 i = cStart; i <= (nEnd >> 8); i++)
+   {
+      switch (nMode)
+      {
+         case 0:
+            pMemMap[0     + i] = NULL;
+            break;
+         case 1:
+            pMemMap[0x100 + i] = NULL;
+            break;
+         case 2:
+            pMemMap[0x200 + i] = NULL;
+            pMemMap[0x300 + i] = NULL;
+            break;
+      }
+   }
 
 	return 0;
 }
@@ -365,10 +312,10 @@ void ZetExit(void)
 {
 	Z80Exit();
 
-	for (INT32 i = 0; i < MAX_Z80; i++) {
-		if (ZetCPUContext[i]) {
+	for (INT32 i = 0; i < MAX_Z80; i++)
+   {
+		if (ZetCPUContext[i])
 			BurnFree (ZetCPUContext[i]);
-		}
 	}
 
 	nCPUCount = 0;
@@ -410,25 +357,22 @@ INT32 ZetMapArea(INT32 nStart, INT32 nEnd, INT32 nMode, UINT8 *Mem)
 	UINT8 cStart = (nStart >> 8);
 	UINT8 **pMemMap = ZetCPUContext[nOpenedCPU]->pZetMemMap;
 
-	for (UINT16 i = cStart; i <= (nEnd >> 8); i++) {
-		switch (nMode) {
-			case 0: {
-				pMemMap[0     + i] = Mem + ((i - cStart) << 8);
-				break;
-			}
-		
-			case 1: {
-				pMemMap[0x100 + i] = Mem + ((i - cStart) << 8);
-				break;
-			}
-			
-			case 2: {
-				pMemMap[0x200 + i] = Mem + ((i - cStart) << 8);
-				pMemMap[0x300 + i] = Mem + ((i - cStart) << 8);
-				break;
-			}
-		}
-	}
+   for (UINT16 i = cStart; i <= (nEnd >> 8); i++)
+   {
+      switch (nMode)
+      {
+         case 0:
+            pMemMap[0     + i] = Mem + ((i - cStart) << 8);
+            break;
+         case 1:
+            pMemMap[0x100 + i] = Mem + ((i - cStart) << 8);
+            break;
+         case 2:
+            pMemMap[0x200 + i] = Mem + ((i - cStart) << 8);
+            pMemMap[0x300 + i] = Mem + ((i - cStart) << 8);
+            break;
+      }
+   }
 
 	return 0;
 }
@@ -441,7 +385,8 @@ INT32 ZetMapArea(INT32 nStart, INT32 nEnd, INT32 nMode, UINT8 *Mem01, UINT8 *Mem
 	if (nMode != 2)
 		return 1;
 	
-	for (UINT16 i = cStart; i <= (nEnd >> 8); i++) {
+	for (UINT16 i = cStart; i <= (nEnd >> 8); i++)
+   {
 		pMemMap[0x200 + i] = Mem01 + ((i - cStart) << 8);
 		pMemMap[0x300 + i] = Mem02 + ((i - cStart) << 8);
 	}
@@ -506,20 +451,21 @@ INT32 ZetScan(INT32 nAction)
 
 void ZetSetIRQLine(const INT32 line, const INT32 status)
 {
-	switch ( status ) {
-		case ZET_IRQSTATUS_NONE:
-			Z80SetIrqLine(0, 0);
-			break;
-		case ZET_IRQSTATUS_ACK: 	
-			Z80SetIrqLine(line, 1);
-			break;
-		case ZET_IRQSTATUS_AUTO:
-			Z80SetIrqLine(line, 1);
-			Z80Execute(0);
-			Z80SetIrqLine(0, 0);
-			Z80Execute(0);
-			break;
-	}
+	switch ( status )
+   {
+      case ZET_IRQSTATUS_NONE:
+         Z80SetIrqLine(0, 0);
+         break;
+      case ZET_IRQSTATUS_ACK: 	
+         Z80SetIrqLine(line, 1);
+         break;
+      case ZET_IRQSTATUS_AUTO:
+         Z80SetIrqLine(line, 1);
+         Z80Execute(0);
+         Z80SetIrqLine(0, 0);
+         Z80Execute(0);
+         break;
+   }
 }
 
 void ZetSetVector(INT32 vector)
@@ -527,12 +473,9 @@ void ZetSetVector(INT32 vector)
 	Z80Vector = vector;
 }
 
-UINT8 ZetGetVector()
-{
-	return Z80Vector;
-}
+UINT8 ZetGetVector(void) { return Z80Vector; }
 
-INT32 ZetNmi()
+INT32 ZetNmi(void)
 {
 	Z80SetIrqLine(Z80_INPUT_LINE_NMI, 1);
 	Z80Execute(0);

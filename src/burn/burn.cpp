@@ -19,7 +19,6 @@ bool bBurnUseASMCPUEmulation = false;
 
 UINT32 nCurrentFrame;			// Framecount for emulated game
 
-bool bForce60Hz = false;
 INT32 nBurnFPS = 6000;
 INT32 nBurnCPUSpeedAdjust = 0x0100;	// CPU speed adjustment (clock * nBurnCPUSpeedAdjust / 0x0100)
 
@@ -119,7 +118,6 @@ INT32 BurnGetZipName(char** pszName, UINT32 i)
 // ----------------------------------------------------------------------------
 // Static functions which forward to each driver's data and functions
 
-INT32 BurnStateMAMEScan(INT32 nAction, INT32* pnMin);
 void BurnStateExit();
 INT32 BurnStateInit();
 
@@ -539,45 +537,8 @@ extern "C" INT32 BurnDrvInit()
 {
 	INT32 nReturnValue;
 
-	if (nBurnDrvActive >= nBurnDrvCount) {
+	if (nBurnDrvActive >= nBurnDrvCount)
 		return 1;
-	}
-
-#if defined (FBA_DEBUG)
-	{
-		TCHAR szText[1024] = _T("");
-		TCHAR* pszPosition = szText;
-		TCHAR* pszName = BurnDrvGetText(DRV_FULLNAME);
-		INT32 nName = 1;
-
-		while ((pszName = BurnDrvGetText(DRV_NEXTNAME | DRV_FULLNAME)) != NULL) {
-			nName++;
-		}
-
-		// Print the title
-
-		bprintf(PRINT_IMPORTANT, _T("*** Starting emulation of %s - %s.\n"), BurnDrvGetText(DRV_NAME), BurnDrvGetText(DRV_FULLNAME));
-
-		// Then print the alternative titles
-
-		if (nName > 1) {
-			bprintf(PRINT_IMPORTANT, _T("    Alternative %s "), (nName > 2) ? _T("titles are") : _T("title is"));
-			pszName = BurnDrvGetText(DRV_FULLNAME);
-			nName = 1;
-			while ((pszName = BurnDrvGetText(DRV_NEXTNAME | DRV_FULLNAME)) != NULL) {
-				if (pszPosition + _tcslen(pszName) - 1022 > szText) {
-					break;
-				}
-				if (nName > 1) {
-					bprintf(PRINT_IMPORTANT, _T(SEPERATOR_1));
-				}
-				bprintf(PRINT_IMPORTANT, _T("%s"), pszName);
-				nName++;
-			}
-			bprintf(PRINT_IMPORTANT, _T(".\n"));
-		}
-	}
-#endif
 
 	BurnSetRefreshRate(60.0);
 
@@ -604,10 +565,6 @@ extern "C" INT32 BurnDrvExit()
 	INT32 nRet = pDriver[nBurnDrvActive]->Exit();			// Forward to drivers function
 	
 	BurnExitMemoryManager();
-#if defined FBA_DEBUG
-	DebugTrackerExit();
-#endif
-
 	return nRet;
 }
 
@@ -615,31 +572,22 @@ INT32 (__cdecl* BurnExtCartridgeSetupCallback)(BurnCartrigeCommand nCommand) = N
 
 INT32 BurnDrvCartridgeSetup(BurnCartrigeCommand nCommand)
 {
-	if (nBurnDrvActive >= nBurnDrvCount || BurnExtCartridgeSetupCallback == NULL) {
+	if (nBurnDrvActive >= nBurnDrvCount || BurnExtCartridgeSetupCallback == NULL)
 		return 1;
-	}
 
-	if (nCommand == CART_EXIT) {
+	if (nCommand == CART_EXIT)
 		return pDriver[nBurnDrvActive]->Exit();
-	}
 
-	if (nCommand != CART_INIT_END && nCommand != CART_INIT_START) {
+	if (nCommand != CART_INIT_END && nCommand != CART_INIT_START)
 		return 1;
-	}
 
 	BurnExtCartridgeSetupCallback(CART_INIT_END);
 
-#if defined FBA_DEBUG
-		bprintf(PRINT_NORMAL, _T("  * Loading"));
-#endif
-
-	if (BurnExtCartridgeSetupCallback(CART_INIT_START)) {
+	if (BurnExtCartridgeSetupCallback(CART_INIT_START))
 		return 1;
-	}
 
-	if (nCommand == CART_INIT_START) {
+	if (nCommand == CART_INIT_START)
 		return pDriver[nBurnDrvActive]->Init();
-	}
 
 	return 0;
 }
@@ -690,10 +638,7 @@ INT32 BurnUpdateProgress(double fProgress, const TCHAR* pszText, bool bAbs)
 
 INT32 BurnSetRefreshRate(double dFrameRate)
 {
-	if (!bForce60Hz) {
-		nBurnFPS = (INT32)(100.0 * dFrameRate);
-	}
-
+   nBurnFPS = (INT32)(100.0 * dFrameRate);
 	return 0;
 }
 
@@ -724,47 +669,9 @@ UINT32 (__cdecl *BurnHighCol) (INT32 r, INT32 g, INT32 b, INT32 i) = BurnHighCol
 static INT32 __cdecl DefAcb (struct BurnArea* /* pba */) { return 1; }
 INT32 (__cdecl *BurnAcb) (struct BurnArea* pba) = DefAcb;
 
-// Scan driver data
-INT32 BurnAreaScan(INT32 nAction, INT32* pnMin)
-{
-	INT32 nRet = 0;
-
-	// Handle any MAME-style variables
-	if (nAction & ACB_DRIVER_DATA) {
-		nRet = BurnStateMAMEScan(nAction, pnMin);
-	}
-
-	// Forward to the driver
-	if (pDriver[nBurnDrvActive]->AreaScan) {
-		nRet |= pDriver[nBurnDrvActive]->AreaScan(nAction, pnMin);
-	}
-
-	return nRet;
-}
-
 // ----------------------------------------------------------------------------
 // Wrappers for MAME-specific function calls
-
 #include "driver.h"
-
-// ----------------------------------------------------------------------------
-// Wrapper for MAME logerror calls
-
-#if defined (FBA_DEBUG) && defined (MAME_USE_LOGERROR)
-void logerror(char* szFormat, ...)
-{
-	static char szLogMessage[1024];
-
-	va_list vaFormat;
-	va_start(vaFormat, szFormat);
-
-	_vsnprintf(szLogMessage, 1024, szFormat, vaFormat);
-
-	va_end(vaFormat);
-
-	bprintf(PRINT_ERROR, _T("%hs"), szLogMessage);
-}
-#endif
 
 // ----------------------------------------------------------------------------
 // Wrapper for MAME state_save_register_* calls
@@ -775,21 +682,68 @@ static BurnStateEntry* pStateEntryAnchor = NULL;
 typedef void (*BurnPostloadFunction)();
 static BurnPostloadFunction BurnPostload[8];
 
+static INT32 BurnStateMAMEScan(INT32 nAction, INT32* pnMin)
+{
+	if (nAction & ACB_VOLATILE)
+   {
+		if (pnMin && *pnMin < 0x029418) // Return minimum compatible version
+			*pnMin = 0x029418;
+
+		if (pStateEntryAnchor)
+      {
+         struct BurnArea ba;
+         BurnStateEntry* pCurrentEntry = pStateEntryAnchor;
+
+         do {
+            ba.Data		= pCurrentEntry->pValue;
+            ba.nLen		= pCurrentEntry->nSize;
+            ba.nAddress = 0;
+            ba.szName	= pCurrentEntry->szName;
+            BurnAcb(&ba);
+
+         } while ((pCurrentEntry = pCurrentEntry->pNext) != 0);
+      }
+
+		if (nAction & ACB_WRITE)
+      {
+			for (INT32 i = 0; i < 8; i++)
+         {
+				if (BurnPostload[i])
+					BurnPostload[i]();
+			}
+		}
+	}
+
+	return 0;
+}
+
+
+// Scan driver data
+INT32 BurnAreaScan(INT32 nAction, INT32* pnMin)
+{
+	INT32 nRet = 0;
+	// Handle any MAME-style variables
+	if (nAction & ACB_DRIVER_DATA)
+		nRet = BurnStateMAMEScan(nAction, pnMin);
+	// Forward to the driver
+	if (pDriver[nBurnDrvActive]->AreaScan)
+		nRet |= pDriver[nBurnDrvActive]->AreaScan(nAction, pnMin);
+	return nRet;
+}
+
 static void BurnStateRegister(const char* module, INT32 instance, const char* name, void* val, UINT32 size)
 {
 	// Allocate new node
 	BurnStateEntry* pNewEntry = (BurnStateEntry*)malloc(sizeof(BurnStateEntry));
-	if (pNewEntry == NULL) {
+	if (pNewEntry == NULL)
 		return;
-	}
 
 	memset(pNewEntry, 0, sizeof(BurnStateEntry));
 
 	// Link the new node
 	pNewEntry->pNext = pStateEntryAnchor;
-	if (pStateEntryAnchor) {
+	if (pStateEntryAnchor)
 		pStateEntryAnchor->pPrev = pNewEntry;
-	}
 	pStateEntryAnchor = pNewEntry;
 
 	sprintf(pNewEntry->szName, "%s:%s %i", module, name, instance);
@@ -798,64 +752,29 @@ static void BurnStateRegister(const char* module, INT32 instance, const char* na
 	pNewEntry->nSize = size;
 }
 
-void BurnStateExit()
+void BurnStateExit(void)
 {
-	if (pStateEntryAnchor) {
-		BurnStateEntry* pCurrentEntry = pStateEntryAnchor;
-		BurnStateEntry* pNextEntry;
+	if (pStateEntryAnchor)
+   {
+      BurnStateEntry* pCurrentEntry = pStateEntryAnchor;
+      BurnStateEntry* pNextEntry;
 
-		do {
-			pNextEntry = pCurrentEntry->pNext;
-			if (pCurrentEntry) {
-				free(pCurrentEntry);
-			}
-		} while ((pCurrentEntry = pNextEntry) != 0);
-	}
+      do {
+         pNextEntry = pCurrentEntry->pNext;
+         if (pCurrentEntry)
+            free(pCurrentEntry);
+      } while ((pCurrentEntry = pNextEntry) != 0);
+   }
 
 	pStateEntryAnchor = NULL;
 
-	for (INT32 i = 0; i < 8; i++) {
+	for (INT32 i = 0; i < 8; i++)
 		BurnPostload[i] = NULL;
-	}
 }
 
-INT32 BurnStateInit()
+INT32 BurnStateInit(void)
 {
 	BurnStateExit();
-
-	return 0;
-}
-
-INT32 BurnStateMAMEScan(INT32 nAction, INT32* pnMin)
-{
-	if (nAction & ACB_VOLATILE) {
-
-		if (pnMin && *pnMin < 0x029418) {						// Return minimum compatible version
-			*pnMin = 0x029418;
-		}
-
-		if (pStateEntryAnchor) {
-			struct BurnArea ba;
-			BurnStateEntry* pCurrentEntry = pStateEntryAnchor;
-
-			do {
-			   	ba.Data		= pCurrentEntry->pValue;
-				ba.nLen		= pCurrentEntry->nSize;
-				ba.nAddress = 0;
-				ba.szName	= pCurrentEntry->szName;
-				BurnAcb(&ba);
-
-			} while ((pCurrentEntry = pCurrentEntry->pNext) != 0);
-		}
-
-		if (nAction & ACB_WRITE) {
-			for (INT32 i = 0; i < 8; i++) {
-				if (BurnPostload[i]) {
-					BurnPostload[i]();
-				}
-			}
-		}
-	}
 
 	return 0;
 }
@@ -864,8 +783,10 @@ INT32 BurnStateMAMEScan(INT32 nAction, INT32* pnMin)
 
 extern "C" void state_save_register_func_postload(void (*pFunction)())
 {
-	for (INT32 i = 0; i < 8; i++) {
-		if (BurnPostload[i] == NULL) {
+	for (INT32 i = 0; i < 8; i++)
+   {
+		if (BurnPostload[i] == NULL)
+      {
 			BurnPostload[i] = pFunction;
 			break;
 		}

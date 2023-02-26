@@ -125,11 +125,7 @@
 /* If ON, CPU will call the instruction hook callback before every
  * instruction.
  */
-#ifdef FBA_DEBUG
- #define M68K_INSTRUCTION_HOOK       OPT_ON
-#else
- #define M68K_INSTRUCTION_HOOK       OPT_OFF
-#endif
+#define M68K_INSTRUCTION_HOOK       OPT_OFF
 #define M68K_INSTRUCTION_CALLBACK() your_instruction_hook_function()
 
 
@@ -200,15 +196,6 @@ extern unsigned int (*SekDbgFetchByteDisassembler)(unsigned int);
 extern unsigned int (*SekDbgFetchWordDisassembler)(unsigned int);
 extern unsigned int (*SekDbgFetchLongDisassembler)(unsigned int);
 
-#if defined FBA_DEBUG
-extern unsigned int (__fastcall *M68KReadByteDebug)(unsigned int);
-extern unsigned int (__fastcall *M68KReadWordDebug)(unsigned int);
-extern unsigned int (__fastcall *M68KReadLongDebug)(unsigned int);
-
-extern void (__fastcall *M68KWriteByteDebug)(unsigned int, unsigned int);
-extern void (__fastcall *M68KWriteWordDebug)(unsigned int, unsigned int);
-extern void (__fastcall *M68KWriteLongDebug)(unsigned int, unsigned int);
-#else
 unsigned int __fastcall M68KReadByte(unsigned int a);
 unsigned int __fastcall M68KReadWord(unsigned int a);
 unsigned int __fastcall M68KReadLong(unsigned int a);
@@ -216,7 +203,6 @@ unsigned int __fastcall M68KReadLong(unsigned int a);
 void __fastcall M68KWriteByte(unsigned int a, unsigned int d);
 void __fastcall M68KWriteWord(unsigned int a, unsigned int d);
 void __fastcall M68KWriteLong(unsigned int a, unsigned int d);
-#endif
 
 #ifdef __cplusplus
  }
@@ -238,17 +224,6 @@ void __fastcall M68KWriteLong(unsigned int a, unsigned int d);
 #define m68k_read_disassembler_16(address) SekDbgFetchWordDisassembler(address)
 #define m68k_read_disassembler_32(address) SekDbgFetchLongDisassembler(address)
 
-#if defined FBA_DEBUG
-/* Read from anywhere */
-#define m68k_read_memory_8(address) M68KReadByteDebug(address)
-#define m68k_read_memory_16(address) M68KReadWordDebug(address)
-#define m68k_read_memory_32(address) M68KReadLongDebug(address)
-
-/* Write to anywhere */
-#define m68k_write_memory_8(address, value) M68KWriteByteDebug(address, value)
-#define m68k_write_memory_16(address, value) M68KWriteWordDebug(address, value)
-#define m68k_write_memory_32(address, value) M68KWriteLongDebug(address, value)
-#else
 /* Read from anywhere */
 #define m68k_read_memory_8(address) M68KReadByte(address)
 #define m68k_read_memory_16(address) M68KReadWord(address)
@@ -258,8 +233,6 @@ void __fastcall M68KWriteLong(unsigned int a, unsigned int d);
 #define m68k_write_memory_8(address, value) M68KWriteByte(address, value)
 #define m68k_write_memory_16(address, value) M68KWriteWord(address, value)
 #define m68k_write_memory_32(address, value) M68KWriteLong(address, value)
-#endif /* FBA_DEBUG */
-
 
 /* ======================================================================== */
 /* ============================== END OF FILE ============================= */

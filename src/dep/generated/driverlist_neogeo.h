@@ -227,9 +227,6 @@ DRV		BurnDrvstakwin;
 DRV		BurnDrvstakwin2;
 DRV		BurnDrvstrhoop;
 DRV		BurnDrvs1945p;
-#if defined FBA_DEBUG
-DRV		BurnDrvsbp;				// no comment [NOT WORKING]
-#endif
 DRV		BurnDrvsdodgeb;
 DRV		BurnDrvSsideki;
 DRV		BurnDrvSsideki2;
@@ -554,9 +551,6 @@ static struct BurnDriver* pDriver[] = {
 	&BurnDrvstakwin2,			// Stakes Winner 2
 	&BurnDrvstrhoop,			// Street Hoop / Street Slam / Dunk Dream (DEM-004) (DEH-004)
 	&BurnDrvs1945p,				// Strikers 1945 Plus
-#if defined FBA_DEBUG
-	&BurnDrvsbp,				// Super Bubble Pop [no comment, NOT WORKING]
-#endif
 	&BurnDrvsdodgeb,			// Super Dodge Ball / Kunio no Nekketsu Toukyuu Densetsu
 	&BurnDrvSsideki,			// Super Sidekicks / Tokuten Ou
 	&BurnDrvSsideki2,			// Super Sidekicks 2 - The World Championship / Tokuten Ou 2 - real fight football (NGM-061)(NGH-061)

@@ -10,15 +10,14 @@ static UINT16* NeoPaletteCopy[2] = {NULL, NULL};
 
 UINT8 NeoRecalcPalette;
 
-INT32 NeoInitPalette()
+INT32 NeoInitPalette(void)
 {
-	for (INT32 i = 0; i < 2; i++) {
-		if (NeoPaletteData[i]) {
+	for (INT32 i = 0; i < 2; i++)
+   {
+		if (NeoPaletteData[i])
 			BurnFree(NeoPaletteData[i]);
-		}
-		if (NeoPaletteCopy[i]) {
+		if (NeoPaletteCopy[i])
 			BurnFree(NeoPaletteCopy[i]);
-		}
 		NeoPaletteData[i] = (UINT32*)BurnMalloc(4096 * sizeof(UINT32));
 		NeoPaletteCopy[i] = (UINT16*)BurnMalloc(4096 * sizeof(UINT16));
 	}
@@ -28,9 +27,10 @@ INT32 NeoInitPalette()
 	return 0;
 }
 
-void NeoExitPalette()
+void NeoExitPalette(void)
 {
-	for (INT32 i = 0; i < 2; i++) {
+	for (INT32 i = 0; i < 2; i++)
+   {
 		BurnFree(NeoPaletteData[i]);
 		BurnFree(NeoPaletteCopy[i]);
 	}
@@ -52,17 +52,20 @@ inline static UINT32 CalcCol(UINT16 nColour)
 	return BurnHighCol(r, g, b, 0);
 }
 
-INT32 NeoUpdatePalette()
+INT32 NeoUpdatePalette(void)
 {
-	if (NeoRecalcPalette) {
+	if (NeoRecalcPalette)
+   {
 		INT32 i;
 		UINT16* ps;
 		UINT16* pc;
 		UINT32* pd;
 
 		// Update both palette banks
-		for (INT32 j = 0; j < 2; j++) {
-			for (i = 0, ps = (UINT16*)NeoPalSrc[j], pc = NeoPaletteCopy[j], pd = NeoPaletteData[j]; i < 4096; i++, ps++, pc++, pd++) {
+		for (INT32 j = 0; j < 2; j++)
+      {
+			for (i = 0, ps = (UINT16*)NeoPalSrc[j], pc = NeoPaletteCopy[j], pd = NeoPaletteData[j]; i < 4096; i++, ps++, pc++, pd++)
+         {
 				*pc = *ps;
 				*pd = CalcCol(BURN_ENDIAN_SWAP_INT16(*ps));
 			}
@@ -75,7 +78,7 @@ INT32 NeoUpdatePalette()
 	return 0;
 }
 
-void NeoSetPalette()
+void NeoSetPalette(void)
 {
 	NeoPalette = NeoPaletteData[nNeoPaletteBank];
 }
@@ -106,4 +109,3 @@ void __fastcall NeoPalWriteWord(UINT32 nAddress, UINT16 wordValue)
 		NeoPaletteData[nNeoPaletteBank][nAddress] = CalcCol(wordValue);
 	}
 }
-

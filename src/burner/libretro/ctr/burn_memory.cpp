@@ -125,8 +125,6 @@ UINT8 *BurnMalloc(INT32 size)
       }
    }
 
-   bprintf (0, _T("BurnMalloc called too many times!\n"));
-
    return NULL; // Freak out!
 }
 
@@ -160,10 +158,8 @@ void BurnExitMemoryManager(void)
    void* tmp;
 	for (INT32 i = 0; i < MAX_MEM_PTR; i++)
 	{
-		if (memptr[i] != NULL) {
-#if defined FBA_DEBUG
-			bprintf(PRINT_ERROR, _T("BurnExitMemoryManager had to free mem pointer %i\n"), i);
-#endif
+		if (memptr[i] != NULL)
+		{
          if(!memsize[i])
             free(memptr[i]);
          else

@@ -3,11 +3,6 @@
 #include "neogeo.h"
 #include "bitswap.h"
 
-#if !defined ROM_VERIFY
-	// enable to match Neo Geo BIOS to MAME's (also affects dipswitches -- leaves only the MVS BIOS option)
-	// #define ROM_VERIFY
-#endif
-
 static struct BurnRomInfo emptyRomDesc[] = {
 	{ "",                    0,          0, 0 },
 };
@@ -17,7 +12,6 @@ static struct BurnRomInfo emptyRomDesc[] = {
 
 static struct BurnInputInfo neogeoInputList[] = {
 	{"P1 Coin",		BIT_DIGITAL,	NeoButton2 + 0,	"p1 coin"},			//  0
-//	{"P1 Coin 2",	BIT_DIGITAL,	NeoButton2 + 3,	"p1 coin 2"},
 	{"P1 Start",	BIT_DIGITAL,	NeoButton1 + 0,	"p1 start"},		//	1
 	{"P1 Select",	BIT_DIGITAL,	NeoButton1 + 1,	"p1 select"},		//  2
 
@@ -31,7 +25,6 @@ static struct BurnInputInfo neogeoInputList[] = {
 	{"P1 Button D",	BIT_DIGITAL,	NeoJoy1 + 7,	"p1 fire 4"},		//	A
 
 	{"P2 Coin",		BIT_DIGITAL,	NeoButton2 + 1,	"p2 coin"},			//	B
-//	{"P2 Coin 2",	BIT_DIGITAL,	NeoButton2 + 4,	"p2 coin 2"},
 	{"P2 Start",	BIT_DIGITAL,	NeoButton1 + 2,	"p2 start"},		//	C
 	{"P2 Select",	BIT_DIGITAL,	NeoButton1 + 3,	"p2 select"},		//	D
 
@@ -61,7 +54,6 @@ STDINPUTINFO(neogeo)
 
 static struct BurnInputInfo neoMVSInputList[] = {
 	{"P1 Coin",		BIT_DIGITAL,	NeoButton2 + 0,	"p1 coin"},			//  0
-//	{"P1 Coin 2",	BIT_DIGITAL,	NeoButton2 + 3,	"p1 coin 2"},
 	{"P1 Start",	BIT_DIGITAL,	NeoButton1 + 0,	"p1 start"},		//	1
 	{"P1 Select",	BIT_DIGITAL,	NeoButton1 + 1,	"p1 select"},		//  2
 
@@ -75,7 +67,6 @@ static struct BurnInputInfo neoMVSInputList[] = {
 	{"P1 Button D",	BIT_DIGITAL,	NeoJoy1 + 7,	"p1 fire 4"},		//	A
 
 	{"P2 Coin",		BIT_DIGITAL,	NeoButton2 + 1,	"p2 coin"},			//	B
-//	{"P2 Coin 2",	BIT_DIGITAL,	NeoButton2 + 4,	"p2 coin 2"},
 	{"P2 Start",	BIT_DIGITAL,	NeoButton1 + 2,	"p2 start"},		//	C
 	{"P2 Select",	BIT_DIGITAL,	NeoButton1 + 3,	"p2 select"},		//	D
 
@@ -846,19 +837,6 @@ static struct BurnDIPInfo neoCDDIPList[] = {
 	{0x00,	0x01, 0x03,	0x01, "USA"},
 	{0x00,	0x01, 0x03,	0x02, "Europe"},
 	{0x00,	0x01, 0x03,	0x03, "Portugese"},
-
-#if 0
-
-	// Memory card
-	{0,		0xFD, 0,	2,	  "Memory card"},
-	{0x00,	0x01, 0x80,	0x80, "Writable"},
-	{0x00,	0x01, 0x80,	0x00, "Write-protected"},
-	{0,		0xFD, 0,	2,	  "New card type"},
-	{0x00,	0x01, 0x40,	0x40, "1 Megabit"},
-	{0x00,	0x01, 0x40,	0x00, "Normal"},
-
-#endif
-
 };
 
 STDDIPINFO(neoCD)
@@ -932,15 +910,9 @@ static struct BurnRomInfo neogeoRomDesc[] = {
 	{ "sp1.jipan.1024",    0x20000, 0x9fb0abe4, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, //  7 MVS Japan ver. 3 (4 slot)
 	{ "sp-45.sp1",         0x80000, 0x03cc9f6a, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, //  8 NEO-MVH MV1C
 	{ "japan-j3.bin",      0x20000, 0xdff6d41f, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, //  9 MVS Japan (J3)
-#if !defined (ROM_VERIFY)
 	{ "neo-po.bin",        0x20000, 0x16d0c132, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 10 AES Japan
 	{ "neo-epo.bin",       0x20000, 0xd27a71f1, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 11 AES Asia
 	{ "neodebug.bin",      0x20000, 0x698ebb7d, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 12 Development Kit
-#else
-	{ "",                  0x00000, 0x00000000, 0                                                   }, // 10
-	{ "",                  0x00000, 0x00000000, 0                                                   }, // 11
-	{ "",                  0x00000, 0x00000000, 0                                                   }, // 12
-#endif
 	{ "sp-1v1_3db8c.bin",  0x20000, 0x162f0ebe, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 13 Deck ver. 6 (Git Ver 1.3)
 	{ "uni-bios_4_0.rom",  0x20000, 0xa7aab458, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 14 Universe BIOS ver. 4.0
 	{ "uni-bios_3_3.rom",  0x20000, 0x24858466, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 15 Universe BIOS ver. 3.3
@@ -957,11 +929,7 @@ static struct BurnRomInfo neogeoRomDesc[] = {
 	{ "uni-bios_1_2o.rom", 0x20000, 0xe19d3ce9, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 26 Universe BIOS ver. 1.2 (alt)
 	{ "uni-bios_1_1.rom",  0x20000, 0x5dda0d84, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 27 Universe BIOS ver. 1.1
 	{ "uni-bios_1_0.rom",  0x20000, 0x0ce453a0, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 28 Universe BIOS ver. 1.0
-#if !defined (ROM_VERIFY)
 	{ "neopen.sp1",        0x20000, 0xcb915e76, BRF_ESS | BRF_PRG | BRF_BIOS | BRF_SELECT | BRF_OPT }, // 29 NeoOpen BIOS v0.1 beta
-#else
-	{ "",                  0x00000, 0x00000000, 0                                                   }, // 29
-#endif
 	{ "",                  0x00000, 0x00000000, 0                                                   }, // 30 Trackball BIOS loaded here
 	{ "",                  0x00000, 0x00000000, 0                                                   }, // 31 PCB BIOS loaded here
 
@@ -1236,26 +1204,17 @@ void NeoSMABankswitch()
 // Extra protection
 UINT16 __fastcall neogeoReadWordSMA9A37(UINT32 sekAddress)
 {
-//	bprintf(PRINT_NORMAL, " -- SMA9A37 0x%08X (word)\n", sekAddress);
-
-	if (sekAddress == 0x2FE446) {
+	if (sekAddress == 0x2FE446)
 		return 0x9A37;
-	}
-
 	return *((UINT16*)(Neo68KROMActive + nNeo68KROMBank + sekAddress - 0x200000));
 }
 
 UINT8 __fastcall neogeoReadByteSMA9A37(UINT32 sekAddress)
 {
-//	bprintf(PRINT_NORMAL, " -- SMA9A37 0x%08X (byte)\n", sekAddress);
-
-	if (sekAddress == 0x2FE446) {
+	if (sekAddress == 0x2FE446)
 		return 0x9A;
-	}
-	if (sekAddress == 0x2FE447) {
+	if (sekAddress == 0x2FE447)
 		return 0x37;
-	}
-
 	return Neo68KROMActive[(nNeo68KROMBank + sekAddress - 0x200000) ^ 1];
 }
 
@@ -1321,8 +1280,6 @@ INT32 NeoSMAScan(INT32 nAction, INT32* /*pnMin*/)
 
 static void NeoSMAInstallHanders()
 {
-//	bprintf(PRINT_NORMAL, _T("    Installing handlers for slot %i\n"), nNeoActiveSlot);
-
 	SekMapHandler(8,		0x2FFC00, 0x2FFFFF, SM_WRITE);	// Bankswitch
 
 	SekSetWriteWordHandler(8, pSMABankswitchHandler[nNeoActiveSlot]);
@@ -3591,10 +3548,8 @@ static INT32 prot_data;
 UINT8 __fastcall fatfury2ReadByteProtection(UINT32 sekAddress)
 {
 	UINT16 res = (prot_data >> 24) & 0xFF;
-
-//	bprintf(PRINT_NORMAL, _T("  - prot 0x%06X read byte (PC: 0x%06X)\n"), sekAddress, SekGetPC(-1));
-
-	switch (sekAddress) {
+	switch (sekAddress)
+   {
 		case 0x255551:
 		case 0x2FFFF1:
 		case 0x200001:
@@ -3602,16 +3557,11 @@ UINT8 __fastcall fatfury2ReadByteProtection(UINT32 sekAddress)
 
 		case 0x236001:
 		case 0x236009:
-//			bprintf(PRINT_NORMAL, _T("  - prot read byte: 0x%02X (PC: 0x%06X)\n"), res, SekGetPC(-1));
 			return res;
 
 		case 0x236005:
 		case 0x23600D:
-//			bprintf(PRINT_NORMAL, _T("  - prot read byte: 0x%02X (PC: 0x%06X)\n"), ((res & 0xF0) >> 4) | ((res & 0x0F) << 4), SekGetPC(-1));
 			return ((res & 0xF0) >> 4) | ((res & 0x0F) << 4);
-
-//		default:
-//			bprintf(PRINT_NORMAL, _T("  - prot 0x%06X read byte (PC: 0x%06X)\n"), sekAddress, SekGetPC(-1));
 	}
 
 	return 0;
@@ -3620,10 +3570,8 @@ UINT8 __fastcall fatfury2ReadByteProtection(UINT32 sekAddress)
 UINT16 __fastcall fatfury2ReadWordProtection(UINT32 sekAddress)
 {
 	UINT16 res = (prot_data >> 24) & 0xFF;
-
-//	bprintf(PRINT_NORMAL, _T("  - prot 0x%06X read word (PC: 0x%06X)\n"), sekAddress, SekGetPC(-1));
-
-	switch (sekAddress) {
+	switch (sekAddress)
+   {
 		case 0x255550:
 		case 0x2FFFF0:
 		case 0x200000:
@@ -3631,16 +3579,11 @@ UINT16 __fastcall fatfury2ReadWordProtection(UINT32 sekAddress)
 
 		case 0x236000:
 		case 0x236008:
-//			bprintf(PRINT_NORMAL, _T("  - prot read word: 0x%02X (PC: 0x%06X)\n"), res, SekGetPC(-1));
 			return res;
 
 		case 0x236004:
 		case 0x23600C:
-//			bprintf(PRINT_NORMAL, _T("  - prot read word: 0x%02X (PC: 0x%06X)\n"), ((res & 0xF0) >> 4) | ((res & 0x0F) << 4), SekGetPC(-1));
 			return ((res & 0xF0) >> 4) | ((res & 0x0F) << 4);
-
-//		default:
-//			bprintf(PRINT_NORMAL, _T("  - prot 0x%06X read word (PC: 0x%06X)\n"), sekAddress, SekGetPC(-1));
 	}
 
 	return 0;
@@ -3648,9 +3591,8 @@ UINT16 __fastcall fatfury2ReadWordProtection(UINT32 sekAddress)
 
 void __fastcall fatfury2WriteByteProtection(UINT32 sekAddress, UINT8 /*byteValue*/)
 {
-//	bprintf(PRINT_NORMAL, _T("  - prot 0x%06X -> 0x%02X (PC: 0x%06X)\n"), sekAddress, byteValue, SekGetPC(-1));
-
-	switch (sekAddress) {
+	switch (sekAddress)
+   {
 		case 0x255551:
 		case 0x2FFFF1:
 		case 0x2FF001:
@@ -3661,50 +3603,23 @@ void __fastcall fatfury2WriteByteProtection(UINT32 sekAddress, UINT8 /*byteValue
 		case 0x23600D:
 			prot_data <<= 8;
 			break;
-
-//		default:
-//			bprintf(PRINT_NORMAL, _T("  - prot 0x%06X -> 0x%02X\n"), sekAddress, byteValue);
 	}
 }
 
 void __fastcall fatfury2WriteWordProtection(UINT32 sekAddress, UINT16 /*wordValue*/)
 {
-//	bprintf(PRINT_NORMAL, _T("  - prot 0x%06X -> 0x%04X (PC: 0x%06X)\n"), sekAddress, wordValue, SekGetPC(-1));
-
-	switch (sekAddress) {
+	switch (sekAddress)
+   {
 		case 0x211112:				// data = 0x1111, expects 0xFF000000 back
 			prot_data = 0xFF000000;
-/*
-			prot_data  = (wordValue & 0x1000) << 19;
-			prot_data |= (wordValue & 0x0100) << 22;
-			prot_data |= (wordValue & 0x0010) << 25;
-			prot_data |= (wordValue & 0x0001) << 28;
-
-			prot_data |= prot_data >> 4;
-*/
-//			bprintf(PRINT_NORMAL, _T("    prot data -> 0x%08X\n"), prot_data);
 			break;
 
 		case 0x233332:				// data = 0x3333, expects 0x0000FFFF back
 			prot_data = 0x0000FFFF;
-/*
-			prot_data  = wordValue << 0;
-			prot_data |= wordValue << 2;
-*/
-//			bprintf(PRINT_NORMAL, _T("    prot data -> 0x%08X\n"), prot_data);
 			break;
 
 		case 0x244442:				// data = 0x4444, expects 0x00FF0000 back
 			prot_data = 0x00FF0000;
-/*
-			prot_data  = (wordValue & 0x4000) <<  9;
-			prot_data |= (wordValue & 0x0400) << 12;
-			prot_data |= (wordValue & 0x0040) << 15;
-			prot_data |= (wordValue & 0x0004) << 18;
-
-			prot_data |= prot_data >> 4;
-*/
-//			bprintf(PRINT_NORMAL, _T("    prot data -> 0x%08X\n"), prot_data);
 			break;
 
 		case 0x255552:				// data == 0x5555; read back from 55550, ffff0, 00000, ff000
@@ -3718,9 +3633,6 @@ void __fastcall fatfury2WriteWordProtection(UINT32 sekAddress, UINT16 /*wordValu
 		case 0x242812:				// data == 0x1824; read back from 36008 *or* 3600c
 			prot_data = 0x81422418;
 			break;
-
-//		default:
-//			bprintf(PRINT_NORMAL, _T("  - prot 0x%06X -> 0x%02X\n"), sekAddress, wordValue);
 	}
 }
 
@@ -6534,9 +6446,6 @@ static void mslug3SMADecrypt()
 
 void __fastcall mslug3WriteWordBankswitch(UINT32 sekAddress, UINT16 wordValue)
 {
-
-//	bprintf(PRINT_NORMAL, " -- bankswitch: 0x%08X -> 0x%04X\n", sekAddress, wordValue);
-
 	if (sekAddress == 0x2FFFE4) {
 		static UINT32 bankoffset[64] = {
 			0x100000, 0x120000, 0x140000, 0x160000, // 00

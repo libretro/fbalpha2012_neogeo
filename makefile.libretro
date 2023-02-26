@@ -44,7 +44,7 @@ GRIFFIN_DIR = griffin-libretro
 
 # TARGET
 TARGET_NAME := fbalpha2012_neogeo
-FBA_DEFINES += -DTARGET=\"\ Neo\ Geo\" -DNEOGEO_ONLY
+FBA_DEFINES += -DTARGET=\"\ Neo\ Geo\"
 
 SPACE :=
 SPACE := $(SPACE) $(SPACE)

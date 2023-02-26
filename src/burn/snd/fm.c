@@ -106,13 +106,8 @@
 #include <stdarg.h>
 #include <math.h>
 
-#ifndef __RAINE__
 #include "driver.h"		/* use M.A.M.E. */
 #include "state.h"
-#else
-#include "deftypes.h"		/* use RAINE */
-#include "support.h"		/* use RAINE */
-#endif
 
 #include "ay8910.h"
 #include "fm.h"
@@ -723,16 +718,6 @@ static INT32	out_delta[4];	/* channel output NONE,LEFT,RIGHT or CENTER for YM260
 
 static UINT32	LFO_AM;			/* runtime LFO calculations helper */
 static INT32	LFO_PM;			/* runtime LFO calculations helper */
-
-/* log output level */
-#define LOG_ERR  3      /* ERROR       */
-#define LOG_WAR  2      /* WARNING     */
-#define LOG_INF  1      /* INFORMATION */
-#define LOG_LEVEL LOG_INF
-
-#ifndef __RAINE__
-#define LOG(n,x) if( (n)>=LOG_LEVEL ) logerror x
-#endif
 
 /* limitter */
 #define Limit(val, max,min) { \
@@ -1638,20 +1623,12 @@ static void init_timetables( FM_ST *ST , const UINT8 *dttable )
 	int i,d;
 	double rate;
 
-#if 0
-	logerror("FM.C: samplerate=%8i chip clock=%8i  freqbase=%f  \n",
-			 ST->rate, ST->clock, ST->freqbase );
-#endif
-
 	/* DeTune table */
 	for (d = 0;d <= 3;d++){
 		for (i = 0;i <= 31;i++){
 			rate = ((double)dttable[d*32 + i]) * SIN_LEN  * ST->freqbase  * (1<<FREQ_SH) / ((double)(1<<20));
 			ST->dt_tab[d][i]   = (INT32) rate;
 			ST->dt_tab[d+4][i] = -ST->dt_tab[d][i];
-#if 0
-			logerror("FM.C: DT [%2i %2i] = %8x  \n", d, i, ST->dt_tab[d][i] );
-#endif
 		}
 	}
 
@@ -1713,16 +1690,7 @@ static int init_tables(void)
 			tl_tab[ x*2+0 + i*2*TL_RES_LEN ] =  tl_tab[ x*2+0 ]>>i;
 			tl_tab[ x*2+1 + i*2*TL_RES_LEN ] = -tl_tab[ x*2+0 + i*2*TL_RES_LEN ];
 		}
-	#if 0
-			logerror("tl %04i", x);
-			for (i=0; i<13; i++)
-				logerror(", [%02i] %4x", i*2, tl_tab[ x*2 /*+1*/ + i*2*TL_RES_LEN ]);
-			logerror("\n");
-		}
-	#endif
 	}
-	/*logerror("FM.C: TL_TAB_LEN = %i elements (%i bytes)\n",TL_TAB_LEN, (int)sizeof(tl_tab));*/
-
 
 	for (i=0; i<SIN_LEN; i++)
 	{
@@ -1745,11 +1713,7 @@ static int init_tables(void)
 			n = n>>1;
 
 		sin_tab[ i ] = n*2 + (m>=0.0? 0: 1 );
-		/*logerror("FM.C: sin [%4i]= %4i (tl_tab value=%5i)\n", i, sin_tab[i],tl_tab[sin_tab[i]]);*/
 	}
-
-	/*logerror("FM.C: ENV_QUIET= %08x\n",ENV_QUIET );*/
-
 
 	/* build LFO PM modulation table */
 	for(i = 0; i < 8; i++) /* 8 PM depths */
@@ -1779,13 +1743,6 @@ static int init_tables(void)
 				lfo_pm_table[(fnum*32*8) + (i*32) + step   +16] = -value;
 				lfo_pm_table[(fnum*32*8) + (i*32) +(step^7)+24] = -value;
 			}
-#if 0
-			logerror("LFO depth=%1x FNUM=%04x (<<4=%4x): ", i, fnum, fnum<<4);
-			for (step=0; step<16; step++) /* dump only positive part of waveforms */
-				logerror("%02x ", lfo_pm_table[(fnum*32*8) + (i*32) + step] );
-			logerror("\n");
-#endif
-
 		}
 	}
 
@@ -1894,11 +1851,6 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 	/* frequency base */
 	OPN->ST.freqbase = (OPN->ST.rate) ? ((double)OPN->ST.clock / OPN->ST.rate) / pres : 0;
 
-#if 0
-	OPN->ST.rate = (double)OPN->ST.clock / pres;
-	OPN->ST.freqbase = 1.0;
-#endif
-
 	OPN->eg_timer_add  = (1<<EG_SH)  *  OPN->ST.freqbase;
 	OPN->eg_timer_overflow = ( 3 ) * (1<<EG_SH);
 
@@ -1915,31 +1867,19 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 	/* there are 2048 FNUMs that can be generated using FNUM/BLK registers
 		but LFO works with one more bit of a precision so we really need 4096 elements */
 	/* calculate fnumber -> increment counter table */
+   /* freq table for octave 7 */
+   /* OPN phase increment counter = 20bit */
 	for(i = 0; i < 4096; i++)
-	{
-		/* freq table for octave 7 */
-		/* OPN phase increment counter = 20bit */
 		OPN->fn_table[i] = (UINT32)( (double)i * 32 * OPN->ST.freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
-#if 0
-		logerror("FM.C: fn_table[%4i] = %08x (dec=%8i)\n",
-				 i, OPN->fn_table[i]>>6,OPN->fn_table[i]>>6 );
-#endif
-	}
 	
 	/* maximal frequency is required for Phase overflow calculation, register size is 17 bits (Nemesis) */
 	OPN->fn_max = (UINT32)( (double)0x20000 * OPN->ST.freqbase * (1<<(FREQ_SH-10)) );
 
 	/* LFO freq. table */
+   /* Amplitude modulation: 64 output levels (triangle waveform); 1 level lasts for one of "lfo_samples_per_step" samples */
+   /* Phase modulation: one entry from lfo_pm_output lasts for one of 4 * "lfo_samples_per_step" samples  */
 	for(i = 0; i < 8; i++)
-	{
-		/* Amplitude modulation: 64 output levels (triangle waveform); 1 level lasts for one of "lfo_samples_per_step" samples */
-		/* Phase modulation: one entry from lfo_pm_output lasts for one of 4 * "lfo_samples_per_step" samples  */
 		OPN->lfo_freq[i] = (1.0 / lfo_samples_per_step[i]) * (1<<LFO_SH) * OPN->ST.freqbase;
-#if 0
-		logerror("FM.C: lfo_freq[%i] = %08x (dec=%8i)\n",
-				 i, OPN->lfo_freq[i],OPN->lfo_freq[i] );
-#endif
-	}
 }
 
 
@@ -2309,12 +2249,6 @@ INLINE void ADPCMA_calc_chan( YM2610 *F2610, ADPCM_CH *ch )
 				F2610->adpcm_arrivedEndAddress |= ch->flagMask;
 				return;
 			}
-#if 0
-			if ( ch->now_addr > (pcmsizeA<<1) ) {
-				LOG(LOG_WAR,("YM2610: Attempting to play past adpcm rom size!\n" ));
-				return;
-			}
-#endif
 			if ( ch->now_addr&1 )
 				data = ch->now_data & 0x0f;
 			else
@@ -2371,19 +2305,12 @@ static void FM_ADPCMAWrite(YM2610 *F2610,int r,int v)
 					adpcm[c].adpcm_out = 0;
 					adpcm[c].flag      = 1;
 
-					if(F2610->pcmbuf==NULL){					/* Check ROM Mapped */
-						logerror("YM2608-YM2610: ADPCM-A rom not mapped\n");
+					if(F2610->pcmbuf==NULL)	/* Check ROM Mapped */
 						adpcm[c].flag = 0;
-					} else{
-						if(adpcm[c].end >= F2610->pcm_size){	/* Check End in Range */
-							logerror("YM2610: ADPCM-A end out of range: $%08x\n",adpcm[c].end);
-							/*adpcm[c].end = F2610->pcm_size-1;*/ /* JB: DO NOT uncomment this, otherwise you will break the comparison in the ADPCM_CALC_CHA() */
-						}
+					else
+               {
 						if(adpcm[c].start >= F2610->pcm_size)	/* Check Start in Range */
-						{
-							logerror("YM2608-YM2610: ADPCM-A start out of range: $%08x\n",adpcm[c].start);
 							adpcm[c].flag = 0;
-						}
 					}
 				}
 			}
@@ -2513,15 +2440,6 @@ void YM2610UpdateOne(int num, INT16 **buffer, int length)
 		pcmsizeA = F2610->pcm_size;
 
 	}
-#ifdef YM2610B_WARNING
-#define FM_KEY_IS(SLOT) ((SLOT)->key)
-#define FM_MSG_YM2610B "YM2610-%d.CH%d is playing,Check whether the type of the chip is YM2610B\n"
-	/* Check YM2610B warning message */
-	if( FM_KEY_IS(&F2610->CH[0].SLOT[3]) )
-		LOG(LOG_WAR,(FM_MSG_YM2610B,num,0));
-	if( FM_KEY_IS(&F2610->CH[3].SLOT[3]) )
-		LOG(LOG_WAR,(FM_MSG_YM2610B,num,3));
-#endif
 
 	/* refresh PG and EG */
 	refresh_fc_eg_chan( OPN, cch[0] );
@@ -3051,40 +2969,39 @@ int YM2610Write(int n, int a, UINT8 v)
 			YM2610UpdateReq(n);
 
 			switch(addr)
-			{
-			case 0x10:	/* control 1 */
-			case 0x11:	/* control 2 */
-			case 0x12:	/* start address L */
-			case 0x13:	/* start address H */
-			case 0x14:	/* stop address L */
-			case 0x15:	/* stop address H */
+         {
+            case 0x10:	/* control 1 */
+            case 0x11:	/* control 2 */
+            case 0x12:	/* start address L */
+            case 0x13:	/* start address H */
+            case 0x14:	/* stop address L */
+            case 0x15:	/* stop address H */
 
-			case 0x19:	/* delta-n L */
-			case 0x1a:	/* delta-n H */
-			case 0x1b:	/* volume */
-				{
-					YM_DELTAT_ADPCM_Write(&F2610->deltaT,addr-0x10,v);
-				}
-				break;
+            case 0x19:	/* delta-n L */
+            case 0x1a:	/* delta-n H */
+            case 0x1b:	/* volume */
+               {
+                  YM_DELTAT_ADPCM_Write(&F2610->deltaT,addr-0x10,v);
+               }
+               break;
 
-			case 0x1c: /*  FLAG CONTROL : Extend Status Clear/Mask */
-				{
-					UINT8 statusmask = ~v;
-					/* set arrived flag mask */
-					for(ch=0;ch<6;ch++)
-						F2610->adpcm[ch].flagMask = statusmask&(1<<ch);
+            case 0x1c: /*  FLAG CONTROL : Extend Status Clear/Mask */
+               {
+                  UINT8 statusmask = ~v;
+                  /* set arrived flag mask */
+                  for(ch=0;ch<6;ch++)
+                     F2610->adpcm[ch].flagMask = statusmask&(1<<ch);
 
-					F2610->deltaT.status_change_EOS_bit = statusmask & 0x80;	/* status flag: set bit7 on End Of Sample */
+                  F2610->deltaT.status_change_EOS_bit = statusmask & 0x80;	/* status flag: set bit7 on End Of Sample */
 
-					/* clear arrived flag */
-					F2610->adpcm_arrivedEndAddress &= statusmask;
-				}
-				break;
+                  /* clear arrived flag */
+                  F2610->adpcm_arrivedEndAddress &= statusmask;
+               }
+               break;
 
-			default:
-				logerror("YM2610: write to unknown deltat register %02x val=%02x\n",addr,v);
-				break;
-			}
+            default:
+               break;
+         }
 
 			break;
 		case 0x20:	/* Mode Register */

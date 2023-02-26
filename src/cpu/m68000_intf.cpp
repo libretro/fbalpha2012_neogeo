@@ -16,22 +16,6 @@ INT32 nSekCyclesTotal, nSekCyclesScanline, nSekCyclesSegment, nSekCyclesDone, nS
 
 INT32 nSekCPUType[SEK_MAX], nSekCycles[SEK_MAX], nSekIRQPending[SEK_MAX];
 
-#if defined (FBA_DEBUG)
-
-void (*SekDbgBreakpointHandlerRead)(UINT32, INT32);
-void (*SekDbgBreakpointHandlerFetch)(UINT32, INT32);
-void (*SekDbgBreakpointHandlerWrite)(UINT32, INT32);
-
-UINT32 (*SekDbgFetchByteDisassembler)(UINT32);
-UINT32 (*SekDbgFetchWordDisassembler)(UINT32);
-UINT32 (*SekDbgFetchLongDisassembler)(UINT32);
-
-static struct { UINT32 address; INT32 id; } BreakpointDataRead[9]  = { { 0, 0 }, };
-static struct { UINT32 address; INT32 id; } BreakpointDataWrite[9] = { { 0, 0 }, };
-static struct { UINT32 address; INT32 id; } BreakpointFetch[9] = { { 0, 0 }, };
-
-#endif
-
 #if defined (EMU_A68K)
 static void UpdateA68KContext()
 {
@@ -69,68 +53,6 @@ static UINT32 GetA68KUSP()
 
 	return M68000_regs.usp;
 }
-#endif
-
-#if defined (FBA_DEBUG)
-
-inline static void CheckBreakpoint_R(UINT32 a, const UINT32 m)
-{
-	a &= m;
-
-	for (INT32 i = 0; BreakpointDataRead[i].address; i++) {
-		if ((BreakpointDataRead[i].address & m) == a) {
-
-#ifdef EMU_A68K
-			UpdateA68KContext();
-#endif
-
-			SekDbgBreakpointHandlerRead(a, BreakpointDataRead[i].id);
-			return;
-		}
-	}
-}
-
-inline static void CheckBreakpoint_W(UINT32 a, const UINT32 m)
-{
-	a &= m;
-
-	for (INT32 i = 0; BreakpointDataWrite[i].address; i++) {
-		if ((BreakpointDataWrite[i].address & m) == a) {
-
-#ifdef EMU_A68K
-			UpdateA68KContext();
-#endif
-
-			SekDbgBreakpointHandlerWrite(a, BreakpointDataWrite[i].id);
-			return;
-		}
-	}
-}
-
-inline static void CheckBreakpoint_PC()
-{
-	for (INT32 i = 0; BreakpointFetch[i].address; i++) {
-		if (BreakpointFetch[i].address == (UINT32)SekGetPC(-1)) {
-
-#ifdef EMU_A68K
-			UpdateA68KContext();
-#endif
-
-			SekDbgBreakpointHandlerFetch(SekGetPC(-1), BreakpointFetch[i].id);
-			return;
-		}
-	}
-}
-
-inline static void SingleStep_PC()
-{
-#ifdef EMU_A68K
-	UpdateA68KContext();
-#endif
-
-	SekDbgBreakpointHandlerFetch(SekGetPC(-1), 0);
-}
-
 #endif
 
 // ----------------------------------------------------------------------------
@@ -370,115 +292,6 @@ inline static void WriteLongROM(UINT32 a, UINT32 d)
 	pSekExt->WriteLong[(uintptr_t)pr](a, d);
 }
 
-#if defined (FBA_DEBUG)
-
-// Breakpoint checking memory access functions
-UINT8 __fastcall ReadByteBP(UINT32 a)
-{
-	UINT8* pr;
-
-	a &= 0xFFFFFF;
-
-	pr = FIND_R(a);
-
-	CheckBreakpoint_R(a, ~0);
-
-	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
-		a ^= 1;
-		return pr[a & SEK_PAGEM];
-	}
-	return pSekExt->ReadByte[(uintptr_t)pr](a);
-}
-
-void __fastcall WriteByteBP(UINT32 a, UINT8 d)
-{
-	UINT8* pr;
-
-	a &= 0xFFFFFF;
-
-	pr = FIND_W(a);
-
-	CheckBreakpoint_W(a, ~0);
-
-	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
-		a ^= 1;
-		pr[a & SEK_PAGEM] = (UINT8)d;
-		return;
-	}
-	pSekExt->WriteByte[(uintptr_t)pr](a, d);
-}
-
-UINT16 __fastcall ReadWordBP(UINT32 a)
-{
-	UINT8* pr;
-
-	a &= 0xFFFFFF;
-
-	pr = FIND_R(a);
-
-	CheckBreakpoint_R(a, ~1);
-
-	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
-		return BURN_UNALIGNED_READ16(pr + (a & SEK_PAGEM));
-	}
-	return pSekExt->ReadWord[(uintptr_t)pr](a);
-}
-
-void __fastcall WriteWordBP(UINT32 a, UINT16 d)
-{
-	UINT8* pr;
-
-	a &= 0xFFFFFF;
-
-	pr = FIND_W(a);
-
-	CheckBreakpoint_W(a, ~1);
-
-	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
-		BURN_UNALIGNED_WRITE16(pr + (a & SEK_PAGEM), d);
-		return;
-	}
-	pSekExt->WriteWord[(uintptr_t)pr](a, d);
-}
-
-UINT32 __fastcall ReadLongBP(UINT32 a)
-{
-	UINT8* pr;
-
-	a &= 0xFFFFFF;
-
-	pr = FIND_R(a);
-
-	CheckBreakpoint_R(a, ~1);
-
-	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
-		UINT32 r = BURN_UNALIGNED_READ32(pr + (a & SEK_PAGEM));
-		r = (r >> 16) | (r << 16);
-		return r;
-	}
-	return pSekExt->ReadLong[(uintptr_t)pr](a);
-}
-
-void __fastcall WriteLongBP(UINT32 a, UINT32 d)
-{
-	UINT8* pr;
-
-	a &= 0xFFFFFF;
-
-	pr = FIND_W(a);
-
-	CheckBreakpoint_W(a, ~1);
-
-	if ((uintptr_t)pr >= SEK_MAXHANDLER) {
-		d = (d >> 16) | (d << 16);
-		BURN_UNALIGNED_WRITE32(pr + (a & SEK_PAGEM), d);
-		return;
-	}
-	pSekExt->WriteLong[(uintptr_t)pr](a, d);
-}
-
-#endif
-
 // ----------------------------------------------------------------------------
 // A68K variables
 
@@ -530,11 +343,6 @@ void __fastcall A68KWrite8 (UINT32 a,UINT8 d)  { WriteByte(a,d);}
 void __fastcall A68KWrite16(UINT32 a,UINT16 d) { WriteWord(a,d);}
 void __fastcall A68KWrite32(UINT32 a,UINT32 d)   { WriteLong(a,d);}
 
-#if defined (FBA_DEBUG)
-void __fastcall A68KCheckBreakpoint() { CheckBreakpoint_PC(); }
-void __fastcall A68KSingleStep() { SingleStep_PC(); }
-#endif
-
 #ifdef EMU_A68K
 void __fastcall A68KChangePC(UINT32 pc)
 {
@@ -558,27 +366,6 @@ UINT32 __fastcall M68KFetchByte(UINT32 a) { return (UINT32)FetchByte(a); }
 UINT32 __fastcall M68KFetchWord(UINT32 a) { return (UINT32)FetchWord(a); }
 UINT32 __fastcall M68KFetchLong(UINT32 a) { return               FetchLong(a); }
 
-#ifdef FBA_DEBUG
-UINT32 __fastcall M68KReadByteBP(UINT32 a) { return (UINT32)ReadByteBP(a); }
-UINT32 __fastcall M68KReadWordBP(UINT32 a) { return (UINT32)ReadWordBP(a); }
-UINT32 __fastcall M68KReadLongBP(UINT32 a) { return               ReadLongBP(a); }
-
-void __fastcall M68KWriteByteBP(UINT32 a, UINT32 d) { WriteByteBP(a, d); }
-void __fastcall M68KWriteWordBP(UINT32 a, UINT32 d) { WriteWordBP(a, d); }
-void __fastcall M68KWriteLongBP(UINT32 a, UINT32 d) { WriteLongBP(a, d); }
-
-void M68KCheckBreakpoint() { CheckBreakpoint_PC(); }
-void M68KSingleStep() { SingleStep_PC(); }
-
-UINT32 (__fastcall *M68KReadByteDebug)(UINT32);
-UINT32 (__fastcall *M68KReadWordDebug)(UINT32);
-UINT32 (__fastcall *M68KReadLongDebug)(UINT32);
-
-void (__fastcall *M68KWriteByteDebug)(UINT32, UINT32);
-void (__fastcall *M68KWriteWordDebug)(UINT32, UINT32);
-void (__fastcall *M68KWriteLongDebug)(UINT32, UINT32);
-#endif
-
 void __fastcall M68KWriteByte(UINT32 a, UINT32 d) { WriteByte(a, d); }
 void __fastcall M68KWriteWord(UINT32 a, UINT32 d) { WriteWord(a, d); }
 void __fastcall M68KWriteLong(UINT32 a, UINT32 d) { WriteLong(a, d); }
@@ -601,26 +388,6 @@ struct A68KInter a68k_inter_normal = {
 	A68KRead16,	// unused
 	A68KRead32,	// unused
 };
-
-#if defined (FBA_DEBUG)
-
-struct A68KInter a68k_inter_breakpoint = {
-	NULL,
-	ReadByteBP,
-	ReadWordBP,
-	ReadLongBP,
-	WriteByteBP,
-	WriteWordBP,
-	WriteLongBP,
-	A68KChangePC,
-	A68KFetch8,
-	A68KFetch16,
-	A68KFetch32,
-	A68KRead16,	// unused
-	A68KRead32,	// unused
-};
-
-#endif
 
 #endif
 
@@ -1253,156 +1020,12 @@ INT32 SekRun(const INT32 nCycles)
 
 void SekDbgDisableBreakpoints()
 {
-#if defined FBA_DEBUG && defined EMU_M68K
-		m68k_set_instr_hook_callback(NULL);
-
-		M68KReadByteDebug = M68KReadByte;
-		M68KReadWordDebug = M68KReadWord;
-		M68KReadLongDebug = M68KReadLong;
-
-		M68KWriteByteDebug = M68KWriteByte;
-		M68KWriteWordDebug = M68KWriteWord;
-		M68KWriteLongDebug = M68KWriteLong;
-#endif
-
 #ifdef EMU_A68K
 	a68k_memory_intf = a68k_inter_normal;
 #endif
 
 	mame_debug = 0;
 }
-
-#if defined (FBA_DEBUG)
-
-void SekDbgEnableBreakpoints()
-{
-	if (BreakpointDataRead[0].address || BreakpointDataWrite[0].address || BreakpointFetch[0].address) {
-#if defined FBA_DEBUG && defined EMU_M68K
-		SekDbgDisableBreakpoints();
-
-		if (BreakpointFetch[0].address) {
-			m68k_set_instr_hook_callback(M68KCheckBreakpoint);
-		}
-
-		if (BreakpointDataRead[0].address) {
-			M68KReadByteDebug = M68KReadByteBP;
-			M68KReadWordDebug = M68KReadWordBP;
-			M68KReadLongDebug = M68KReadLongBP;
-		}
-
-		if (BreakpointDataWrite[0].address) {
-			M68KWriteByteDebug = M68KWriteByteBP;
-			M68KWriteWordDebug = M68KWriteWordBP;
-			M68KWriteLongDebug = M68KWriteLongBP;
-		}
-#endif
-
-#ifdef EMU_A68K
-		a68k_memory_intf = a68k_inter_breakpoint;
-		if (BreakpointFetch[0].address) {
-			a68k_memory_intf.DebugCallback = A68KCheckBreakpoint;
-			mame_debug = 255;
-		} else {
-			a68k_memory_intf.DebugCallback = NULL;
-			mame_debug = 0;
-		}
-#endif
-	} else {
-		SekDbgDisableBreakpoints();
-	}
-}
-
-void SekDbgEnableSingleStep()
-{
-#if defined FBA_DEBUG && defined EMU_M68K
-	m68k_set_instr_hook_callback(M68KSingleStep);
-#endif
-
-#ifdef EMU_A68K
-	a68k_memory_intf.DebugCallback = A68KSingleStep;
-	mame_debug = 254;
-#endif
-}
-
-INT32 SekDbgSetBreakpointDataRead(UINT32 nAddress, INT32 nIdentifier)
-{
-	for (INT32 i = 0; i < 8; i++) {
-		if (BreakpointDataRead[i].id == nIdentifier) {
-
-			if	(nAddress) {							// Change breakpoint
-				BreakpointDataRead[i].address = nAddress;
-			} else {									// Delete breakpoint
-				for ( ; i < 8; i++) {
-					BreakpointDataRead[i] = BreakpointDataRead[i + 1];
-				}
-			}
-
-			SekDbgEnableBreakpoints();
-			return 0;
-		}
-	}
-
-	// No breakpoints present, add it to the 1st slot
-	BreakpointDataRead[0].address = nAddress;
-	BreakpointDataRead[0].id = nIdentifier;
-
-	SekDbgEnableBreakpoints();
-	return 0;
-}
-
-INT32 SekDbgSetBreakpointDataWrite(UINT32 nAddress, INT32 nIdentifier)
-{
-	for (INT32 i = 0; i < 8; i++) {
-		if (BreakpointDataWrite[i].id == nIdentifier) {
-
-			if (nAddress) {								// Change breakpoint
-				BreakpointDataWrite[i].address = nAddress;
-			} else {									// Delete breakpoint
-				for ( ; i < 8; i++) {
-					BreakpointDataWrite[i] = BreakpointDataWrite[i + 1];
-				}
-			}
-
-			SekDbgEnableBreakpoints();
-			return 0;
-		}
-	}
-
-	// No breakpoints present, add it to the 1st slot
-	BreakpointDataWrite[0].address = nAddress;
-	BreakpointDataWrite[0].id = nIdentifier;
-
-	SekDbgEnableBreakpoints();
-	return 0;
-}
-
-INT32 SekDbgSetBreakpointFetch(UINT32 nAddress, INT32 nIdentifier)
-{
-	for (INT32 i = 0; i < 8; i++) {
-		if (BreakpointFetch[i].id == nIdentifier) {
-
-			if (nAddress) {								// Change breakpoint
-				BreakpointFetch[i].address = nAddress;
-			} else {									// Delete breakpoint
-				for ( ; i < 8; i++) {
-					BreakpointFetch[i] = BreakpointFetch[i + 1];
-				}
-			}
-
-			SekDbgEnableBreakpoints();
-			return 0;
-		}
-	}
-
-	// No breakpoints present, add it to the 1st slot
-	BreakpointFetch[0].address = nAddress;
-	BreakpointFetch[0].id = nIdentifier;
-
-	SekDbgEnableBreakpoints();
-	return 0;
-}
-
-#endif
 
 // ----------------------------------------------------------------------------
 // Memory map setup

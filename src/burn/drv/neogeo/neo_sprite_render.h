@@ -494,9 +494,6 @@ static void FUNCTIONNAME(BPP,XZOOM,CLIP,OPACITY)()
 	while (nLinesDone <= nLinesTotal) {
 		nLine = (nBankYPos + nLinesDone) & 0x01FF;
 		nYPos = nLine;
-
-//		bprintf(PRINT_NORMAL, _T("  - s:%i l:%i y:%i %i z:%i\n"), nLinesTotal, nLinesDone, nYPos, nBankYPos, nBankYZoom);
-
 		// Skip everything above the part of the display we need to render
 		if (nYPos < nSliceStart) {
 			nLinesDone += nSliceStart - nYPos;

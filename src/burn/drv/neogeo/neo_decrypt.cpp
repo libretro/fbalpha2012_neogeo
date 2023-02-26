@@ -445,35 +445,26 @@ const UINT8 kof2000_address_0_7_xor[256] =
 	0x32, 0x3e, 0x45, 0xaf, 0x1e, 0x43, 0x44, 0x8c, 0x53, 0x86, 0x6b, 0xee, 0xa8, 0x8a, 0x8f, 0x17,
 };
 
-
-
-
-
 void NeoCMCExtractSData(UINT8* rom, UINT8* sdata, INT32 rom_size, INT32 sdata_size)
 {
-#if 0
-	/* the S data comes from the end fo the C data */
-	rom += rom_size - sdata_size;
-
-	for (INT32 i = 0; i < sdata_size; i++) {
-		sdata[i] = rom[(i & ~0x1F) + ((i & 7) << 2) + ((~i & 8) >> 2) + ((i & 0x10) >> 4)];
-	}
-#endif
 	INT32 i;
 	// the S data comes from the end fo the C data
-	if (sdata_size == 0x100000) {
+	if (sdata_size == 0x100000)
+   {
 		// 1 MB of data, special for kf2k3pcb
 		rom += rom_size - sdata_size /2;
-		for (i = 0; i < sdata_size / 2; i++) {
-			sdata[i + 0] = rom[(i & ~0x1F) + ((i & 7) << 2) + ((~i & 8) >> 2) + ((i & 0x10) >> 4) - 0x1000000 ];
+		for (i = 0; i < sdata_size / 2; i++)
+      {
+			sdata[i + 0]              = rom[(i & ~0x1F) + ((i & 7) << 2) + ((~i & 8) >> 2) + ((i & 0x10) >> 4) - 0x1000000 ];
 			sdata[i + sdata_size / 2] = rom[(i & ~0x1F) + ((i & 7) << 2) + ((~i & 8) >> 2) + ((i & 0x10) >> 4)];
  		}
-	} else {
+	}
+   else
+   {
 		// Normal data extraction
  		rom += rom_size - sdata_size;
-		for (i = 0; i < sdata_size; i++) {
+		for (i = 0; i < sdata_size; i++)
 			sdata[i] = rom[(i & ~0x1F) + ((i & 7) << 2) + ((~i & 8) >> 2) + ((i & 0x10) >> 4)];
- 		}
 	}
 }
 
@@ -485,19 +476,19 @@ inline static void cmc_xor(UINT8 *r0, UINT8 *r1,
 		    INT32 invert)
 
 {
-	UINT8 c0, c1, tmp, xor0, xor1;
+   UINT8	tmp  = table1[(base & 0xff) ^ address_0_7_xor[(base >> 8) & 0xff]];
+	UINT8 xor0 = (table0hi[(base >> 8) & 0xff] & 0xfe) | (tmp & 0x01);
+	UINT8 xor1 = (tmp & 0xfe) | (table0lo[(base >> 8) & 0xff] & 0x01);
+   UINT8 c0   = *r0;
+   UINT8 c1   = *r1;
 
-	tmp = table1[(base & 0xff) ^ address_0_7_xor[(base >> 8) & 0xff]];
-	xor0 = (table0hi[(base >> 8) & 0xff] & 0xfe) | (tmp & 0x01);
-	xor1 = (tmp & 0xfe) | (table0lo[(base >> 8) & 0xff] & 0x01);
-
-    c0 = *r0;
-    c1 = *r1;
-
-	if (invert)	{
+	if (invert)
+   {
 		*r0 = c1 ^ xor0;
 		*r1 = c0 ^ xor1;
-	} else {
+	}
+   else
+   {
 		*r0 = c0 ^ xor0;
 		*r1 = c1 ^ xor1;
 	}
@@ -548,7 +539,7 @@ void NeoCMCDecrypt(INT32 extra_xor, UINT8* rom, UINT8* buf, INT32 offset, INT32 
 }
 
 /* CMC42 protection chip */
-void NeoCMC42Init()
+void NeoCMC42Init(void)
 {
 	type0_t03 =          kof99_type0_t03;
 	type0_t12 =          kof99_type0_t12;
@@ -562,7 +553,7 @@ void NeoCMC42Init()
 }
 
 /* CMC50 protection chip */
-void NeoCMC50Init()
+void NeoCMC50Init(void)
 {
 	type0_t03 =          kof2000_type0_t03;
 	type0_t12 =          kof2000_type0_t12;
@@ -618,9 +609,8 @@ static UINT16 generate_cs16(UINT8 *rom, INT32 size)
 {
     UINT16 cs16;
     cs16 = 0x0000;
-    for (INT32 i = 0; i < size; i++) {
+    for (INT32 i = 0; i < size; i++)
         cs16 += rom[i];
-    }
     return cs16 & 0xffff;
 }
 
@@ -656,7 +646,7 @@ static INT32 m1_address_scramble(INT32 address, UINT16 key)
 	return (block << 16) | aux;
 }
 
-void neogeo_cmc50_m1_decrypt()
+void neogeo_cmc50_m1_decrypt(void)
 {
 	UINT8 *rom = NeoZ80ROMActive;
 	UINT8 *buffer = (UINT8*)BurnMalloc(0x80000);
@@ -670,4 +660,3 @@ void neogeo_cmc50_m1_decrypt()
 	memcpy(rom, buffer, 0x80000);
 	BurnFree(buffer);
 }
-

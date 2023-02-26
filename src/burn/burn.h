@@ -26,47 +26,6 @@
 
 #include <time.h>
 
-extern TCHAR szAppSamplesPath[MAX_PATH];
-
-// Enable the MAME logerror() function in debug builds
-// #define MAME_USE_LOGERROR
-
-// Give access to the CPUID function for various compilers
-#if defined (__GNUC__)
- #define CPUID(f,ra,rb,rc,rd) __asm__ __volatile__ ("cpuid"											\
- 													: "=a" (ra), "=b" (rb), "=c" (rc), "=d" (rd)	\
- 													: "a"  (f)										\
- 												   );
-#elif defined (_MSC_VER)
- #define CPUID(f,ra,rb,rc,rd) __asm { __asm mov		eax, f		\
-									  __asm cpuid				\
-									  __asm mov		ra, eax		\
-									  __asm mov		rb, ebx		\
-									  __asm mov		rc, ecx		\
-									  __asm mov		rd, edx }
-#else
- #define CPUID(f,ra,rb,rc,rd)
-#endif
-
-#ifndef BUILD_X86_ASM
- #undef CPUID
- #define CPUID(f,ra,rb,rc,rd)
-#endif
-
-#ifdef _UNICODE
- #define SEPERATOR_1 " \u2022 "
- #define SEPERATOR_2 " \u25E6 "
-#else
- #define SEPERATOR_1 " ~ "
- #define SEPERATOR_2 " ~ "
-#endif
-
-#ifdef _UNICODE
- #define WRITE_UNICODE_BOM(file) { UINT16 BOM[] = { 0xFEFF }; fwrite(BOM, 2, 1, file); }
-#else
- #define WRITE_UNICODE_BOM(file)
-#endif
-
 typedef unsigned char						UINT8;
 typedef signed char 						INT8;
 typedef unsigned short						UINT16;
@@ -175,8 +134,6 @@ struct BurnDIPInfo {
 
 extern bool bBurnUseASMCPUEmulation;
 
-extern bool bForce60Hz;
-
 extern INT32 nBurnFPS;
 extern INT32 nBurnCPUSpeedAdjust;
 
@@ -205,10 +162,6 @@ extern INT32 nFMInterpolation;				// Desired interpolation level for FM sound
 #define PRINT_UI		(1)
 #define PRINT_IMPORTANT (2)
 #define PRINT_ERROR		(3)
-
-#ifndef bprintf
-extern INT32 (__cdecl *bprintf) (INT32 nStatus, TCHAR* szFormat, ...);
-#endif
 
 INT32 BurnLibInit();
 INT32 BurnLibExit();
@@ -266,9 +219,6 @@ INT32 BurnDrvGetGenreFlags();
 INT32 BurnDrvGetFamilyFlags();
 INT32 BurnDrvGetSampleInfo(struct BurnSampleInfo *pri, UINT32 i);
 INT32 BurnDrvGetSampleName(char** pszName, UINT32 i, INT32 nAka);
-
-extern bool bDoIpsPatch;
-void IpsApplyPatches(UINT8* base, char* rom_name);
 
 // ---------------------------------------------------------------------------
 // Flags used with the Burndriver structure

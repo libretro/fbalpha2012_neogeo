@@ -3066,11 +3066,7 @@ void branchinstructions(void)
 
 void moveq(void)
 {
-#if 0
-	int Count;
-#else
 	int i, j;
-#endif
 
 	/* The Code */
 
@@ -3089,18 +3085,10 @@ void moveq(void)
 	EffectiveAddressWrite(0, 'L', OPCODE, TRUE, "----------------SSSSSSSS----G-F-", FALSE, TRUE);
 	Completed();
 
-#if 0
-	/* Set OpcodeArray (Not strictly correct, since some are illegal!) */
-
-	for (Count = 0x7000; Count < 0x8000; Count++) {
-		OpcodeArray[Count] = 0x7000;
-	}
-#else
 
 	for(i = 0x0000; i <= 0x0E00; i += 0x0200)
 		for(j = 0x0000; j <= 0x00FF; j += 0x0001)
 				OpcodeArray[0x7000 + i + j] = 0x7000;
-#endif
 }
 
 /*
@@ -6833,10 +6821,6 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t\t .extern %sopcode_entry,4\n", PREF);
 	fprintf(fp, "\t\t .extern %scur_mrhard,4\n", PREF);
 
-#ifdef MAME_DEBUG
-	fprintf(fp, "\t\t .extern %sm68k_illegal_opcode,4\n", PREF);
-#endif
-
 	fprintf(fp, "\n\n\n\t\t .text\n\n");
 
 
@@ -6958,17 +6942,7 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t\t subu  %s,%s,%s\n", regnameslong[PC], regnameslong[PC], regnameslong[BASEPC]);
 	fprintf(fp, "\t\t sw    %s,%s\t\t # Save PC\n", regnameslong[PC], REG_PC);
 
-	/* If in Debug mode make normal SR register */
-
-#ifdef MAME_DEBUG
-
-	ReadCCR('W', V0);
-
-#else
-
 	ReadCCR('B', V0);
-
-#endif
 
 	fprintf(fp, "\t\t lw    %s,%s\n", regnameslong[T0], REG_SRH);
 	fprintf(fp, "\t\t sw    %s,%s\n", regnameslong[V0], REG_CCR);

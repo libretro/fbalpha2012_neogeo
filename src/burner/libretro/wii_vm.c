@@ -153,19 +153,13 @@ static PTE* StorePTE(PTEG pteg, u32 virtual, u32 physical, u8 WIMG, u8 PP, int s
 
 	for (i=0; i < 8; i++)
 	{
-		if (pteg[i].data[0] == p.data[0])
-		{
-//			printf("Error: address %08x already had a PTE entry\n", virtual);
-//			abort();
-		}
+		if (pteg[i].data[0] == p.data[0]) { }
 		else if (pteg[i].valid)
 			continue;
 
 		asm volatile("tlbie %0" : : "r"(virtual));
 		pteg[i].data[1] = p.data[1];
 		pteg[i].data[0] = p.data[0];
-//		if (i || secondary)
-//			printf("PTE for address %08x/%08x in PTEG %p index %d (%s)\n", virtual, physical, pteg, i, secondary ? "secondary" : "primary");
 		return pteg+i;
 	}
 
@@ -199,9 +193,6 @@ static PTE* insert_pte(u16 index, u32 physical, u8 WIMG, u8 PP)
 		if (pte)
 			return pte;
 	}
-
-//	printf("Failed to insert PTE for %p\n", VM_Base+index);
-//	abort();
 
 	return NULL;
 }
@@ -247,8 +238,6 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 	VM_Base = (vm_page*)(0x80000000 - VMSize);
 	pmap_max = MEMSize / PAGE_SIZE + 16;
 
-//	printf("VMSize %08x MEMSize %08x VM_Base %p pmap_max %u\n", VMSize, MEMSize, VM_Base, pmap_max);
-
 	if (VMSize <= MEMSize)
 	{
 		errno = EINVAL;
@@ -275,8 +264,6 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 	MEMSize += PTE_SIZE;
 	MEM_Base = (vm_page*)memalign(PAGE_SIZE, MEMSize);
 
-//	printf("MEM_Base: %p\n", MEM_Base);
-
 	if (MEM_Base==NULL)
 	{
 		ISFS_Close(pagefile_fd);
@@ -287,7 +274,6 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 	tlbia();
 	DCZeroRange(MEM_Base, MEMSize);
 	HTABORG = (PTE*)(((u32)MEM_Base+0xFFFF)&~0xFFFF);
-//	printf("HTABORG: %p\n", HTABORG);
 
 	/* Attempt to make the pagefile the correct size.
 	 * it's not enough to just check for free space;
@@ -295,39 +281,11 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 	 * plus we need to be able to quickly seek to any page
 	 * within the file.
 	 */
-// We'll write the pagefile later. Improves loading time.
-// No difference in speed.
-#if 0
-	printf("Creating Nand page\n");
-	ISFS_Seek(pagefile_fd, 0, SEEK_SET);
-	for (i=0; i<VMSize;)
-	{
-		u32 to_write = VMSize - i;
-		if (to_write > MEMSize)
-			to_write = MEMSize;
-
-		float percent = (float)i / VMSize * 100.0;
-		printf("%d%% done\r", (int)percent);
-
-		if (ISFS_Write(pagefile_fd, MEM_Base, to_write) != to_write)
-		{
-			free(MEM_Base);
-			ISFS_Close(pagefile_fd);
-			errno = ENOSPC;
-			return NULL;
-		}
-//		printf("Wrote %u bytes to offset %u\n", to_write, i);
-		i += to_write;
-
-	}
-	printf("100%% done\r");
-#endif
 	// initial commit: map pmap_max pages to fill PTEs with valid RPNs
 	for (index=0,v_index=0; index<pmap_max; ++index,++v_index)
 	{
 		if ((PTE*)(MEM_Base+index) == HTABORG)
 		{
-//			printf("p_map hole: %u -> %u\n", index, index+(PTE_SIZE/PAGE_SIZE));
 			for (i=0; i<(PTE_SIZE/PAGE_SIZE); ++i,++index)
 				phys_map[index].valid = 0;
 
@@ -355,7 +313,6 @@ void* VM_Init(size_t VMSize, size_t MEMSize)
 
 	// set SDR1
 	mtspr(25, MEM_VIRTUAL_TO_PHYSICAL(HTABORG)|HTABMASK);
-//	printf("SDR1: %08x\n", MEM_VIRTUAL_TO_PHYSICAL(HTABORG));
 	// enable SR
 	asm volatile("mtsrin %0,%1" :: "r"(VM_VSID), "r"(VM_Base));
 	// hook DSI
@@ -436,8 +393,6 @@ void VM_InvalidateAll(void)
 
 	_CPU_ISR_Restore(irq);
 
-//	printf("VM was invalidated\n");
-
 	LWP_MutexUnlock(vm_mutex);
 }
 
@@ -507,7 +462,6 @@ int vm_dsi_handler(frame_context* state, u32 DSISR)
 
 		ISFS_Seek(pagefile_fd, flush_v_index*PAGE_SIZE, SEEK_SET);
 		ISFS_Write(pagefile_fd, MEM_Base+phys_index, PAGE_SIZE*pages_to_flush);
-//		printf("VM page %d was purged (%d)\n", phys_map[phys_index].page_index, pages_to_flush);
 	}
 
 	// fetch virtual_index if it has been previously committed
@@ -515,12 +469,9 @@ int vm_dsi_handler(frame_context* state, u32 DSISR)
 	{
 		ISFS_Seek(pagefile_fd, virt_index*PAGE_SIZE, SEEK_SET);
 		ISFS_Read(pagefile_fd, MEM_Base+phys_index, PAGE_SIZE);
-//		printf("VM page %d was fetched\n", virt_index);
 	}
 	else
 		DCZeroRange(MEM_Base+phys_index, PAGE_SIZE);
-
-//	printf("VM page %u (0x%08x) replaced page %u (%p) @ %p\n", virt_index, state->DAR, phys_map[phys_index].page_index, VM_Base+phys_map[phys_index].page_index, MEM_Base+phys_index);
 
 	virt_map[virt_index].p_map_index = phys_index;
 	phys_map[phys_index].page_index = virt_index;

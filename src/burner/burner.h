@@ -15,7 +15,6 @@
 #define MAKE_STRING_2(s) #s
 #define MAKE_STRING(s) MAKE_STRING_2(s)
 
-#include "title.h"
 #include "burn.h"
 #include "burner_libretro.h"
 
@@ -35,20 +34,6 @@ extern INT32 nFireButtons;
 extern bool bStreetFighterLayout;
 extern bool bLeftAltkeyMapped;
 
-INT32 GameInpInit();
-INT32 GameInpExit();
-TCHAR* InputCodeDesc(INT32 c);
-TCHAR* InpToDesc(struct GameInp* pgi);
-TCHAR* InpMacroToDesc(struct GameInp* pgi);
-INT32 GameInpBlank(INT32 bDipSwitch);
-INT32 GameInputAutoIni(INT32 nPlayer, TCHAR* lpszFile, bool bOverWrite);
-INT32 ConfigGameLoadHardwareDefaults();
-INT32 GameInpDefault();
-INT32 GameInpWrite(FILE* h);
-INT32 GameInpRead(TCHAR* szVal, bool bOverWrite);
-INT32 GameInpMacroRead(TCHAR* szVal, bool bOverWrite);
-INT32 GameInpCustomRead(TCHAR* szVal, bool bOverWrite);
-
 // inp_interface.cpp
 extern INT32 nAutoFireRate;
 
@@ -65,12 +50,6 @@ extern UINT8 macroSystemUNDOState;
 
 // cong.cpp
 extern const INT32 nConfigMinVersion;					// Minimum version of application for which input files are valid
-extern bool bSaveInputs;
-INT32 ConfigGameLoad(bool bOverWrite);				// char* lpszName = NULL
-INT32 ConfigGameSave(bool bSave);
-
-// conc.cpp
-INT32 ConfigCheatLoad();
 
 // gamc.cpp
 INT32 GamcMisc(struct GameInp* pgi, char* szi, INT32 nPlayer);
@@ -85,17 +64,8 @@ INT32 QuoteRead(TCHAR** ppszQuote, TCHAR** ppszEnd, TCHAR* pszSrc);					// Read 
 TCHAR* LabelCheck(TCHAR* s, TCHAR* pszLabel);
 
 TCHAR* ExtractFilename(TCHAR* fullname);
-TCHAR* DriverToName(UINT32 nDrv);
-UINT32 NameToDriver(TCHAR* szName);
-
-extern INT32 bDoGamma;
-extern INT32 bHardwareGammaOnly;
-extern double nGamma;
 
 INT32 SetBurnHighCol(INT32 nDepth);
-char* DecorateGameName(UINT32 nBurnDrv);
-TCHAR* DecorateGenreInfo();
-void ComputeGammaLUT();
 
 // state.cpp
 INT32 BurnStateLoadEmbed(FILE* fp, INT32 nOffset, INT32 bAll, INT32 (*pLoadGame)());

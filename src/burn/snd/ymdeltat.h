@@ -6,9 +6,7 @@
 #define YM_DELTAT_EMULATION_MODE_NORMAL	0
 #define YM_DELTAT_EMULATION_MODE_YM2610	1
 
-
 typedef void (*STATUS_CHANGE_HANDLER)(UINT8 which_chip, UINT8 status_bits);
-
 
 /* DELTA-T (adpcm type B) struct */
 typedef struct deltat_adpcm_state {     /* AT: rearranged and tigntened structure */
@@ -16,10 +14,6 @@ typedef struct deltat_adpcm_state {     /* AT: rearranged and tigntened structur
 	INT32	*output_pointer;/* pointer of output pointers	*/
 	INT32	*pan;			/* pan : &output_pointer[pan]	*/
 	double	freqbase;
-#if 0
-	double	write_time;		/* Y8950: 10 cycles of main clock; YM2608: 20 cycles of main clock */
-	double	read_time;		/* Y8950: 8 cycles of main clock;  YM2608: 18 cycles of main clock */
-#endif
 	UINT32	memory_size;
 	int	output_range;
 	UINT32	now_addr;		/* current address		*/

@@ -433,15 +433,6 @@ void Immediate8(void)
 	fprintf(fp, "\t\t dec   ecx          ; Move range down\n");
 	fprintf(fp, "\t\t and   ecx,byte 7   ; Mask out lower bits\n");
 	fprintf(fp, "\t\t inc   ecx          ; correct range\n");
-
-
-	/* This takes 2 cycles, 10 bytes but has a memory read */
-	/* I don't know timing for the mov command - assumed 1 */
-
-#if 0
-	fprintf(fp, "\t\t and   ecx,byte 7\n");
-	fprintf(fp, "\t\t mov   ecx,[ImmTable+ECX*4]\n");
-#endif
 }
 
 /*
@@ -476,36 +467,6 @@ void MemoryBanking(int BaseCode)
 
 	/* Mask to n bits */
 	fprintf(fp, "\t\t and   esi,[%smem_amask]\n", PREF);
-
-#if 0
-#ifdef KEEPHIGHPC
-	fprintf(fp, "\t\t mov   [FullPC],ESI\n");
-#endif
-
-	/* Mask to 24 bits */
-//	fprintf(fp, "\t\t and   esi,0ffffffh\n");
-
-#ifdef ASMBANK
-	/* Assembler bank switch */
-
-	fprintf(fp, "\t\t mov   eax,esi\n");
-	/* LVR - use a variable bank size */
-	fprintf(fp, "\t\t shr   eax," ASMBANK "\n");
-	fprintf(fp, "\t\t cmp   [asmbank],eax\n");
-	fprintf(fp, "\t\t je    OP%d_%5.5x_Bank\n",CPU,BaseCode);
-
-	fprintf(fp, "\t\t mov   [asmbank],eax\n");
-#else
-	/* This code is same as macro used by C core */
-
-	fprintf(fp, "\t\t mov   ecx,esi\n");
-	fprintf(fp, "\t\t mov   ebx,[_cur_mrhard]\n");
-	fprintf(fp, "\t\t shr   ecx,9\n");
-	fprintf(fp, "\t\t mov   al,byte [_opcode_entry]\n");
-	fprintf(fp, "\t\t cmp   al,[ecx+ebx]\n");
-	fprintf(fp, "\t\t je    OP%d_%5.5x_Bank\n",CPU,BaseCode);
-#endif
-#endif
 
 	/* Call Banking Routine */
 
@@ -605,25 +566,6 @@ void Completed(void)
 		fprintf(fp, "\t\t jle   near MainExit\n\n");
 	}
 	FlagProcess = 0;
-
-#ifdef MAME_DEBUG
-
-	/* Check for Debug Active */
-
-	fprintf(fp, "\n\t\t test    byte [%smame_debug],byte 0xff\n", PREF);
-	fprintf(fp, "\t\t jnz   near MainExit\n\n");
-
-#endif
-
-#ifdef FBA_DEBUG
-
-	fprintf(fp, "\n\t\t test    byte [%smame_debug],byte 0xff\n", PREF);
-	fprintf(fp, "\t\t jns  near .NoDebug\n");
-	fprintf(fp, "\t\t call  near FBADebugActive\n\n");
-	fprintf(fp, ".NoDebug\n");
-
-#endif
-
 	if (CheckInterrupt)
 	{
 		fprintf(fp,"; Check for Interrupt waiting\n\n");
@@ -4806,90 +4748,7 @@ void chk(void)
 				}
 }
 
-void chk2(void)
-{
-#if 0
-	int	mode,sreg,size ;
-	int	Opcode, BaseCode ;
-	int	Dest ;
-	char * Label ;
-
-	char  *allow = "--2--56789a-----" ;
-
-	for (size = 0 ; size < 2; size++)
-		for (mode = 0 ; mode < 8; mode++)
-			for (sreg = 0 ; sreg < 8; sreg++)
-			{
-				Opcode = 0x00c0 | (size<<9) | (mode<<3) | sreg;
-				BaseCode = Opcode & 0xfff8 ;
-
-				if (mode == 7)
-				{
-					BaseCode |= sreg ;
-				}
-
-				Dest = EAtoAMN(Opcode, FALSE);
-
-				if (allow[Dest&0xf] != '-')
-				{
-					if (OpcodeArray[BaseCode] == -2)
-					{
-						Align();
-						Label = GenerateLabel(BaseCode,0);
-						fprintf(fp, "%s:\n", Label );
-						fprintf(fp, "\t\t add   esi,byte 2\n\n");
-
-						TimingCycles += 10;
-
-						fprintf(fp, "\t\t mov   ebx,ecx\n");
-						fprintf(fp, "\t\t shr   ebx,byte 9\n");
-						fprintf(fp, "\t\t and   ebx,byte 7\n");
-
-						if (Dest < 7)
-							fprintf(fp, "\t\t and   ecx,byte 7\n");
-
-						EffectiveAddressRead(Dest,'W',ECX,EAX,"----S-B",FALSE);
-
-						if (size == 0)	/* word */
-						{
-							fprintf(fp, "\t\t movsx ebx,word [%s+EBX*4]\n",REG_DAT);
-							fprintf(fp, "\t\t movsx eax,ax\n");
-						 }
-						 else			/* long */
-							fprintf(fp, "\t\t mov   ebx,[%s+EBX*4]\n",REG_DAT);
-
-						fprintf(fp, "\t\t test  ebx,ebx\n"); /* is word bx < 0 */
-						fprintf(fp, "\t\t jl    near OP%d_%4.4x_Trap_minus\n",CPU,BaseCode);
-
-						fprintf(fp, "\t\t cmp   ebx,eax\n");
-						fprintf(fp, "\t\t jg    near OP%d_%4.4x_Trap_over\n",CPU,BaseCode);
-						Completed();
-
-						/* N is set if data less than zero */
-
-						Align();
-						fprintf(fp, "OP%d_%4.4x_Trap_minus:\n",CPU,BaseCode);
-						fprintf(fp, "\t\t or    edx,0x0080\n");		/* N flag = 80H */
-						fprintf(fp, "\t\t jmp   short OP%d_%4.4x_Trap_Exception\n",CPU,BaseCode);
-
-						/* N is cleared if greated than compared number */
-
-						Align();
-						fprintf(fp, "OP%d_%4.4x_Trap_over:\n",CPU,BaseCode);
-						fprintf(fp, "\t\t and   edx,0x007f\n");		/* N flag = 80H */
-
-						fprintf(fp, "OP%d_%4.4x_Trap_Exception:\n",CPU,BaseCode);
-						fprintf(fp, "\t\t mov   al,6\n");
-						Exception(-1,0x10000+BaseCode);
-						Completed();
-
-					}
-
-					OpcodeArray[Opcode] = BaseCode ;
-				}
-			}
-#endif
-}
+void chk2(void) { }
 
 /*
  * Load Effective Address
@@ -5825,15 +5684,6 @@ void illegal_opcode(void)
 	fprintf(fp, "ILLEGAL:\n");
 	fprintf(fp, "\t\t mov [%sillegal_op],ecx\n", PREF);
 	fprintf(fp, "\t\t mov [%sillegal_pc],esi\n", PREF);
-
-#if 0
-#ifdef MAME_DEBUG
-	fprintf(fp, "\t\t jmp ecx\n");
-	fprintf(fp, "\t\t pushad\n");
-	fprintf(fp, "\t\t call %sm68k_illegal_opcode\n", PREF);
-	fprintf(fp, "\t\t popad\n");
-#endif
-#endif
 
 	Exception(4,0xFFFE);
 }
@@ -7655,9 +7505,6 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t\t EXTERN %sopcode_entry\n", PREF);
 //	fprintf(fp, "\t\t EXTERN %scur_mrhard\n", PREF);
 
-#ifdef MAME_DEBUG
-	fprintf(fp, "\t\t EXTERN %sm68k_illegal_opcode\n", PREF);
-#endif
 
 #ifdef OS2
 	fprintf(fp, "\t\t SECTION maincode USE32 FLAT CLASS=CODE\n\n");
@@ -7738,15 +7585,6 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "\t\t test  dword [%s],-1\n",ICOUNT);
 	fprintf(fp, "\t\t js    short MainExit\n\n");
 
-#ifdef FBA_DEBUG
-
-	fprintf(fp, "\n\t\t test    byte [%smame_debug],byte 0xff\n", PREF);
-	fprintf(fp, "\t\t jns  near .NoDebug\n");
-	fprintf(fp, "\t\t call  near FBADebugActive\n\n");
-	fprintf(fp, ".NoDebug\n");
-
-#endif
-
 	if(CPU==2)
 	{
 		  /* 32 Bit */
@@ -7786,13 +7624,6 @@ void CodeSegmentBegin(void)
 	fprintf(fp, "MC68Kexit:\n");
 
 	/* If in Debug mode make normal SR register */
-
-#ifdef MAME_DEBUG
-
-	ReadCCR('W', ECX);
-	fprintf(fp, "\t\t mov   [%s],eax\n\n",REG_S);
-
-#endif
 
 	fprintf(fp, "\t\t popad\n");
 	fprintf(fp, "\t\t ret\n");
@@ -7954,31 +7785,6 @@ void CodeSegmentBegin(void)
 	MemoryBanking(1);
 
 	fprintf(fp, "\t\t ret\n");
-
-#ifdef FBA_DEBUG
-
-	fprintf(fp,"\n; Call FBA debugging callback\n\n");
-	fprintf(fp, "FBADebugActive:");
-	fprintf(fp, "\t\t mov   [%s],ESI\n",REG_PC);
-	fprintf(fp, "\t\t mov   [%s],EDX\n",REG_CCR);
-	fprintf(fp, "\t\t call  [%sa68k_memory_intf+0]\n", PREF);
-	if (SavedRegs[EDX] == '-')
-	{
-		fprintf(fp, "\t\t mov   EDX,[%s]\n",REG_CCR);
-	}
-	if (SavedRegs[ESI] == '-')
-	{
-		fprintf(fp, "\t\t mov   ESI,[%s]\n",REG_PC);
-	}
-	if (SavedRegs[EBP] == '-')
-	{
-		fprintf(fp, "\t\t mov   ebp,dword [%sOP_ROM]\n", PREF);
-	}
-	fprintf(fp,"\n; Now continue as usual\n\n");
-	fprintf(fp, "\t\t ret\n");
-
-#endif
-
 }
 
 void CodeSegmentEnd(void)
@@ -8061,13 +7867,6 @@ void CodeSegmentEnd(void)
 	fprintf(fp, "\t\t DD 0080h,0081h,0880h,0881h,00C0h,00C1h,08C0h,08C1h\n");
 	fprintf(fp, "\t\t DD 0100h,0101h,0900h,0901h,0140h,0141h,0940h,0941h\n");
 	fprintf(fp, "\t\t DD 0180h,0181h,0980h,0981h,01C0h,01C1h,09C0h,09C1h\n");
-
-#if 0
-	fprintf(fp, "\n\nImmTable\n");
-	fprintf(fp, "\t\t DD 8,1,2,3,4,5,6,7\n\n");
-#endif
-
-
 
 	/* Exception Timing Table */
 

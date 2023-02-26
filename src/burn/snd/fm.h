@@ -12,8 +12,6 @@
 #define BUILD_YM2610B (HAS_YM2610B)		/* build YM2610B(OPNB?)emulator */
 #define BUILD_YM2612  (HAS_YM2612 || HAS_YM3438)		/* build YM2612(OPN2)  emulator */
 
-//#define BUILD_YM2151  (HAS_YM2151)		/* build YM2151(OPM)   emulator */
-
 /* select bit size of output : 8 or 16 */
 #define FM_SAMPLE_BITS 16
 
@@ -76,31 +74,11 @@ void BurnYM2610UpdateRequest(void);
 void BurnYM2612UpdateRequest(void);
   #define YM2612UpdateReq(chip) BurnYM2612UpdateRequest()
 #endif
-#if 0 //BUILD_YM2151
-  /* in 2151intf.c */
-  #define YM2151UpdateReq(chip) YM2151UpdateRequest(chip);
-#endif
 
 /* compiler dependence */
-#if 0
-#ifndef OSD_CPU_H
-#define OSD_CPU_H
-typedef unsigned char	UINT8;   /* unsigned  8bit */
-typedef unsigned short	UINT16;  /* unsigned 16bit */
-typedef unsigned int	UINT32;  /* unsigned 32bit */
-typedef signed char		INT8;    /* signed  8bit   */
-typedef signed short	INT16;   /* signed 16bit   */
-typedef signed int		INT32;   /* signed 32bit   */
-#endif
-#endif
-
 #ifndef INLINE
 #define INLINE static __inline__
 #endif
-
-
-
-
 
 #if (FM_SAMPLE_BITS==16)
 typedef INT16 FMSAMPLE;
@@ -216,26 +194,5 @@ int YM2612Write(int n, int a,unsigned char v);
 unsigned char YM2612Read(int n,int a);
 int YM2612TimerOver(int n, int c );
 #endif /* BUILD_YM2612 */
-
-#if 0 //BUILD_YM2151
-/* -------------------- YM2151(OPM) Interface -------------------- */
-int OPMInit(int num, int baseclock, int rate,
-               FM_TIMERHANDLER TimerHandler,FM_IRQHANDLER IRQHandler);
-void OPMShutdown(void);
-void OPMResetChip(int num);
-
-void OPMUpdateOne(int num, INT16 **buffer, int length );
-/* ---- set callback hander when port CT0/1 write ----- */
-/* CT.bit0 = CT0 , CT.bit1 = CT1 */
-/*
-typedef void (*write8_handler)(int offset,int data);
-*/
-void OPMSetPortHander(int n,write8_handler PortWrite);
-/* JB 981119  - so it will match MAME's memory write functions scheme*/
-
-int YM2151Write(int n,int a,unsigned char v);
-unsigned char YM2151Read(int n,int a);
-int YM2151TimerOver(int n,int c);
-#endif /* BUILD_YM2151 */
 
 #endif /* _H_FM_FM_ */

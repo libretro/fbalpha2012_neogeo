@@ -50,10 +50,16 @@ static INT32 eeprom_command_match(const char *buf, const char *cmd, INT32 len)
 				{
 					case '0':
 					case '1':
-					  	if (b == c)	{	cmd++;			}
-						else		{	buf++;	len--;	}
+					  	if (b == c)
+                     cmd++;
+						else
+                  {
+                     buf++;
+                     len--;
+                  }
 						break;
-					default:	return 0;
+					default:
+                  return 0;
 				}
 		}
 	}
@@ -67,67 +73,57 @@ INT32 EEPROMAvailable(void)
 
 void EEPROMInit(const eeprom_interface *interface)
 {
-	intf = interface;
-
-	if ((1 << intf->address_bits) * intf->data_bits / 8 > MEMORY_SIZE)
-	{
-		bprintf(0, _T("EEPROM larger than eeprom allows"));
-	}
+	char output[128];
+#ifdef _WIN32
+   char slash          = '\\';
+#else
+   char slash          = '/';
+#endif
+	intf                = interface;
 
 	memset(eeprom_data,0xff,(1 << intf->address_bits) * intf->data_bits / 8);
-	serial_count = 0;
-	latch = 0;
-	reset_line = EEPROM_ASSERT_LINE;
-	clock_line = EEPROM_ASSERT_LINE;
+	serial_count        = 0;
+	latch               = 0;
+	reset_line          = EEPROM_ASSERT_LINE;
+	clock_line          = EEPROM_ASSERT_LINE;
 	eeprom_read_address = 0;
-	sending = 0;
-	if (intf->cmd_unlock) locked = 1;
-	else locked = 0;
-
-	char output[128];
-#ifdef __LIBRETRO__
-#ifdef _WIN32
-   char slash = '\\';
-#else
-   char slash = '/';
-#endif
+	sending             = 0;
+	if (intf->cmd_unlock)
+      locked           = 1;
+	else
+      locked           = 0;
 	snprintf (output, sizeof(output), "%s%c%s.nv", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
-#else
-	snprintf (output, sizeof(output), "config/games/%s.nv", BurnDrvGetTextA(DRV_NAME));
-#endif
 
-	neeprom_available = 0;
+	neeprom_available   = 0;
 
 	INT32 len = ((1 << intf->address_bits) * (intf->data_bits >> 3)) & (MEMORY_SIZE-1);
 
 	FILE *fz = fopen(output, "rb");
-	if (fz != NULL) {
+	if (fz != NULL)
+   {
 		neeprom_available = 1;
 		fread (eeprom_data, len, 1, fz);
 		fclose (fz);
 	}
 }
 
-void EEPROMExit()
+void EEPROMExit(void)
 {
 	char output[128];
-#ifdef __LIBRETRO__
 #ifdef _WIN32
    char slash = '\\';
 #else
    char slash = '/';
 #endif
 	snprintf (output, sizeof(output), "%s%c%s.nv", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
-#else
-	snprintf (output, sizeof(output), "config/games/%s.nv", BurnDrvGetTextA(DRV_NAME));
-#endif
 
 	neeprom_available = 0;
 
 	INT32 len = ((1 << intf->address_bits) * (intf->data_bits >> 3)) & (MEMORY_SIZE-1);
 
 	FILE *fz = fopen(output, "wb");
-	if (fz) {
+	if (fz)
+   {
 		fwrite (eeprom_data, len, 1, fz);
 		fclose (fz);
 	}
@@ -136,10 +132,7 @@ void EEPROMExit()
 static void eeprom_write(INT32 bit)
 {
 	if (serial_count >= SERIAL_BUFFER_LENGTH-1)
-	{
-		bprintf(0, _T("error: EEPROM serial buffer overflow\n"));
 		return;
-	}
 
 	serial_buffer[serial_count++] = (bit ? '1' : '0');
 	serial_buffer[serial_count] = 0;
@@ -310,11 +303,10 @@ void EEPROMScan(INT32 nAction, INT32* pnMin)
 {
 	struct BurnArea ba;
 
-	if (nAction & ACB_DRIVER_DATA) {
-
-		if (pnMin && *pnMin < 0x020902) {
+	if (nAction & ACB_DRIVER_DATA)
+   {
+		if (pnMin && *pnMin < 0x020902)
 			*pnMin = 0x029705;
-		}
 
 		memset(&ba, 0, sizeof(ba));
     		ba.Data		= serial_buffer;
@@ -333,17 +325,4 @@ void EEPROMScan(INT32 nAction, INT32* pnMin)
 		SCAN_VAR(locked);
 		SCAN_VAR(reset_delay);
 	}
-
-//	if (nAction & ACB_NVRAM) {
-//
-//		if (pnMin && (nAction & ACB_TYPEMASK) == ACB_NVRAM) {
-//			*pnMin = 0x02705;
-//		}
-//
-//		memset(&ba, 0, sizeof(ba));
-//  		ba.Data		= eeprom_data;
-//		ba.nLen		= MEMORY_SIZE;
-//		ba.szName	= "EEPROM memory";
-//		BurnAcb(&ba);
-//	}
 }

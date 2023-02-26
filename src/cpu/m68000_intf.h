@@ -160,11 +160,7 @@ inline static INT32 SekSegmentCycles(void)
 #endif
 }
 
-#if defined FBA_DEBUG
-static INT32 SekTotalCycles(void)
-#else
 inline static INT32 SekTotalCycles(void)
-#endif
 {
 #ifdef EMU_M68K
 	return nSekCyclesTotal + nSekCyclesToDo - m68k_ICount;

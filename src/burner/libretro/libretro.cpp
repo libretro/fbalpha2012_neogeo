@@ -14,26 +14,15 @@
 #define RETROPAD_CLASSIC	RETRO_DEVICE_JOYPAD
 #define RETROPAD_MODERN		RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
 
-#if defined(CPS1_ONLY)
-#define CORE_OPTION_NAME "fbalpha2012_cps1"
-#elif defined(CPS2_ONLY)
-#define CORE_OPTION_NAME "fbalpha2012_cps2"
-#elif defined(CPS3_ONLY)
-#define CORE_OPTION_NAME "fbalpha2012_cps3"
-#elif defined(NEOGEO_ONLY)
 #define CORE_OPTION_NAME "fbalpha2012_neogeo"
-#else
-#define CORE_OPTION_NAME "fbalpha2012"
-#endif
 
 #if defined(_XBOX) || defined(_WIN32)
-   char slash = '\\';
+char slash = '\\';
 #else
-   char slash = '/';
+char slash = '/';
 #endif
 
 static void log_dummy(enum retro_log_level level, const char *fmt, ...) { }
-static const char *print_label(unsigned i);
 
 static void set_controller_infos();
 static void set_environment();
@@ -50,33 +39,6 @@ static retro_input_poll_t poll_cb;
 static retro_input_state_t input_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
 
-#define BPRINTF_BUFFER_SIZE 512
-char bprintf_buf[BPRINTF_BUFFER_SIZE];
-static INT32 __cdecl libretro_bprintf(INT32 nStatus, TCHAR* szFormat, ...)
-{
-   va_list vp;
-   va_start(vp, szFormat);
-   int rc = vsprintf(bprintf_buf, szFormat, vp);
-   va_end(vp);
-
-   if (rc >= 0)
-   {
-      retro_log_level retro_log = RETRO_LOG_DEBUG;
-      if (nStatus == PRINT_UI)
-         retro_log = RETRO_LOG_INFO;
-      else if (nStatus == PRINT_IMPORTANT)
-         retro_log = RETRO_LOG_WARN;
-      else if (nStatus == PRINT_ERROR)
-         retro_log = RETRO_LOG_ERROR;
-         
-      log_cb(retro_log, bprintf_buf);
-   }
-   
-   return rc;
-}
-
-INT32 (__cdecl *bprintf) (INT32 nStatus, TCHAR* szFormat, ...) = libretro_bprintf;
-
 // FBARL ---
 
 extern UINT8 NeoSystem;
@@ -90,15 +52,12 @@ enum neo_geo_modes
 {
    /* MVS */
    NEO_GEO_MODE_MVS = 0,
-
    /* AES */
    NEO_GEO_MODE_AES = 1,
-
    /* UNIBIOS */
    NEO_GEO_MODE_UNIBIOS = 2,
-
    /* DIPSWITCH */
-   NEO_GEO_MODE_DIPSWITCH = 3,
+   NEO_GEO_MODE_DIPSWITCH = 3
 };
 
 #define MAX_KEYBINDS 0x5000
@@ -107,17 +66,17 @@ static uint8_t axibinds[5][8][3];
 bool bAnalogRightMappingDone[5][2][2];
 
 #define RETRO_DEVICE_ID_JOYPAD_EMPTY 255
-static UINT8 diag_input_hold_frame_delay = 0;
+static UINT8 diag_input_hold_frame_delay  = 0;
 static int   diag_input_combo_start_frame = 0;
-static bool  diag_combo_activated = false;
-static bool  one_diag_input_pressed = false;
-static bool  all_diag_input_pressed = true;
+static bool  diag_combo_activated         = false;
+static bool  one_diag_input_pressed       = false;
+static bool  all_diag_input_pressed       = true;
 
 static UINT8 *diag_input;
-static UINT8 diag_input_start[] =       {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_EMPTY };
-static UINT8 diag_input_start_a_b[] =   {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_A, RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_EMPTY };
-static UINT8 diag_input_start_l_r[] =   {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_L, RETRO_DEVICE_ID_JOYPAD_R, RETRO_DEVICE_ID_JOYPAD_EMPTY };
-static UINT8 diag_input_select[] =      {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DEVICE_ID_JOYPAD_EMPTY };
+static UINT8 diag_input_start[]      =  {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_EMPTY };
+static UINT8 diag_input_start_a_b[]  =  {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_A, RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_EMPTY };
+static UINT8 diag_input_start_l_r[]  =  {RETRO_DEVICE_ID_JOYPAD_START,  RETRO_DEVICE_ID_JOYPAD_L, RETRO_DEVICE_ID_JOYPAD_R, RETRO_DEVICE_ID_JOYPAD_EMPTY };
+static UINT8 diag_input_select[]     =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DEVICE_ID_JOYPAD_EMPTY };
 static UINT8 diag_input_select_a_b[] =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DEVICE_ID_JOYPAD_A, RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_EMPTY };
 static UINT8 diag_input_select_l_r[] =  {RETRO_DEVICE_ID_JOYPAD_SELECT, RETRO_DEVICE_ID_JOYPAD_L, RETRO_DEVICE_ID_JOYPAD_R, RETRO_DEVICE_ID_JOYPAD_EMPTY };
 
@@ -170,7 +129,7 @@ bool bVolumeIsFireButton = false;
 
 // libretro globals
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
-void retro_set_audio_sample(retro_audio_sample_t) {}
+void retro_set_audio_sample(retro_audio_sample_t) { }
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
 void retro_set_input_poll(retro_input_poll_t cb) { poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
@@ -502,8 +461,7 @@ static RomBiosInfo *available_mvs_bios = NULL;
 static RomBiosInfo *available_aes_bios = NULL;
 static RomBiosInfo *available_uni_bios = NULL;
 
-#if !(defined(CPS1_ONLY) || defined(CPS2_ONLY) || defined(CPS3_ONLY) || defined(GEKKO))
-void set_neo_system_bios()
+static void set_neo_system_bios(void)
 {
    if (g_opt_neo_geo_mode == NEO_GEO_MODE_DIPSWITCH)
    {
@@ -568,7 +526,6 @@ void set_neo_system_bios()
       }
    }
 }
-#endif /* #if !(defined(CPS1_ONLY) || defined(CPS2_ONLY) || defined(CPS3_ONLY)) */
 
 char g_rom_dir[1024];
 char g_save_dir[1024];
@@ -590,27 +547,6 @@ void retro_get_system_info(struct retro_system_info *info)
    info->block_extract = true;
    info->valid_extensions = "iso|zip|7z";
 }
-
-/////
-static INT32 InputTick();
-static void InputMake();
-static bool init_input();
-static void check_variables(bool first_run);
-
-//void wav_exit() { }
-
-// FBA stubs
-unsigned ArcadeJoystick;
-
-int bDrvOkay;
-int bRunPause;
-bool bAlwaysProcessKeyboardInput;
-
-bool bDoIpsPatch;
-void IpsApplyPatches(UINT8 *, char *) {}
-
-TCHAR szAppSamplesPath[MAX_PATH];
-TCHAR szAppBurnVer[16];
 
 #ifdef WANT_NEOGEOCD
 CDEmuStatusValue CDEmuStatus;
@@ -1175,23 +1111,9 @@ static void ForceFrameStep(void)
    nBurnLayer = 0xff;
    pBurnSoundOut = g_audio_buf;
    nBurnSoundRate = AUDIO_SAMPLERATE;
-   //nBurnSoundLen = AUDIO_SEGMENT_LENGTH;
    nCurrentFrame++;
 
    BurnDrvFrame();
-}
-
-// Non-idiomatic (OutString should be to the left to match strcpy())
-// Seems broken to not check nOutSize.
-char* TCHARToANSI(const TCHAR* pszInString, char* pszOutString, int /*nOutSize*/)
-{
-   if (pszOutString)
-   {
-      strcpy(pszOutString, pszInString);
-      return pszOutString;
-   }
-
-   return (char*)pszInString;
 }
 
 int QuoteRead(char **, char **, char*)
@@ -1216,10 +1138,6 @@ static int find_rom_by_name(char *name, const ZipEntry *list, unsigned elems)
          return i; 
    }
 
-#if 0
-   log_cb(RETRO_LOG_ERROR, "Not found: %s (name = %s)\n", list[i].szName, name);
-#endif
-
 	return -1;
 }
 
@@ -1229,14 +1147,8 @@ static int find_rom_by_crc(uint32_t crc, const ZipEntry *list, unsigned elems)
    for (i = 0; i < elems; i++)
    {
       if (list[i].nCrc == crc)
-	  {
          return i;
-	  }
    }
-
-#if 0
-   log_cb(RETRO_LOG_ERROR, "Not found: 0x%X (crc: 0x%X)\n", list[i].nCrc, crc);
-#endif
    
    return -1;
 }
@@ -1246,14 +1158,8 @@ static RomBiosInfo* find_bios_info(char *szName, uint32_t crc, struct RomBiosInf
    for (int i = 0; bioses[i].filename != NULL; i++)
    {
       if (strcmp(bioses[i].filename, szName) == 0 || bioses[i].crc == crc)
-      {
          return &bioses[i];
-      }
    }
-
-#if 0
-   log_cb(RETRO_LOG_ERROR, "Bios not found: %s (crc: 0x%08x)\n", szName, crc);
-#endif
 
    return NULL;
 }
@@ -1403,9 +1309,6 @@ static bool open_archive()
             if (bad_crc)
                log_cb(RETRO_LOG_WARN, "[FBA] Using ROM at index %d with wrong CRC and name %s\n", i, rom_name);
 
-#if 0
-            log_cb(RETRO_LOG_INFO, "[FBA] Searching ROM at index %d with CRC 0x%08x and name %s => Found\n", i, g_find_list[i].ri.nCrc, rom_name);
-#endif                          
             // Search for the best bios available by category
             if (is_neogeo_game)
             {
@@ -1712,7 +1615,330 @@ static void check_variables(bool first_run)
       init_frameskip();
 }
 
-void retro_run()
+// Set the input descriptors by combininng the two lists of 'Normal' and 'Macros' inputs
+static void set_input_descriptors(void)
+{
+   struct retro_input_descriptor *input_descriptors = (struct retro_input_descriptor*)calloc(normal_input_descriptors.size() + 1,
+         sizeof(struct retro_input_descriptor));
+
+   unsigned input_descriptor_idx = 0;
+
+   for (unsigned i = 0; i < normal_input_descriptors.size(); i++, input_descriptor_idx++)
+      input_descriptors[input_descriptor_idx] = normal_input_descriptors[i];
+
+   input_descriptors[input_descriptor_idx].description = NULL;
+
+   environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors);
+   free(input_descriptors);
+}
+
+static inline INT32 CinpState(INT32 nCode)
+{
+   INT32 s, position;
+   INT32 id       = keybinds[nCode][0];
+   UINT32 port    = keybinds[nCode][1];
+   INT32 idx      = keybinds[nCode][2];
+   if(idx == 0)
+      return input_cb(port, RETRO_DEVICE_JOYPAD, 0, id);
+
+   s              = input_cb(port, RETRO_DEVICE_ANALOG, idx, id);
+   position       = keybinds[nCode][3];
+   if(s < -1000 && position == JOY_NEG)
+      return 1;
+   if(s > 1000 && position == JOY_POS)
+      return 1;
+   return 0;
+}
+
+static inline int CinpJoyAxis(int i, int axis)
+{
+   INT32 idx = axibinds[i][axis][0];
+   if(idx != 0xff)
+   {
+      INT32 id = axibinds[i][axis][1];
+      return input_cb(i, RETRO_DEVICE_ANALOG, idx, id);
+   }
+   INT32 idpos = axibinds[i][axis][1];
+   INT32 idneg = axibinds[i][axis][2];
+   INT32 spos  = input_cb(i, RETRO_DEVICE_JOYPAD, 0, idpos);
+   INT32 sneg  = input_cb(i, RETRO_DEVICE_JOYPAD, 0, idneg);
+   return (spos - sneg) * 32768;
+}
+
+static inline int CinpMouseAxis(int i, int axis) { return 0; }
+
+static INT32 InputTick(void)
+{
+	struct GameInp *pgi;
+	UINT32 i;
+
+	for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++)
+	{
+		INT32 nAdd = 0;
+		if ((pgi->nInput &  GIT_GROUP_SLIDER) == 0) // not a slider
+			continue;
+
+		if (pgi->nInput == GIT_KEYSLIDER)
+		{
+			// Get states of the two keys
+			if (CinpState(pgi->Input.Slider.SliderAxis.nSlider[0]))
+				nAdd -= 0x100;
+			if (CinpState(pgi->Input.Slider.SliderAxis.nSlider[1]))
+				nAdd += 0x100;
+		}
+
+		if (pgi->nInput == GIT_JOYSLIDER)
+		{
+			// Get state of the axis
+			nAdd = CinpJoyAxis(pgi->Input.Slider.JoyAxis.nJoy, pgi->Input.Slider.JoyAxis.nAxis);
+			nAdd /= 0x100;
+		}
+
+		// nAdd is now -0x100 to +0x100
+
+		// Change to slider speed
+		nAdd *= pgi->Input.Slider.nSliderSpeed;
+		nAdd /= 0x100;
+
+		if (pgi->Input.Slider.nSliderCenter) // Attact to center
+		{
+			INT32 v = pgi->Input.Slider.nSliderValue - 0x8000;
+			v      *= (pgi->Input.Slider.nSliderCenter - 1);
+			v      /= pgi->Input.Slider.nSliderCenter;
+			v      += 0x8000;
+			pgi->Input.Slider.nSliderValue = v;
+		}
+
+		pgi->Input.Slider.nSliderValue += nAdd;
+		// Limit slider
+		if (pgi->Input.Slider.nSliderValue < 0x0100)
+			pgi->Input.Slider.nSliderValue = 0x0100;
+		if (pgi->Input.Slider.nSliderValue > 0xFF00)
+			pgi->Input.Slider.nSliderValue = 0xFF00;
+	}
+	return 0;
+}
+
+static bool poll_diag_input(void)
+{
+   if (pgi_diag && diag_input)
+   {
+      one_diag_input_pressed = false;
+      all_diag_input_pressed = true;
+
+      for (int combo_idx = 0; diag_input[combo_idx] != RETRO_DEVICE_ID_JOYPAD_EMPTY; combo_idx++)
+      {
+         if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, diag_input[combo_idx]) == false)
+            all_diag_input_pressed = false;
+         else
+            one_diag_input_pressed = true;
+      }
+
+      if (diag_combo_activated == false && all_diag_input_pressed)
+      {
+         if (diag_input_combo_start_frame == 0) // => User starts holding all the combo inputs
+            diag_input_combo_start_frame = nCurrentFrame;
+         else if ((nCurrentFrame - diag_input_combo_start_frame) > diag_input_hold_frame_delay) // Delays of the hold reached
+            diag_combo_activated = true;
+      }
+      else if (one_diag_input_pressed == false)
+      {
+         diag_combo_activated = false;
+         diag_input_combo_start_frame = 0;
+      }
+
+      if (diag_combo_activated)
+      {
+         // Cancel each input of the combo at the emulator side to not interfere when the diagnostic menu will be opened and the combo not yet released
+         struct GameInp* pgi = GameInp;
+         for (int combo_idx = 0; diag_input[combo_idx] != RETRO_DEVICE_ID_JOYPAD_EMPTY; combo_idx++)
+         {
+            for (int i = 0; i < nGameInpCount; i++, pgi++)
+            {
+               if (pgi->nInput == GIT_SWITCH)
+               {
+                  pgi->Input.nVal = 0;
+                  *(pgi->Input.pVal) = pgi->Input.nVal;
+               }
+            }
+         }
+
+         // Activate the diagnostic key
+         pgi_diag->Input.nVal = 1;
+         *(pgi_diag->Input.pVal) = pgi_diag->Input.nVal;
+
+         // Return true to stop polling game inputs while diagnostic combo inputs is pressed
+         return true;
+      }
+   }
+
+   // Return false to poll game inputs
+   return false;
+}
+
+static void InputMake(void)
+{
+   UINT32 i;
+   struct GameInp* pgi;
+
+   poll_cb();
+
+   if (poll_diag_input())
+      return;
+
+   InputTick();
+
+   for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++)
+   {
+      if (pgi->Input.pVal == NULL)
+         continue;
+
+      switch (pgi->nInput)
+      {
+         case 0:									// Undefined
+            pgi->Input.nVal = 0;
+            break;
+         case GIT_CONSTANT:						// Constant value
+            pgi->Input.nVal = pgi->Input.Constant.nConst;
+            *(pgi->Input.pVal) = pgi->Input.nVal;
+            break;
+         case GIT_SWITCH: // Digital input
+            {
+               INT32 s = CinpState(pgi->Input.Switch.nCode);
+
+               if (pgi->nType & BIT_GROUP_ANALOG)
+               {
+                  // Set analog controls to full
+                  if (s)
+                     pgi->Input.nVal = 0xFFFF;
+                  else
+                     pgi->Input.nVal = 0x0001;
+#ifdef MSB_FIRST
+                  *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+                  *(pgi->Input.pShortVal) = pgi->Input.nVal;
+#endif
+               }
+               else
+               {
+                  // Binary controls
+                  if (s)
+                     pgi->Input.nVal = 1;
+                  else
+                     pgi->Input.nVal = 0;
+                  *(pgi->Input.pVal) = pgi->Input.nVal;
+               }
+
+               break;
+            }
+         case GIT_KEYSLIDER:						// Keyboard slider
+         case GIT_JOYSLIDER:                 // Joystick slider
+            {					
+               INT32 nSlider = pgi->Input.Slider.nSliderValue;
+               if (pgi->nType == BIT_ANALOG_REL)
+               {
+                  nSlider -= 0x8000;
+                  nSlider >>= 4;
+               }
+
+               pgi->Input.nVal                = (UINT16)nSlider;
+#ifdef MSB_FIRST
+               *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal)        = pgi->Input.nVal;
+#endif
+               break;
+            }
+         case GIT_MOUSEAXIS: // Mouse axis
+            pgi->Input.nVal = (UINT16)(CinpMouseAxis(pgi->Input.MouseAxis.nMouse, pgi->Input.MouseAxis.nAxis) * nAnalogSpeed);
+#ifdef MSB_FIRST
+            *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+            *(pgi->Input.pShortVal) = pgi->Input.nVal;
+#endif
+            break;
+         case GIT_JOYAXIS_FULL: // Joystick axis
+            {
+               INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
+
+               if (pgi->nType == BIT_ANALOG_REL) {
+                  nJoy *= nAnalogSpeed;
+                  nJoy >>= 13;
+
+                  // Clip axis to 8 bits
+                  if (nJoy < -32768)
+                     nJoy = -32768;
+                  if (nJoy >  32767)
+                     nJoy =  32767;
+               }
+               else
+               {
+                  nJoy >>= 1;
+                  nJoy += 0x8000;
+
+                  // Clip axis to 16 bits
+                  if (nJoy < 0x0001)
+                     nJoy = 0x0001;
+                  if (nJoy > 0xFFFF)
+                     nJoy = 0xFFFF;
+               }
+
+               pgi->Input.nVal                = (UINT16)nJoy;
+#ifdef MSB_FIRST
+               *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal)        = pgi->Input.nVal;
+#endif
+               break;
+            }
+         case GIT_JOYAXIS_NEG: // Joystick axis Lo
+            {				
+               INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
+               if (nJoy < 32767)
+               {
+                  nJoy = -nJoy;
+
+                  if (nJoy < 0x0000)
+                     nJoy = 0x0000;
+                  if (nJoy > 0xFFFF)
+                     nJoy = 0xFFFF;
+                  pgi->Input.nVal = (UINT16)nJoy;
+               }
+               else
+                  pgi->Input.nVal = 0;
+#ifdef MSB_FIRST
+               *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
+#endif
+            }
+            break;
+         case GIT_JOYAXIS_POS: // Joystick axis Hi
+            {
+               INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
+               if (nJoy > 32767)
+               {
+                  if (nJoy < 0x0000)
+                     nJoy = 0x0000;
+                  if (nJoy > 0xFFFF)
+                     nJoy = 0xFFFF;
+                  pgi->Input.nVal = (UINT16)nJoy;
+               }
+               else
+                  pgi->Input.nVal = 0;
+#ifdef MSB_FIRST
+               *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
+#else
+               *(pgi->Input.pShortVal) = pgi->Input.nVal;
+#endif
+            }
+            break;
+      }
+   }
+}
+
+
+void retro_run(void)
 {
    int width, height;
    BurnDrvGetVisibleSize(&width, &height);
@@ -1874,12 +2100,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    BurnDrvGetAspect(&game_aspect_x, &game_aspect_y);
 
    if (game_aspect_x != 0 && game_aspect_y != 0 && !core_aspect_par)
-   {
       geom.aspect_ratio = (float)game_aspect_x / (float)game_aspect_y;
-      log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: (%d/%d) = %f (core_aspect_par: %d)\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, game_aspect_x, game_aspect_y, geom.aspect_ratio, core_aspect_par);
-   }
-   else
-      log_cb(RETRO_LOG_INFO, "retro_get_system_av_info: base_width: %d, base_height: %d, max_width: %d, max_height: %d, aspect_ratio: %f\n", geom.base_width, geom.base_height, geom.max_width, geom.max_height, geom.aspect_ratio);
 
 #ifdef FBACORES_CPS
    struct retro_system_timing timing = { 59.629403, 59.629403 * AUDIO_SEGMENT_LENGTH };
@@ -1891,1085 +2112,42 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->timing   = timing;
 }
 
-int VidRecalcPal()
+// 1 analog to 2 digital mapping
+// Needs pgi, player, axis, 2 buttons retropad id and 2 descriptions
+static INT32 GameInpAnalog2RetroInpDualKeys(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis, UINT32 nKeyPos, UINT32 nKeyNeg, char *sznpos, char *sznneg)
 {
-   return BurnRecalcPal();
-}
+   struct retro_input_descriptor input_descriptor;
 
-static bool fba_init(unsigned driver, const char *game_zip_name)
-{
-   nBurnDrvActive = driver;
+   if(bButtonMapped) return 0;
 
-   if (!open_archive())
-   {
-      log_cb(RETRO_LOG_ERROR, "[FBA] Cannot find driver.\n");
-      return false;
-   }
+   pgi->nInput = GIT_JOYAXIS_FULL;
+   pgi->Input.JoyAxis.nAxis = nAxis;
+   pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
+   axibinds[nJoy][nAxis][0] = 0xff;
+   axibinds[nJoy][nAxis][1] = nKeyPos;
+   axibinds[nJoy][nAxis][2] = nKeyNeg;
 
-   nBurnBpp = 2;
-   nFMInterpolation = 3;
-   nInterpolation = 1;
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
+   input_descriptor.index       = 0;
+   input_descriptor.id          = nKeyPos;
+   input_descriptor.description = sznpos;
 
-   init_input();
+   normal_input_descriptors.push_back(input_descriptor);
 
-   InpDIPSWInit();
+   input_descriptor.port        = nJoy;
+   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
+   input_descriptor.index       = 0;
+   input_descriptor.id          = nKeyNeg;
+   input_descriptor.description = sznneg;
 
-   BurnDrvInit();
-
-   char input_fs[1024];
-   snprintf(input_fs, sizeof(input_fs), "%s%c%s.fs", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
-   BurnStateLoad(input_fs, 0, NULL);
-
-   int width, height;
-   BurnDrvGetVisibleSize(&width, &height);
-   nBurnPitch = width * sizeof(uint16_t);
-
-   if (!(BurnDrvIsWorking()))
-   {
-      log_cb(RETRO_LOG_ERROR, "[FBA] Game %s is not marked as working\n", game_zip_name);
-      return false;
-   }
-
-   log_cb(RETRO_LOG_INFO, "Game: %s\n", game_zip_name);
-
-   VidRecalcPal();
-
-#ifdef FRONTEND_SUPPORTS_RGB565
-   enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
-
-   if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-      log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
-#endif
-
-   return true;
-}
-
-#if defined(FRONTEND_SUPPORTS_RGB565)
-static unsigned int HighCol16(int r, int g, int b, int  /* i */)
-{
-   return (((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001f));
-}
-#else
-static unsigned int HighCol15(int r, int g, int b, int  /* i */)
-{
-   return (((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001f));
-}
-#endif
-
-static void extract_basename(char *buf, const char *path, size_t size)
-{
-   const char *base = strrchr(path, '/');
-   if (!base)
-      base = strrchr(path, '\\');
-   if (!base)
-      base = path;
-
-   if (*base == '\\' || *base == '/')
-      base++;
-
-   strncpy(buf, base, size - 1);
-   buf[size - 1] = '\0';
-
-   char *ext = strrchr(buf, '.');
-   if (ext)
-      *ext = '\0';
-}
-
-static void extract_directory(char *buf, const char *path, size_t size)
-{
-   strncpy(buf, path, size - 1);
-   buf[size - 1] = '\0';
-
-   char *base = strrchr(buf, '/');
-   if (!base)
-      base = strrchr(buf, '\\');
-
-   if (base)
-      *base = '\0';
-   else
-   {
-      buf[0] = '.';
-      buf[1] = '\0';
-   }
-}
-
-bool retro_load_game(const struct retro_game_info *info)
-{
-   char basename[128];
-
-   if (!info)
-      return false;
-
-   extract_basename(basename, info->path, sizeof(basename));
-   extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
-
-   const char *dir = NULL;
-   // If save directory is defined use it, ...
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
-   {
-      strncpy(g_save_dir, dir, sizeof(g_save_dir));
-      log_cb(RETRO_LOG_INFO, "Setting save dir to %s\n", g_save_dir);
-   }
-   else
-   {
-      // ... otherwise use rom directory
-      strncpy(g_save_dir, g_rom_dir, sizeof(g_save_dir));
-      log_cb(RETRO_LOG_ERROR, "Save dir not defined => use roms dir %s\n", g_save_dir);
-   }
-
-   // If system directory is defined use it, ...
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-   {
-      strncpy(g_system_dir, dir, sizeof(g_system_dir));
-      log_cb(RETRO_LOG_INFO, "Setting system dir to %s\n", g_system_dir);
-   }
-   else
-   {
-      // ... otherwise use rom directory
-      strncpy(g_system_dir, g_rom_dir, sizeof(g_system_dir));
-      log_cb(RETRO_LOG_ERROR, "System dir not defined => use roms dir %s\n", g_system_dir);
-   }
-
-   unsigned i = BurnDrvGetIndexByName(basename);
-   if (i < nBurnDrvCount)
-   {
-      INT32 width, height;
-
-      const char * boardrom = BurnDrvGetTextA(DRV_BOARDROM);
-      is_neogeo_game = (boardrom && strcmp(boardrom, "neogeo") == 0);
-
-      // Define nMaxPlayers early;
-      nMaxPlayers = BurnDrvGetMaxPlayers();
-      set_controller_infos();
-
-      set_environment();
-      check_variables(true);
-
-      pBurnSoundOut = g_audio_buf;
-      nBurnSoundRate = AUDIO_SAMPLERATE;
-      nBurnSoundLen = AUDIO_SEGMENT_LENGTH;
-
-      if (!fba_init(i, basename))
-         goto error;
-
-      driver_inited = true;
-
-      BurnDrvGetFullSize(&width, &height);
-
-      g_fba_frame = (uint16_t*)malloc(width * height * sizeof(uint16_t));
-
-      return true;
-   }
-
-error:
-   log_cb(RETRO_LOG_ERROR, "[FBA] Cannot load this game.\n");
-   return false;
-}
-
-bool retro_load_game_special(unsigned, const struct retro_game_info*, size_t)
-{
-   return false;
-}
-
-void retro_unload_game(void)
-{
-}
-
-unsigned retro_get_region(void)
-{
-   return RETRO_REGION_NTSC;
-}
-
-void *retro_get_memory_data(unsigned)
-{
+   normal_input_descriptors.push_back(input_descriptor);
+   bButtonMapped = true;
    return 0;
 }
-
-size_t retro_get_memory_size(unsigned)
-{
-   return 0;
-}
-
-unsigned retro_api_version(void)
-{
-   return RETRO_API_VERSION;
-}
-
-void retro_set_controller_port_device(unsigned port, unsigned device)
-{
-	if (port < nMaxPlayers && fba_devices[port] != device)
-	{
-		fba_devices[port] = device;
-		init_input();
-	}
-}
-
-static const char *print_label(unsigned i)
-{
-   switch(i)
-   {
-      case RETRO_DEVICE_ID_JOYPAD_B:
-         return "RetroPad B Button";
-      case RETRO_DEVICE_ID_JOYPAD_Y:
-         return "RetroPad Y Button";
-      case RETRO_DEVICE_ID_JOYPAD_SELECT:
-         return "RetroPad Select Button";
-      case RETRO_DEVICE_ID_JOYPAD_START:
-         return "RetroPad Start Button";
-      case RETRO_DEVICE_ID_JOYPAD_UP:
-         return "RetroPad D-Pad Up";
-      case RETRO_DEVICE_ID_JOYPAD_DOWN:
-         return "RetroPad D-Pad Down";
-      case RETRO_DEVICE_ID_JOYPAD_LEFT:
-         return "RetroPad D-Pad Left";
-      case RETRO_DEVICE_ID_JOYPAD_RIGHT:
-         return "RetroPad D-Pad Right";
-      case RETRO_DEVICE_ID_JOYPAD_A:
-         return "RetroPad A Button";
-      case RETRO_DEVICE_ID_JOYPAD_X:
-         return "RetroPad X Button";
-      case RETRO_DEVICE_ID_JOYPAD_L:
-         return "RetroPad L Button";
-      case RETRO_DEVICE_ID_JOYPAD_R:
-         return "RetroPad R Button";
-      case RETRO_DEVICE_ID_JOYPAD_L2:
-         return "RetroPad L2 Button";
-      case RETRO_DEVICE_ID_JOYPAD_R2:
-         return "RetroPad R2 Button";
-      case RETRO_DEVICE_ID_JOYPAD_L3:
-         return "RetroPad L3 Button";
-      case RETRO_DEVICE_ID_JOYPAD_R3:
-         return "RetroPad R3 Button";
-      case RETRO_DEVICE_ID_JOYPAD_EMPTY:
-         return "None";
-      default:
-         return "No known label";
-   }
-}
-
-static bool init_input(void)
-{
-   switch_ncode = 0;
-
-   normal_input_descriptors.clear();
-   for (unsigned i = 0; i < MAX_KEYBINDS; i++) {
-      keybinds[i][0] = 0xff;
-      keybinds[i][2] = 0;
-   }
-   for (unsigned i = 0; i < 5; i++) {
-      for (unsigned j = 0; j < 8; j++) {
-         axibinds[i][j][0] = 0;
-         axibinds[i][j][1] = 0;
-         axibinds[i][j][2] = 0;
-      }
-   }
-
-   GameInpInit();
-   GameInpDefault();
-
-   // Update core option for diagnostic input
-   set_environment();
-   // Read the user core option values
-   check_variables(false);
-
-   // The list of normal and macro input_descriptors are filled, we can assign all the input_descriptors to retroarch
-   set_input_descriptors();
-
-   return 0;
-}
-
-//#define DEBUG_INPUT
-//
-
-static inline INT32 CinpState(INT32 nCode)
-{
-   INT32 id = keybinds[nCode][0];
-   UINT32 port = keybinds[nCode][1];
-   INT32 idx = keybinds[nCode][2];
-   if(idx == 0)
-   {
-      return input_cb(port, RETRO_DEVICE_JOYPAD, 0, id);
-   }
-   else
-   {
-      INT32 s = input_cb(port, RETRO_DEVICE_ANALOG, idx, id);
-      INT32 position = keybinds[nCode][3];
-      if(s < -1000 && position == JOY_NEG)
-         return 1;
-      if(s > 1000 && position == JOY_POS)
-         return 1;
-   }
-   return 0;
-}
-
-static inline int CinpJoyAxis(int i, int axis)
-{
-   INT32 idx = axibinds[i][axis][0];
-   if(idx != 0xff)
-   {
-      INT32 id = axibinds[i][axis][1];
-      return input_cb(i, RETRO_DEVICE_ANALOG, idx, id);
-   }
-   else
-   {
-      INT32 idpos = axibinds[i][axis][1];
-      INT32 idneg = axibinds[i][axis][2];
-      INT32 spos = input_cb(i, RETRO_DEVICE_JOYPAD, 0, idpos);
-      INT32 sneg = input_cb(i, RETRO_DEVICE_JOYPAD, 0, idneg);
-      return (spos - sneg) * 32768;
-   }
-   return 0;
-}
-
-static inline int CinpMouseAxis(int i, int axis)
-{
-   return 0;
-}
-
-static bool poll_diag_input()
-{
-   if (pgi_diag && diag_input)
-   {
-      one_diag_input_pressed = false;
-      all_diag_input_pressed = true;
-
-      for (int combo_idx = 0; diag_input[combo_idx] != RETRO_DEVICE_ID_JOYPAD_EMPTY; combo_idx++)
-      {
-         if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, diag_input[combo_idx]) == false)
-            all_diag_input_pressed = false;
-         else
-            one_diag_input_pressed = true;
-      }
-
-      if (diag_combo_activated == false && all_diag_input_pressed)
-      {
-         if (diag_input_combo_start_frame == 0) // => User starts holding all the combo inputs
-            diag_input_combo_start_frame = nCurrentFrame;
-         else if ((nCurrentFrame - diag_input_combo_start_frame) > diag_input_hold_frame_delay) // Delays of the hold reached
-            diag_combo_activated = true;
-      }
-      else if (one_diag_input_pressed == false)
-      {
-         diag_combo_activated = false;
-         diag_input_combo_start_frame = 0;
-      }
-
-      if (diag_combo_activated)
-      {
-         // Cancel each input of the combo at the emulator side to not interfere when the diagnostic menu will be opened and the combo not yet released
-         struct GameInp* pgi = GameInp;
-         for (int combo_idx = 0; diag_input[combo_idx] != RETRO_DEVICE_ID_JOYPAD_EMPTY; combo_idx++)
-         {
-            for (int i = 0; i < nGameInpCount; i++, pgi++)
-            {
-               if (pgi->nInput == GIT_SWITCH)
-               {
-                  pgi->Input.nVal = 0;
-                  *(pgi->Input.pVal) = pgi->Input.nVal;
-               }
-            }
-         }
-
-         // Activate the diagnostic key
-         pgi_diag->Input.nVal = 1;
-         *(pgi_diag->Input.pVal) = pgi_diag->Input.nVal;
-
-         // Return true to stop polling game inputs while diagnostic combo inputs is pressed
-         return true;
-      }
-   }
-
-   // Return false to poll game inputs
-   return false;
-}
-
-static INT32 InputTick()
-{
-	struct GameInp *pgi;
-	UINT32 i;
-
-	for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++) {
-		INT32 nAdd = 0;
-		if ((pgi->nInput &  GIT_GROUP_SLIDER) == 0) {				// not a slider
-			continue;
-		}
-
-		if (pgi->nInput == GIT_KEYSLIDER) {
-			// Get states of the two keys
-			if (CinpState(pgi->Input.Slider.SliderAxis.nSlider[0]))	{
-				nAdd -= 0x100;
-			}
-			if (CinpState(pgi->Input.Slider.SliderAxis.nSlider[1]))	{
-				nAdd += 0x100;
-			}
-		}
-
-		if (pgi->nInput == GIT_JOYSLIDER) {
-			// Get state of the axis
-			nAdd = CinpJoyAxis(pgi->Input.Slider.JoyAxis.nJoy, pgi->Input.Slider.JoyAxis.nAxis);
-			nAdd /= 0x100;
-		}
-
-		// nAdd is now -0x100 to +0x100
-
-		// Change to slider speed
-		nAdd *= pgi->Input.Slider.nSliderSpeed;
-		nAdd /= 0x100;
-
-		if (pgi->Input.Slider.nSliderCenter) {						// Attact to center
-			INT32 v = pgi->Input.Slider.nSliderValue - 0x8000;
-			v *= (pgi->Input.Slider.nSliderCenter - 1);
-			v /= pgi->Input.Slider.nSliderCenter;
-			v += 0x8000;
-			pgi->Input.Slider.nSliderValue = v;
-		}
-
-		pgi->Input.Slider.nSliderValue += nAdd;
-		// Limit slider
-		if (pgi->Input.Slider.nSliderValue < 0x0100) {
-			pgi->Input.Slider.nSliderValue = 0x0100;
-		}
-		if (pgi->Input.Slider.nSliderValue > 0xFF00) {
-			pgi->Input.Slider.nSliderValue = 0xFF00;
-		}
-	}
-	return 0;
-}
-
-static void InputMake(void)
-{
-   poll_cb();
-
-   if (poll_diag_input())
-      return;
-
-   struct GameInp* pgi;
-   UINT32 i;
-
-   InputTick();
-
-   for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++) {
-      if (pgi->Input.pVal == NULL) {
-         continue;
-      }
-
-      switch (pgi->nInput) {
-         case 0:									// Undefined
-            pgi->Input.nVal = 0;
-            break;
-         case GIT_CONSTANT:						// Constant value
-            pgi->Input.nVal = pgi->Input.Constant.nConst;
-            *(pgi->Input.pVal) = pgi->Input.nVal;
-            break;
-         case GIT_SWITCH: {						// Digital input
-            INT32 s = CinpState(pgi->Input.Switch.nCode);
-
-            if (pgi->nType & BIT_GROUP_ANALOG) {
-               // Set analog controls to full
-               if (s) {
-                  pgi->Input.nVal = 0xFFFF;
-               } else {
-                  pgi->Input.nVal = 0x0001;
-               }
-#ifdef MSB_FIRST
-               *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
-               *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#endif
-            } else {
-               // Binary controls
-               if (s) {
-                  pgi->Input.nVal = 1;
-               } else {
-                  pgi->Input.nVal = 0;
-               }
-                  *(pgi->Input.pVal) = pgi->Input.nVal;
-            }
-
-            break;
-         }
-         case GIT_KEYSLIDER:						// Keyboard slider
-         case GIT_JOYSLIDER:	{					// Joystick slider
-            INT32 nSlider = pgi->Input.Slider.nSliderValue;
-            if (pgi->nType == BIT_ANALOG_REL) {
-               nSlider -= 0x8000;
-               nSlider >>= 4;
-            }
-
-            pgi->Input.nVal = (UINT16)nSlider;
-#ifdef MSB_FIRST
-            *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
-            *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#endif
-            break;
-         }
-         case GIT_MOUSEAXIS:						// Mouse axis
-            pgi->Input.nVal = (UINT16)(CinpMouseAxis(pgi->Input.MouseAxis.nMouse, pgi->Input.MouseAxis.nAxis) * nAnalogSpeed);
-#ifdef MSB_FIRST
-            *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
-            *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#endif
-            break;
-         case GIT_JOYAXIS_FULL:	{				// Joystick axis
-            INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
-
-            if (pgi->nType == BIT_ANALOG_REL) {
-               nJoy *= nAnalogSpeed;
-               nJoy >>= 13;
-
-               // Clip axis to 8 bits
-               if (nJoy < -32768) {
-                  nJoy = -32768;
-               }
-               if (nJoy >  32767) {
-                  nJoy =  32767;
-               }
-            } else {
-               nJoy >>= 1;
-               nJoy += 0x8000;
-
-               // Clip axis to 16 bits
-               if (nJoy < 0x0001) {
-                  nJoy = 0x0001;
-               }
-               if (nJoy > 0xFFFF) {
-                  nJoy = 0xFFFF;
-               }
-            }
-
-            pgi->Input.nVal = (UINT16)nJoy;
-#ifdef MSB_FIRST
-            *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
-            *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#endif
-            break;
-         }
-         case GIT_JOYAXIS_NEG:	{				// Joystick axis Lo
-            INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
-            if (nJoy < 32767) {
-               nJoy = -nJoy;
-
-               if (nJoy < 0x0000) {
-                  nJoy = 0x0000;
-               }
-               if (nJoy > 0xFFFF) {
-                  nJoy = 0xFFFF;
-               }
-
-               pgi->Input.nVal = (UINT16)nJoy;
-            } else {
-               pgi->Input.nVal = 0;
-            }
-
-#ifdef MSB_FIRST
-            *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
-            *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#endif
-            break;
-         }
-         case GIT_JOYAXIS_POS:	{				// Joystick axis Hi
-            INT32 nJoy = CinpJoyAxis(pgi->Input.JoyAxis.nJoy, pgi->Input.JoyAxis.nAxis);
-            if (nJoy > 32767) {
-
-               if (nJoy < 0x0000) {
-                  nJoy = 0x0000;
-               }
-               if (nJoy > 0xFFFF) {
-                  nJoy = 0xFFFF;
-               }
-
-               pgi->Input.nVal = (UINT16)nJoy;
-            } else {
-               pgi->Input.nVal = 0;
-            }
-
-#ifdef MSB_FIRST
-            *((int *)pgi->Input.pShortVal) = pgi->Input.nVal;
-#else
-            *(pgi->Input.pShortVal) = pgi->Input.nVal;
-#endif
-            break;
-         }
-      }
-   }
-}
-
-static unsigned int BurnDrvGetIndexByName(const char* name)
-{
-   unsigned int i;
-   unsigned int ret = ~0U;
-
-   for (i = 0; i < nBurnDrvCount; i++)
-   {
-      nBurnDrvActive = i;
-      if (!strcmp(BurnDrvGetText(DRV_NAME), name))
-      {
-         ret = i;
-         break;
-      }
-   }
-   return ret;
-}
-
-#ifdef ANDROID
-#include <wchar.h>
-
-size_t mbstowcs(wchar_t *pwcs, const char *s, size_t n)
-{
-   if (pwcs == NULL)
-      return strlen(s);
-   return mbsrtowcs(pwcs, &s, n, NULL);
-}
-
-size_t wcstombs(char *s, const wchar_t *pwcs, size_t n)
-{
-   return wcsrtombs(s, &pwcs, n, NULL);
-}
-
-#endif
-
-// Set the input descriptors by combininng the two lists of 'Normal' and 'Macros' inputs
-static void set_input_descriptors(void)
-{
-   struct retro_input_descriptor *input_descriptors = (struct retro_input_descriptor*)calloc(normal_input_descriptors.size() + 1,
-         sizeof(struct retro_input_descriptor));
-
-   unsigned input_descriptor_idx = 0;
-
-   for (unsigned i = 0; i < normal_input_descriptors.size(); i++, input_descriptor_idx++)
-   {
-      input_descriptors[input_descriptor_idx] = normal_input_descriptors[i];
-   }
-
-   input_descriptors[input_descriptor_idx].description = NULL;
-
-   environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, input_descriptors);
-   free(input_descriptors);
-}
-
-INT32 GameInpBlank(INT32 bDipSwitch)
-{
-	UINT32 i = 0;
-	struct GameInp* pgi = NULL;
-
-	// Reset all inputs to undefined (even dip switches, if bDipSwitch==1)
-	if (GameInp == NULL)
-		return 1;
-
-	// Get the targets in the library for the Input Values
-	for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++) {
-		struct BurnInputInfo bii;
-		memset(&bii, 0, sizeof(bii));
-		BurnDrvGetInputInfo(&bii, i);
-		if (bDipSwitch == 0 && (bii.nType & BIT_GROUP_CONSTANT)) {		// Don't blank the dip switches
-			continue;
-		}
-
-		memset(pgi, 0, sizeof(*pgi));									// Clear input
-
-		pgi->nType = bii.nType;											// store input type
-		pgi->Input.pVal = bii.pVal;										// store input pointer to value
-
-		if (bii.nType & BIT_GROUP_CONSTANT) {							// Further initialisation for constants/DIPs
-			pgi->nInput = GIT_CONSTANT;
-			pgi->Input.Constant.nConst = *bii.pVal;
-		}
-	}
-
-	for (i = 0; i < nMacroCount; i++, pgi++) {
-		pgi->Macro.nMode = 0;
-		if (pgi->nInput == GIT_MACRO_CUSTOM) {
-			pgi->nInput = 0;
-		}
-	}
-
-	return 0;
-}
-
-static void GameInpInitMacros()
-{
-	struct GameInp* pgi;
-	struct BurnInputInfo bii;
-
-	INT32 nPunchx3[4] = {0, 0, 0, 0};
-	INT32 nPunchInputs[4][3];
-	INT32 nKickx3[4] = {0, 0, 0, 0};
-	INT32 nKickInputs[4][3];
-
-	INT32 nNeogeoButtons[4][4];
-	INT32 nPgmButtons[10][16];
-
-	bStreetFighterLayout = false;
-	bVolumeIsFireButton = false;
-	nMacroCount = 0;
-
-	nFireButtons = 0;
-
-	memset(&nNeogeoButtons, 0, sizeof(nNeogeoButtons));
-	memset(&nPgmButtons, 0, sizeof(nPgmButtons));
-
-	for (UINT32 i = 0; i < nGameInpCount; i++) {
-		bii.szName = NULL;
-		BurnDrvGetInputInfo(&bii, i);
-		if (bii.szName == NULL) {
-			bii.szName = "";
-		}
-
-		bool bPlayerInInfo = (toupper(bii.szInfo[0]) == 'P' && bii.szInfo[1] >= '1' && bii.szInfo[1] <= '4'); // Because some of the older drivers don't use the standard input naming.
-		bool bPlayerInName = (bii.szName[0] == 'P' && bii.szName[1] >= '1' && bii.szName[1] <= '4');
-
-		if (bPlayerInInfo || bPlayerInName) {
-			INT32 nPlayer = 0;
-
-			if (bPlayerInName)
-				nPlayer = bii.szName[1] - '1';
-			if (bPlayerInInfo && nPlayer == 0)
-				nPlayer = bii.szInfo[1] - '1';
-
-			if (nPlayer == 0) {
-				if (strncmp(" fire", bii.szInfo + 2, 5) == 0) {
-					nFireButtons++;
-				}
-			}
-
-			if ((strncmp("Volume", bii.szName, 6) == 0) && (strncmp(" fire", bii.szInfo + 2, 5) == 0)) {
-				bVolumeIsFireButton = true;
-			}
-			if (_stricmp(" Weak Punch", bii.szName + 2) == 0) {
-				nPunchx3[nPlayer] |= 1;
-				nPunchInputs[nPlayer][0] = i;
-			}
-			if (_stricmp(" Medium Punch", bii.szName + 2) == 0) {
-				nPunchx3[nPlayer] |= 2;
-				nPunchInputs[nPlayer][1] = i;
-			}
-			if (_stricmp(" Strong Punch", bii.szName + 2) == 0) {
-				nPunchx3[nPlayer] |= 4;
-				nPunchInputs[nPlayer][2] = i;
-			}
-			if (_stricmp(" Weak Kick", bii.szName + 2) == 0) {
-				nKickx3[nPlayer] |= 1;
-				nKickInputs[nPlayer][0] = i;
-			}
-			if (_stricmp(" Medium Kick", bii.szName + 2) == 0) {
-				nKickx3[nPlayer] |= 2;
-				nKickInputs[nPlayer][1] = i;
-			}
-			if (_stricmp(" Strong Kick", bii.szName + 2) == 0) {
-				nKickx3[nPlayer] |= 4;
-				nKickInputs[nPlayer][2] = i;
-			}
-
-			if ((BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO) {
-				if (_stricmp(" Button A", bii.szName + 2) == 0) {
-					nNeogeoButtons[nPlayer][0] = i;
-				}
-				if (_stricmp(" Button B", bii.szName + 2) == 0) {
-					nNeogeoButtons[nPlayer][1] = i;
-				}
-				if (_stricmp(" Button C", bii.szName + 2) == 0) {
-					nNeogeoButtons[nPlayer][2] = i;
-				}
-				if (_stricmp(" Button D", bii.szName + 2) == 0) {
-					nNeogeoButtons[nPlayer][3] = i;
-				}
-			}
-
-			//if ((BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_IGS_PGM) {
-			{ // Use nPgmButtons for Autofire too -dink
-				if ((_stricmp(" Button 1", bii.szName + 2) == 0) || (_stricmp(" fire 1", bii.szInfo + 2) == 0)) {
-					nPgmButtons[nPlayer][0] = i;
-				}
-				if ((_stricmp(" Button 2", bii.szName + 2) == 0) || (_stricmp(" fire 2", bii.szInfo + 2) == 0)) {
-					nPgmButtons[nPlayer][1] = i;
-				}
-				if ((_stricmp(" Button 3", bii.szName + 2) == 0) || (_stricmp(" fire 3", bii.szInfo + 2) == 0)) {
-					nPgmButtons[nPlayer][2] = i;
-				}
-				if ((_stricmp(" Button 4", bii.szName + 2) == 0) || (_stricmp(" fire 4", bii.szInfo + 2) == 0)) {
-					nPgmButtons[nPlayer][3] = i;
-				}
-				if ((_stricmp(" Button 5", bii.szName + 2) == 0) || (_stricmp(" fire 5", bii.szInfo + 2) == 0)) {
-					nPgmButtons[nPlayer][4] = i;
-				}
-				if ((_stricmp(" Button 6", bii.szName + 2) == 0) || (_stricmp(" fire 6", bii.szInfo + 2) == 0)) {
-					nPgmButtons[nPlayer][5] = i;
-				}
-			}
-		}
-	}
-
-	pgi = GameInp + nGameInpCount;
-
-	{ // Autofire!!!
-			for (INT32 nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++) {
-				for (INT32 i = 0; i < nFireButtons; i++) {
-					pgi->nInput = GIT_MACRO_AUTO;
-					pgi->nType = BIT_DIGITAL;
-					pgi->Macro.nMode = 0;
-					pgi->Macro.nSysMacro = 15; // 15 = Auto-Fire mode
-					sprintf(pgi->Macro.szName, "P%d Auto-Fire Button %d", nPlayer+1, i+1);
-
-					if ((BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO) {
-						BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][i]);
-					} else {
-						BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][i]);
-					}
-					pgi->Macro.pVal[0] = bii.pVal;
-					pgi->Macro.nVal[0] = 1;
-					nMacroCount++;
-					pgi++;
-				}
-			}
-	}
-
-	for (INT32 nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++) {
-		if (nPunchx3[nPlayer] == 7) {		// Create a 3x punch macro
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-
-			sprintf(pgi->Macro.szName, "P%i 3× Punch", nPlayer + 1);
-			for (INT32 j = 0; j < 3; j++) {
-				BurnDrvGetInputInfo(&bii, nPunchInputs[nPlayer][j]);
-				pgi->Macro.pVal[j] = bii.pVal;
-				pgi->Macro.nVal[j] = 1;
-			}
-
-			nMacroCount++;
-			pgi++;
-		}
-
-		if (nKickx3[nPlayer] == 7) {		// Create a 3x kick macro
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-
-			sprintf(pgi->Macro.szName, "P%i 3× Kick", nPlayer + 1);
-			for (INT32 j = 0; j < 3; j++) {
-				BurnDrvGetInputInfo(&bii, nKickInputs[nPlayer][j]);
-				pgi->Macro.pVal[j] = bii.pVal;
-				pgi->Macro.nVal[j] = 1;
-			}
-
-			nMacroCount++;
-			pgi++;
-		}
-
-		if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO) {
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons AB", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons AC", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons AD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons BC", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons BD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons CD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ABC", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ABD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ACD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons BCD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			nMacroCount++;
-			pgi++;
-
-			pgi->nInput = GIT_MACRO_AUTO;
-			pgi->nType = BIT_DIGITAL;
-			pgi->Macro.nMode = 0;
-			sprintf(pgi->Macro.szName, "P%i Buttons ABCD", nPlayer + 1);
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
-			pgi->Macro.pVal[0] = bii.pVal;
-			pgi->Macro.nVal[0] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
-			pgi->Macro.pVal[1] = bii.pVal;
-			pgi->Macro.nVal[1] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
-			pgi->Macro.pVal[2] = bii.pVal;
-			pgi->Macro.nVal[2] = 1;
-			BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
-			pgi->Macro.pVal[3] = bii.pVal;
-			pgi->Macro.nVal[3] = 1;
-			nMacroCount++;
-			pgi++;
-		}
-	}
-
-	if ((nPunchx3[0] == 7) && (nKickx3[0] == 7)) {
-		bStreetFighterLayout = true;
-	}
-	if (nFireButtons >= 5 && (BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_CAPCOM_CPS2 && !bVolumeIsFireButton) {
-		bStreetFighterLayout = true;
-	}
-}
-
-INT32 GameInpInit()
-{
-	INT32 nRet = 0;
-	// Count the number of inputs
-	nGameInpCount = 0;
-	nMacroCount = 0;
-	nMaxMacro = nMaxPlayers * 52;
-
-	for (UINT32 i = 0; i < 0x1000; i++) {
-		nRet = BurnDrvGetInputInfo(NULL,i);
-		if (nRet) {														// end of input list
-			nGameInpCount = i;
-			break;
-		}
-	}
-
-	// Allocate space for all the inputs
-	INT32 nSize = (nGameInpCount + nMaxMacro) * sizeof(struct GameInp);
-	GameInp = (struct GameInp*)malloc(nSize);
-	if (GameInp == NULL) {
-		return 1;
-	}
-	memset(GameInp, 0, nSize);
-
-	GameInpBlank(1);
-
-	InpDIPSWResetDIPs();
-
-	GameInpInitMacros();
-
-	nAnalogSpeed = 0x0100;
-
-	return 0;
-}
-
 
 // Analog to analog mapping
-INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis, UINT32 nKey, UINT32 nIndex, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0E00, INT16 nSliderCenter = 10)
+static INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis, UINT32 nKey, UINT32 nIndex, char *szn, UINT8 nInput = GIT_JOYAXIS_FULL, INT32 nSliderValue = 0x8000, INT16 nSliderSpeed = 0x0E00, INT16 nSliderCenter = 10)
 {
    struct retro_input_descriptor input_descriptor;
 
@@ -3025,24 +2203,25 @@ INT32 GameInpAnalog2RetroInpAnalog(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis
 }
 
 // Digital to digital mapping
-INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, char *szn)
+static INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, char *szn)
 {
-   struct retro_input_descriptor input_descriptor;
 
-   if(bButtonMapped) return 0;
+   if (!bButtonMapped)
+   {
+      struct retro_input_descriptor input_descriptor;
+      input_descriptor.port                = nJoy;
+      input_descriptor.device              = RETRO_DEVICE_JOYPAD;
+      input_descriptor.index               = 0;
+      input_descriptor.id                  = nKey;
+      input_descriptor.description         = szn;
 
-   input_descriptor.port        = nJoy;
-   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
-   input_descriptor.index       = 0;
-   input_descriptor.id          = nKey;
-   input_descriptor.description = szn;
-
-   pgi->nInput = GIT_SWITCH;
-   pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
-   keybinds[pgi->Input.Switch.nCode][0] = nKey;
-   keybinds[pgi->Input.Switch.nCode][1] = nJoy;
-   normal_input_descriptors.push_back(input_descriptor);
-   bButtonMapped = true;
+      pgi->nInput                          = GIT_SWITCH;
+      pgi->Input.Switch.nCode              = (UINT16)(switch_ncode++);
+      keybinds[pgi->Input.Switch.nCode][0] = nKey;
+      keybinds[pgi->Input.Switch.nCode][1] = nJoy;
+      normal_input_descriptors.push_back(input_descriptor);
+      bButtonMapped = true;
+   }
    return 0;
 }
 
@@ -3051,7 +2230,7 @@ INT32 GameInpDigital2RetroInpKey(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, 
 // nJoy (player) and nKey (axis) needs to be the same for each of the 2 buttons
 // position is either JOY_POS or JOY_NEG (the position expected on axis to trigger the button)
 // szn is the descriptor text
-INT32 GameInpDigital2RetroInpAnalogRight(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, UINT32 position, char *szn)
+static INT32 GameInpDigital2RetroInpAnalogRight(struct GameInp* pgi, UINT32 nJoy, UINT32 nKey, UINT32 position, char *szn)
 {
    struct retro_input_descriptor input_descriptor;
 
@@ -3063,368 +2242,18 @@ INT32 GameInpDigital2RetroInpAnalogRight(struct GameInp* pgi, UINT32 nJoy, UINT3
    input_descriptor.id          = nKey;
    input_descriptor.description = szn;
 
-   pgi->nInput = GIT_SWITCH;
-   pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
-   keybinds[pgi->Input.Switch.nCode][0] = nKey;
-   keybinds[pgi->Input.Switch.nCode][1] = nJoy;
-   keybinds[pgi->Input.Switch.nCode][2] = RETRO_DEVICE_INDEX_ANALOG_RIGHT;
-   keybinds[pgi->Input.Switch.nCode][3] = position;
+   pgi->nInput                                   = GIT_SWITCH;
+   pgi->Input.Switch.nCode                       = (UINT16)(switch_ncode++);
+   keybinds[pgi->Input.Switch.nCode][0]          = nKey;
+   keybinds[pgi->Input.Switch.nCode][1]          = nJoy;
+   keybinds[pgi->Input.Switch.nCode][2]          = RETRO_DEVICE_INDEX_ANALOG_RIGHT;
+   keybinds[pgi->Input.Switch.nCode][3]          = position;
    bAnalogRightMappingDone[nJoy][nKey][position] = true;
-   if(bAnalogRightMappingDone[nJoy][nKey][JOY_POS] && bAnalogRightMappingDone[nJoy][nKey][JOY_NEG]) {
+   if(bAnalogRightMappingDone[nJoy][nKey][JOY_POS] && bAnalogRightMappingDone[nJoy][nKey][JOY_NEG])
       normal_input_descriptors.push_back(input_descriptor);
-   }
    bButtonMapped = true;
    return 0;
 }
-
-// 1 analog to 2 digital mapping
-// Needs pgi, player, axis, 2 buttons retropad id and 2 descriptions
-INT32 GameInpAnalog2RetroInpDualKeys(struct GameInp* pgi, UINT32 nJoy, UINT8 nAxis, UINT32 nKeyPos, UINT32 nKeyNeg, char *sznpos, char *sznneg)
-{
-   struct retro_input_descriptor input_descriptor;
-
-   if(bButtonMapped) return 0;
-
-   pgi->nInput = GIT_JOYAXIS_FULL;
-   pgi->Input.JoyAxis.nAxis = nAxis;
-   pgi->Input.JoyAxis.nJoy = (UINT8)nJoy;
-   axibinds[nJoy][nAxis][0] = 0xff;
-   axibinds[nJoy][nAxis][1] = nKeyPos;
-   axibinds[nJoy][nAxis][2] = nKeyNeg;
-
-   input_descriptor.port        = nJoy;
-   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
-   input_descriptor.index       = 0;
-   input_descriptor.id          = nKeyPos;
-   input_descriptor.description = sznpos;
-
-   normal_input_descriptors.push_back(input_descriptor);
-
-   input_descriptor.port        = nJoy;
-   input_descriptor.device      = RETRO_DEVICE_JOYPAD;
-   input_descriptor.index       = 0;
-   input_descriptor.id          = nKeyNeg;
-   input_descriptor.description = sznneg;
-
-   normal_input_descriptors.push_back(input_descriptor);
-   bButtonMapped = true;
-   return 0;
-}
-
-// [WIP]
-// All inputs which needs special handling need to go in the next function
-#if 0
-INT32 GameInpSpecialOne(struct GameInp* pgi, INT32 nPlayer, char* szi, char *szn, char *description)
-{
-	const char * parentrom	= BurnDrvGetTextA(DRV_PARENT);
-	const char * drvname	= BurnDrvGetTextA(DRV_NAME);
-	//const char * boardrom   = BurnDrvGetTextA(DRV_BOARDROM);
-	const char * systemname = BurnDrvGetTextA(DRV_SYSTEM);
-	//INT32        genre      = BurnDrvGetGenreFlags();
-	//INT32        family     = BurnDrvGetFamilyFlags();
-	//INT32        hardware   = BurnDrvGetHardwareCode();
-
-	// Fix part of issue #102 (Crazy Fight)
-	// Can't really manage to have a decent mapping on this one if you don't have a stick/pad with the following 2 rows of 3 buttons :
-	// Y X R1
-	// B A R2
-	if ((parentrom && strcmp(parentrom, "crazyfgt") == 0) ||
-		(drvname && strcmp(drvname, "crazyfgt") == 0)
-	) {
-		if (strcmp("top-left", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
-		}
-		if (strcmp("top-center", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_X, description);
-		}
-		if (strcmp("top-right", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-		if (strcmp("bottom-left", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-		if (strcmp("bottom-center", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-		if (strcmp("bottom-right", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R2, description);
-		}
-	}
-
-	// Fix part of issue #102 (Last Survivor)
-	if ((parentrom && strcmp(parentrom, "lastsurv") == 0) ||
-		(drvname && strcmp(drvname, "lastsurv") == 0)
-	) {
-		if (strcmp("Turn Left", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
-		}
-		if (strcmp("Turn Right", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-	}
-
-	// Recommandation from http://neosource.1emulation.com/forums/index.php?topic=2991.0 (Power Drift)
-	if ((parentrom && strcmp(parentrom, "pdrift") == 0) ||
-		(drvname && strcmp(drvname, "pdrift") == 0)
-	) {
-		if (strcmp("Steering", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER, 0x8000, 0x0800, 10);
-		}
-	}
-
-	// Car steer a little too much with default setting + use L/R for Shift Down/Up (Super Monaco GP)
-	if ((parentrom && strcmp(parentrom, "smgp") == 0) ||
-		(drvname && strcmp(drvname, "smgp") == 0)
-	) {
-		if (strcmp("Left/Right", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER, 0x8000, 0x0C00, 10);
-		}
-		if (strcmp("Shift Down", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
-		}
-		if (strcmp("Shift Up", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-	}
-
-	// Fix issue #133 (Night striker)
-	if ((parentrom && strcmp(parentrom, "nightstr") == 0) ||
-		(drvname && strcmp(drvname, "nightstr") == 0)
-	) {
-		if (strcmp("Stick Y", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER, 0x8000, 0x0700, 0);
-		}
-	}
-
-	// Fix part of issue #102 (Hang On Junior)
-	if ((parentrom && strcmp(parentrom, "hangonjr") == 0) ||
-		(drvname && strcmp(drvname, "hangonjr") == 0)
-	) {
-		if (strcmp("Accelerate", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-	}
-
-	// Fix part of issue #102 (Out Run)
-	if ((parentrom && strcmp(parentrom, "outrun") == 0) ||
-		(drvname && strcmp(drvname, "outrun") == 0)
-	) {
-		if (strcmp("Gear", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-	}
-
-	// Fix part of issue #102 (Golden Axe)
-	// Use same layout as megadrive cores
-	if ((parentrom && strcmp(parentrom, "goldnaxe") == 0) ||
-		(drvname && strcmp(drvname, "goldnaxe") == 0)
-	) {
-		if (strcmp("Fire 1", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, "Magic");
-		}
-		if (strcmp("Fire 2", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, "Attack");
-		}
-		if (strcmp("Fire 3", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, "Jump");
-		}
-	}
-
-	// Fix part of issue #102 (Major League)
-	if ((parentrom && strcmp(parentrom, "mjleague") == 0) ||
-		(drvname && strcmp(drvname, "mjleague") == 0)
-	) {
-		if (strcmp("Bat Swing", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-		if (strcmp("Fire 1", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-		if (strcmp("Fire 2", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
-		}
-		if (strcmp("Fire 3", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_X, description);
-		}
-		if (strcmp("Fire 4", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-		if (strcmp("Fire 5", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
-		}
-	}
-
-	// Fix part of issue #102 (Chase HQ)
-	if ((parentrom && strcmp(parentrom, "chasehq") == 0) ||
-		(drvname && strcmp(drvname, "chasehq") == 0)
-	) {
-		if (strcmp("Brake", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-		if (strcmp("Accelerate", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-		if (strcmp("Turbo", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
-		}
-		if (strcmp("Gear", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-	}
-
-	// Fix part of issue #102 (D&D:Shadow over Mystara & Tower of Doom)
-	if ((parentrom && strcmp(parentrom, "ddsom") == 0) ||
-		(drvname && strcmp(drvname, "ddsom") == 0) ||
-		(parentrom && strcmp(parentrom, "ddtod") == 0) ||
-		(drvname && strcmp(drvname, "ddtod") == 0)
-	) {
-		if (strcmp("Attack", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
-		}
-		if (strcmp("Jump", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-		if (strcmp("Select", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_X, description);
-		}
-		if (strcmp("Use", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-		if (strcmp("Volume Up", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-		if (strcmp("Volume Down", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_L, description);
-		}
-	}
-	
-	// Fix part of issue #102 (SDI - Strategic Defense Initiative)
-	if ((parentrom && strcmp(parentrom, "sdi") == 0) ||
-		(drvname && strcmp(drvname, "sdi") == 0)
-	) {
-		if (strcmp("Target L/R", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
-		}
-		if (strcmp("Target U/D", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 1, RETRO_DEVICE_ID_ANALOG_Y, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
-		}
-		if (strcmp("Fire 1", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-	}
-	
-	// Fix part of issue #102 (Forgotten Worlds)
-	if ((parentrom && strcmp(parentrom, "forgottn") == 0) ||
-		(drvname && strcmp(drvname, "forgottn") == 0)
-	) {
-		if (strcmp("Turn (analog)", description) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_RIGHT, description);
-		}
-		if (strcmp("Attack", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_R, description);
-		}
-		if (strcmp("Turn - (digital)", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-		if (strcmp("Turn + (digital)", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-	}
-
-	// Fix part of issue #102 (Puzz Loop 2)
-	if ((parentrom && strcmp(parentrom, "pzloop2") == 0) ||
-		(drvname && strcmp(drvname, "pzloop2") == 0)
-	) {
-		if (strcmp("Paddle", description) == 0) {
-			GameInpAnalog2RetroInpDualKeys(pgi, nPlayer, 0, RETRO_DEVICE_ID_JOYPAD_R, RETRO_DEVICE_ID_JOYPAD_L, "Paddle Up", "Paddle Down");
-		}
-	}
-
-	// Fix part of issue #102 (After burner 1 & 2)
-	if ((parentrom && strcmp(parentrom, "aburner2") == 0) ||
-		(drvname && strcmp(drvname, "aburner2") == 0)
-	) {
-		if (strcmp("Throttle", description) == 0) {
-			GameInpAnalog2RetroInpDualKeys(pgi, nPlayer, 2, RETRO_DEVICE_ID_JOYPAD_R, RETRO_DEVICE_ID_JOYPAD_L, "Speed Up", "Speed Down");
-		}
-	}
-
-	// Handle megadrive
-	if ((systemname && strcmp(systemname, "Sega Megadrive") == 0)) {
-		// Street Fighter 2 mapping (which is the only 6 button megadrive game ?)
-		// Use same layout as arcade
-		if ((parentrom && strcmp(parentrom, "md_sf2") == 0) ||
-			(drvname && strcmp(drvname, "md_sf2") == 0)
-		) {
-			if (strcmp("Button A", description) == 0) {
-				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, "Weak Kick");
-			}
-			if (strcmp("Button B", description) == 0) {
-				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, "Medium Kick");
-			}
-			if (strcmp("Button C", description) == 0) {
-				GameInpDigital2RetroInpKey(pgi, nPlayer, (fba_devices[nPlayer] == RETROPAD_MODERN ? RETRO_DEVICE_ID_JOYPAD_R2 : RETRO_DEVICE_ID_JOYPAD_R), "Strong Kick");
-			}
-			if (strcmp("Button X", description) == 0) {
-				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, "Weak Punch");
-			}
-			if (strcmp("Button Y", description) == 0) {
-				GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_X, "Medium Punch");
-			}
-			if (strcmp("Button Z", description) == 0) {
-				GameInpDigital2RetroInpKey(pgi, nPlayer, (fba_devices[nPlayer] == RETROPAD_MODERN ? RETRO_DEVICE_ID_JOYPAD_R : RETRO_DEVICE_ID_JOYPAD_L), "Strong Punch");
-			}
-		}
-		// Generic megadrive mapping
-		// Use same layout as megadrive cores
-		if (strcmp("Button A", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_Y, description);
-		}
-		if (strcmp("Button B", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_B, description);
-		}
-		if (strcmp("Button C", description) == 0) {
-			GameInpDigital2RetroInpKey(pgi, nPlayer, RETRO_DEVICE_ID_JOYPAD_A, description);
-		}
-	}
-
-	// Fix part of issue #102 (Twin stick games)
-	if ((strcmp("Up 2", description) == 0) ||
-		(strcmp("Up (right)", description) == 0) ||
-		(strcmp("Right Up", description) == 0)
-	) {
-		GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_NEG, "Up / Down (Right Stick)");
-	}
-	if ((strcmp("Down 2", description) == 0) ||
-		(strcmp("Down (right)", description) == 0) ||
-		(strcmp("Right Down", description) == 0)
-	) {
-		GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_Y, JOY_POS, "Up / Down (Right Stick)");
-	}
-	if ((strcmp("Left 2", description) == 0) ||
-		(strcmp("Left (right)", description) == 0) ||
-		(strcmp("Right Left", description) == 0)
-	) {
-		GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_NEG, "Left / Right (Right Stick)");
-	}
-	if ((strcmp("Right 2", description) == 0) ||
-		(strcmp("Right (right)", description) == 0) ||
-		(strcmp("Right Right", description) == 0)
-	) {
-		GameInpDigital2RetroInpAnalogRight(pgi, nPlayer, RETRO_DEVICE_ID_ANALOG_X, JOY_POS, "Left / Right (Right Stick)");
-	}
-
-	// Default racing games's Steering control to the joyslider type of analog control
-	// Joyslider is some sort of "wheel" emulation
-	if ((BurnDrvGetGenreFlags() & GBF_RACING)) {
-		if (strcmp("x-axis", szi + 3) == 0) {
-			GameInpAnalog2RetroInpAnalog(pgi, nPlayer, 0, RETRO_DEVICE_ID_ANALOG_X, RETRO_DEVICE_INDEX_ANALOG_LEFT, description, GIT_JOYSLIDER);
-		}
-	}
-
-	return 0;
-}
-#endif
 
 // Handle mapping of an input
 // Will delegate to GameInpSpecialOne for cases which needs "fine tuning"
@@ -3434,7 +2263,8 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 	bool bPlayerInInfo = (toupper(szi[0]) == 'P' && szi[1] >= '1' && szi[1] <= '4'); // Because some of the older drivers don't use the standard input naming.
 	bool bPlayerInName = (szn[0] == 'P' && szn[1] >= '1' && szn[1] <= '4');
 
-	if (bPlayerInInfo || bPlayerInName) {
+	if (bPlayerInInfo || bPlayerInName)
+	{
 		INT32 nPlayer = -1;
 
 		if (bPlayerInName)
@@ -3517,7 +2347,7 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 							GameInpDigital2RetroInpKey(pgi, nPlayer, (fba_devices[nPlayer] == RETROPAD_MODERN ? RETRO_DEVICE_ID_JOYPAD_R2 : RETRO_DEVICE_ID_JOYPAD_R), description);
 							break;
 					}
-				// Handle generic mapping of everything else
+					// Handle generic mapping of everything else
 				} else {
 					switch (nButton) {
 						case 1:
@@ -3551,14 +2381,16 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 	}
 
 	// Store the pgi that controls the reset input
-	if (strcmp(szi, "reset") == 0) {
+	if (strcmp(szi, "reset") == 0)
+	{
 		pgi->nInput = GIT_SWITCH;
 		pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
 		pgi_reset = pgi;
 	}
 
 	// Store the pgi that controls the diagnostic input
-	if (strcmp(szi, "diag") == 0) {
+	if (strcmp(szi, "diag") == 0)
+	{
 		pgi->nInput = GIT_SWITCH;
 		pgi->Input.Switch.nCode = (UINT16)(switch_ncode++);
 		pgi_diag = pgi;
@@ -3567,51 +2399,697 @@ static INT32 GameInpAutoOne(struct GameInp* pgi, char* szi, char *szn)
 }
 
 // Auto-configure any undefined inputs to defaults
-INT32 GameInpDefault()
+static INT32 GameInpDefault(void)
+{
+   struct GameInp* pgi;
+   struct BurnInputInfo bii;
+   UINT32 i;
+
+   pgi_reset = NULL;
+   pgi_diag = NULL;
+
+   // Fill all inputs still undefined
+   for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++)
+   {
+      if (pgi->nInput) // Already defined - leave it alone
+         continue;
+
+      // Get the extra info about the input
+      bii.szInfo = NULL;
+      BurnDrvGetInputInfo(&bii, i);
+      if (bii.pVal == NULL)
+         continue;
+      if (bii.szInfo == NULL)
+         bii.szInfo = "";
+
+      // Dip switches - set to constant
+      if (bii.nType & BIT_GROUP_CONSTANT)
+      {
+         pgi->nInput = GIT_CONSTANT;
+         continue;
+      }
+
+      GameInpAutoOne(pgi, bii.szInfo, bii.szName);
+   }
+
+   return 0;
+}
+
+static void GameInpInitMacros(void)
 {
 	struct GameInp* pgi;
 	struct BurnInputInfo bii;
-	UINT32 i;
+	INT32 nPunchInputs[4][3];
+	INT32 nKickInputs[4][3];
+	INT32 nNeogeoButtons[4][4];
+	INT32 nPgmButtons[10][16];
+	INT32 nPunchx3[4] = {0, 0, 0, 0};
+	INT32 nKickx3[4]  = {0, 0, 0, 0};
 
-	pgi_reset = NULL;
-	pgi_diag = NULL;
+	bStreetFighterLayout = false;
+	bVolumeIsFireButton  = false;
+	nMacroCount          = 0;
+	nFireButtons         = 0;
 
-	// Fill all inputs still undefined
-	for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++) {
-		if (pgi->nInput) {											// Already defined - leave it alone
-			continue;
-		}
+	memset(&nNeogeoButtons, 0, sizeof(nNeogeoButtons));
+	memset(&nPgmButtons, 0, sizeof(nPgmButtons));
 
-		// Get the extra info about the input
-		bii.szInfo = NULL;
+	for (UINT32 i = 0; i < nGameInpCount; i++)
+   {
+		bii.szName = NULL;
 		BurnDrvGetInputInfo(&bii, i);
-		if (bii.pVal == NULL) {
-			continue;
-		}
-		if (bii.szInfo == NULL) {
-			bii.szInfo = "";
-		}
+		if (bii.szName == NULL)
+			bii.szName = "";
+		bool bPlayerInInfo = (toupper(bii.szInfo[0]) == 'P' && bii.szInfo[1] >= '1' && bii.szInfo[1] <= '4'); // Because some of the older drivers don't use the standard input naming.
+		bool bPlayerInName = (bii.szName[0] == 'P' && bii.szName[1] >= '1' && bii.szName[1] <= '4');
 
-		// Dip switches - set to constant
-		if (bii.nType & BIT_GROUP_CONSTANT) {
-			pgi->nInput = GIT_CONSTANT;
-			continue;
-		}
+		if (bPlayerInInfo || bPlayerInName)
+      {
+			INT32 nPlayer = 0;
 
-		GameInpAutoOne(pgi, bii.szInfo, bii.szName);
+			if (bPlayerInName)
+				nPlayer = bii.szName[1] - '1';
+			if (bPlayerInInfo && nPlayer == 0)
+				nPlayer = bii.szInfo[1] - '1';
+
+			if (nPlayer == 0)
+         {
+				if (strncmp(" fire", bii.szInfo + 2, 5) == 0)
+					nFireButtons++;
+			}
+
+			if ((strncmp("Volume", bii.szName, 6) == 0) && (strncmp(" fire", bii.szInfo + 2, 5) == 0))
+				bVolumeIsFireButton = true;
+			if (_stricmp(" Weak Punch", bii.szName + 2) == 0)
+         {
+				nPunchx3[nPlayer] |= 1;
+				nPunchInputs[nPlayer][0] = i;
+			}
+			if (_stricmp(" Medium Punch", bii.szName + 2) == 0)
+         {
+				nPunchx3[nPlayer] |= 2;
+				nPunchInputs[nPlayer][1] = i;
+			}
+			if (_stricmp(" Strong Punch", bii.szName + 2) == 0) {
+				nPunchx3[nPlayer] |= 4;
+				nPunchInputs[nPlayer][2] = i;
+			}
+			if (_stricmp(" Weak Kick", bii.szName + 2) == 0) {
+				nKickx3[nPlayer] |= 1;
+				nKickInputs[nPlayer][0] = i;
+			}
+			if (_stricmp(" Medium Kick", bii.szName + 2) == 0) {
+				nKickx3[nPlayer] |= 2;
+				nKickInputs[nPlayer][1] = i;
+			}
+			if (_stricmp(" Strong Kick", bii.szName + 2) == 0) {
+				nKickx3[nPlayer] |= 4;
+				nKickInputs[nPlayer][2] = i;
+			}
+
+			if ((BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO) {
+				if (_stricmp(" Button A", bii.szName + 2) == 0)
+					nNeogeoButtons[nPlayer][0] = i;
+				if (_stricmp(" Button B", bii.szName + 2) == 0)
+					nNeogeoButtons[nPlayer][1] = i;
+				if (_stricmp(" Button C", bii.szName + 2) == 0)
+					nNeogeoButtons[nPlayer][2] = i;
+				if (_stricmp(" Button D", bii.szName + 2) == 0)
+					nNeogeoButtons[nPlayer][3] = i;
+			}
+
+			//if ((BurnDrvGetHardwareCode() & HARDWARE_PUBLIC_MASK) == HARDWARE_IGS_PGM) {
+			{ // Use nPgmButtons for Autofire too -dink
+				if ((_stricmp(" Button 1", bii.szName + 2) == 0) || (_stricmp(" fire 1", bii.szInfo + 2) == 0))
+					nPgmButtons[nPlayer][0] = i;
+				if ((_stricmp(" Button 2", bii.szName + 2) == 0) || (_stricmp(" fire 2", bii.szInfo + 2) == 0))
+					nPgmButtons[nPlayer][1] = i;
+				if ((_stricmp(" Button 3", bii.szName + 2) == 0) || (_stricmp(" fire 3", bii.szInfo + 2) == 0))
+					nPgmButtons[nPlayer][2] = i;
+				if ((_stricmp(" Button 4", bii.szName + 2) == 0) || (_stricmp(" fire 4", bii.szInfo + 2) == 0))
+					nPgmButtons[nPlayer][3] = i;
+				if ((_stricmp(" Button 5", bii.szName + 2) == 0) || (_stricmp(" fire 5", bii.szInfo + 2) == 0))
+					nPgmButtons[nPlayer][4] = i;
+				if ((_stricmp(" Button 6", bii.szName + 2) == 0) || (_stricmp(" fire 6", bii.szInfo + 2) == 0))
+					nPgmButtons[nPlayer][5] = i;
+			}
+		}
 	}
 
-	// Fill in macros still undefined
-	/*
-	for (i = 0; i < nMacroCount; i++, pgi++) {
-		if (pgi->nInput != GIT_MACRO_AUTO || pgi->Macro.nMode) {	// Already defined - leave it alone
-			continue;
-		}
+	pgi = GameInp + nGameInpCount;
 
-		GameInpAutoOne(pgi, pgi->Macro.szName, pgi->Macro.szName);
+	{ // Autofire!!!
+			for (INT32 nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++)
+         {
+				for (INT32 i = 0; i < nFireButtons; i++)
+            {
+               pgi->nInput = GIT_MACRO_AUTO;
+               pgi->nType = BIT_DIGITAL;
+               pgi->Macro.nMode = 0;
+               pgi->Macro.nSysMacro = 15; // 15 = Auto-Fire mode
+               sprintf(pgi->Macro.szName, "P%d Auto-Fire Button %d", nPlayer+1, i+1);
+
+               if ((BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO)
+                  BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][i]);
+               else
+                  BurnDrvGetInputInfo(&bii, nPgmButtons[nPlayer][i]);
+               pgi->Macro.pVal[0] = bii.pVal;
+               pgi->Macro.nVal[0] = 1;
+               nMacroCount++;
+               pgi++;
+            }
+			}
 	}
-	*/
+
+	for (INT32 nPlayer = 0; nPlayer < nMaxPlayers; nPlayer++)
+   {
+      if (nPunchx3[nPlayer] == 7) // Create a 3x punch macro
+      {
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+
+         sprintf(pgi->Macro.szName, "P%i 3× Punch", nPlayer + 1);
+         for (INT32 j = 0; j < 3; j++)
+         {
+            BurnDrvGetInputInfo(&bii, nPunchInputs[nPlayer][j]);
+            pgi->Macro.pVal[j] = bii.pVal;
+            pgi->Macro.nVal[j] = 1;
+         }
+
+         nMacroCount++;
+         pgi++;
+      }
+
+      if (nKickx3[nPlayer] == 7) {		// Create a 3x kick macro
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+
+         sprintf(pgi->Macro.szName, "P%i 3× Kick", nPlayer + 1);
+         for (INT32 j = 0; j < 3; j++) {
+            BurnDrvGetInputInfo(&bii, nKickInputs[nPlayer][j]);
+            pgi->Macro.pVal[j] = bii.pVal;
+            pgi->Macro.nVal[j] = 1;
+         }
+
+         nMacroCount++;
+         pgi++;
+      }
+
+      if (nFireButtons == 4 && (BurnDrvGetHardwareCode() & (HARDWARE_PUBLIC_MASK - HARDWARE_PREFIX_CARTRIDGE)) == HARDWARE_SNK_NEOGEO)
+      {
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons AB", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons AC", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons AD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons BC", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons BD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons CD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ABC", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ABD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ACD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons BCD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         nMacroCount++;
+         pgi++;
+
+         pgi->nInput = GIT_MACRO_AUTO;
+         pgi->nType = BIT_DIGITAL;
+         pgi->Macro.nMode = 0;
+         sprintf(pgi->Macro.szName, "P%i Buttons ABCD", nPlayer + 1);
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][0]);
+         pgi->Macro.pVal[0] = bii.pVal;
+         pgi->Macro.nVal[0] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][1]);
+         pgi->Macro.pVal[1] = bii.pVal;
+         pgi->Macro.nVal[1] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][2]);
+         pgi->Macro.pVal[2] = bii.pVal;
+         pgi->Macro.nVal[2] = 1;
+         BurnDrvGetInputInfo(&bii, nNeogeoButtons[nPlayer][3]);
+         pgi->Macro.pVal[3] = bii.pVal;
+         pgi->Macro.nVal[3] = 1;
+         nMacroCount++;
+         pgi++;
+      }
+   }
+
+	if ((nPunchx3[0] == 7) && (nKickx3[0] == 7))
+		bStreetFighterLayout = true;
+}
+
+static INT32 GameInpBlank(INT32 bDipSwitch)
+{
+	UINT32 i = 0;
+	struct GameInp* pgi = NULL;
+
+	// Reset all inputs to undefined (even dip switches, if bDipSwitch==1)
+	if (GameInp == NULL)
+		return 1;
+
+	// Get the targets in the library for the Input Values
+	for (i = 0, pgi = GameInp; i < nGameInpCount; i++, pgi++)
+	{
+		struct BurnInputInfo bii;
+		memset(&bii, 0, sizeof(bii));
+		BurnDrvGetInputInfo(&bii, i);
+		if (bDipSwitch == 0 && (bii.nType & BIT_GROUP_CONSTANT)) // Don't blank the dip switches
+			continue;
+
+		memset(pgi, 0, sizeof(*pgi));                        // Clear input
+
+		pgi->nType                    = bii.nType;           // store input type
+		pgi->Input.pVal               = bii.pVal;            // store input pointer to value
+
+		if (bii.nType & BIT_GROUP_CONSTANT)                  // Further initialisation for constants/DIPs
+		{						
+			pgi->nInput                = GIT_CONSTANT;
+			pgi->Input.Constant.nConst = *bii.pVal;
+		}
+	}
+
+	for (i = 0; i < nMacroCount; i++, pgi++)
+	{
+		pgi->Macro.nMode = 0;
+		if (pgi->nInput == GIT_MACRO_CUSTOM)
+			pgi->nInput = 0;
+	}
 
 	return 0;
 }
 
+static INT32 GameInpInit(void)
+{
+	INT32 nRet    = 0;
+	// Count the number of inputs
+	nGameInpCount = 0;
+	nMacroCount   = 0;
+	nMaxMacro     = nMaxPlayers * 52;
+
+	for (UINT32 i = 0; i < 0x1000; i++)
+	{
+		if ((nRet = BurnDrvGetInputInfo(NULL,i)))
+		{
+			nGameInpCount = i;
+			break;
+		}
+	}
+
+	// Allocate space for all the inputs
+	INT32 nSize = (nGameInpCount + nMaxMacro) * sizeof(struct GameInp);
+	GameInp     = (struct GameInp*)malloc(nSize);
+	if (GameInp == NULL)
+		return 1;
+	memset(GameInp, 0, nSize);
+
+	GameInpBlank(1);
+
+	InpDIPSWResetDIPs();
+
+	GameInpInitMacros();
+
+	nAnalogSpeed = 0x0100;
+
+	return 0;
+}
+
+
+static bool init_input(void)
+{
+   unsigned i;
+   switch_ncode = 0;
+
+   normal_input_descriptors.clear();
+   for (i = 0; i < MAX_KEYBINDS; i++)
+   {
+      keybinds[i][0] = 0xff;
+      keybinds[i][2] = 0;
+   }
+   for (i = 0; i < 5; i++)
+   {
+      unsigned j;
+      for (j = 0; j < 8; j++)
+      {
+         axibinds[i][j][0] = 0;
+         axibinds[i][j][1] = 0;
+         axibinds[i][j][2] = 0;
+      }
+   }
+
+   GameInpInit();
+   GameInpDefault();
+
+   // Update core option for diagnostic input
+   set_environment();
+   // Read the user core option values
+   check_variables(false);
+   // The list of normal and macro input_descriptors are filled, we can assign all the input_descriptors to retroarch
+   set_input_descriptors();
+
+   return 0;
+}
+
+
+static bool fba_init(unsigned driver, const char *game_zip_name)
+{
+   nBurnDrvActive = driver;
+
+   if (!open_archive())
+      return false;
+
+   nBurnBpp = 2;
+   nFMInterpolation = 3;
+   nInterpolation = 1;
+
+   init_input();
+
+   InpDIPSWInit();
+
+   BurnDrvInit();
+
+   char input_fs[1024];
+   snprintf(input_fs, sizeof(input_fs), "%s%c%s.fs", g_save_dir, slash, BurnDrvGetTextA(DRV_NAME));
+   BurnStateLoad(input_fs, 0, NULL);
+
+   int width, height;
+   BurnDrvGetVisibleSize(&width, &height);
+   nBurnPitch = width * sizeof(uint16_t);
+
+   if (!(BurnDrvIsWorking()))
+      return false;
+
+   BurnRecalcPal();
+
+#ifdef FRONTEND_SUPPORTS_RGB565
+   enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
+
+   if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+      log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+#endif
+
+   return true;
+}
+
+#if defined(FRONTEND_SUPPORTS_RGB565)
+static unsigned int HighCol16(int r, int g, int b, int  /* i */)
+{
+   return (((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001f));
+}
+#else
+static unsigned int HighCol15(int r, int g, int b, int  /* i */)
+{
+   return (((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001f));
+}
+#endif
+
+static void extract_basename(char *buf, const char *path, size_t size)
+{
+   const char *base = strrchr(path, '/');
+   if (!base)
+      base = strrchr(path, '\\');
+   if (!base)
+      base = path;
+
+   if (*base == '\\' || *base == '/')
+      base++;
+
+   strncpy(buf, base, size - 1);
+   buf[size - 1] = '\0';
+
+   char *ext = strrchr(buf, '.');
+   if (ext)
+      *ext = '\0';
+}
+
+static void extract_directory(char *buf, const char *path, size_t size)
+{
+   strncpy(buf, path, size - 1);
+   buf[size - 1] = '\0';
+
+   char *base = strrchr(buf, '/');
+   if (!base)
+      base = strrchr(buf, '\\');
+
+   if (base)
+      *base = '\0';
+   else
+   {
+      buf[0] = '.';
+      buf[1] = '\0';
+   }
+}
+
+static unsigned int BurnDrvGetIndexByName(const char* name)
+{
+   unsigned int i;
+   unsigned int ret = ~0U;
+
+   for (i = 0; i < nBurnDrvCount; i++)
+   {
+      nBurnDrvActive = i;
+      if (!strcmp(BurnDrvGetText(DRV_NAME), name))
+      {
+         ret = i;
+         break;
+      }
+   }
+   return ret;
+}
+
+
+bool retro_load_game(const struct retro_game_info *info)
+{
+   unsigned i;
+   char basename[128];
+   const char *dir = NULL;
+
+   if (!info)
+      return false;
+
+   extract_basename(basename, info->path, sizeof(basename));
+   extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
+
+   // If save directory is defined use it, ...
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
+   {
+      strncpy(g_save_dir, dir, sizeof(g_save_dir));
+      log_cb(RETRO_LOG_INFO, "Setting save dir to %s\n", g_save_dir);
+   }
+   else
+   {
+      // ... otherwise use rom directory
+      strncpy(g_save_dir, g_rom_dir, sizeof(g_save_dir));
+      log_cb(RETRO_LOG_ERROR, "Save dir not defined => use roms dir %s\n", g_save_dir);
+   }
+
+   // If system directory is defined use it, ...
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
+   {
+      strncpy(g_system_dir, dir, sizeof(g_system_dir));
+      log_cb(RETRO_LOG_INFO, "Setting system dir to %s\n", g_system_dir);
+   }
+   else
+   {
+      // ... otherwise use rom directory
+      strncpy(g_system_dir, g_rom_dir, sizeof(g_system_dir));
+      log_cb(RETRO_LOG_ERROR, "System dir not defined => use roms dir %s\n", g_system_dir);
+   }
+
+   i = BurnDrvGetIndexByName(basename);
+   if (i < nBurnDrvCount)
+   {
+      INT32 width, height;
+      const char * boardrom = BurnDrvGetTextA(DRV_BOARDROM);
+      is_neogeo_game        = (boardrom && strcmp(boardrom, "neogeo") == 0);
+
+      // Define nMaxPlayers early;
+      nMaxPlayers           = BurnDrvGetMaxPlayers();
+      set_controller_infos();
+
+      set_environment();
+      check_variables(true);
+
+      pBurnSoundOut  = g_audio_buf;
+      nBurnSoundRate = AUDIO_SAMPLERATE;
+      nBurnSoundLen  = AUDIO_SEGMENT_LENGTH;
+
+      if (!fba_init(i, basename))
+         goto error;
+
+      driver_inited  = true;
+
+      BurnDrvGetFullSize(&width, &height);
+
+      g_fba_frame    = (uint16_t*)malloc(width * height * sizeof(uint16_t));
+
+      return true;
+   }
+
+error:
+   log_cb(RETRO_LOG_ERROR, "[FBA] Cannot load this game.\n");
+   return false;
+}
+
+bool retro_load_game_special(unsigned, const struct retro_game_info*, size_t)
+{
+   return false;
+}
+
+void retro_unload_game(void) { }
+unsigned retro_get_region(void) { return RETRO_REGION_NTSC; }
+void *retro_get_memory_data(unsigned) { return 0; }
+size_t retro_get_memory_size(unsigned) { return 0; }
+unsigned retro_api_version(void) { return RETRO_API_VERSION; }
+
+void retro_set_controller_port_device(unsigned port, unsigned device)
+{
+	if (port < nMaxPlayers && fba_devices[port] != device)
+	{
+		fba_devices[port] = device;
+		init_input();
+	}
+}
+
+#ifdef ANDROID
+#include <wchar.h>
+
+size_t mbstowcs(wchar_t *pwcs, const char *s, size_t n)
+{
+   if (pwcs)
+      return mbsrtowcs(pwcs, &s, n, NULL);
+   return strlen(s);
+}
+
+size_t wcstombs(char *s, const wchar_t *pwcs, size_t n)
+{
+   return wcsrtombs(s, &pwcs, n, NULL);
+}
+#endif

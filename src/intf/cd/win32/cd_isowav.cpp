@@ -344,39 +344,30 @@ static int isowavInit()
 	wav_exit();
 
 	isowavTOC = (isowavCDROM_TOC*)malloc(sizeof(isowavCDROM_TOC));
-	if (isowavTOC == NULL) {
+	if (isowavTOC == NULL)
 		return 1;
-	}
 	memset(isowavTOC, 0, sizeof(isowavCDROM_TOC));
 
 	TCHAR* filename = ExtractFilename(CDEmuImage);
 
-	if (_tcslen(filename) < 4) {
+	if (_tcslen(filename) < 4)
 		return 1;
-	}
 
 	if (_tcscmp(_T(".cue"), filename + _tcslen(filename) - 4) == 0) {
-		if (isowavParseCueFile()) {
-			dprintf(_T("*** Couldn't parse .cue file\n"));
+		if (isowavParseCueFile())
+		{
 			isowavExit();
-
-			return 1;
-		}
-	} else {
-		if (isowavTestISO()) {
-			dprintf(_T("*** Couldn't find .iso / .bin file\n"));
-			isowavExit();
-
 			return 1;
 		}
 	}
-
-	dprintf(_T("    CD image TOC read\n"));
-	
-	for (int i = isowavTOC->FirstTrack - 1; i < isowavTOC->LastTrack; i++) {
-		dprintf(_T("    track %2i start %02i:%02i:%02i control 0x%02X %s\n"), isowavTOC->TrackData[i].TrackNumber, isowavTOC->TrackData[i].Address[1], isowavTOC->TrackData[i].Address[2], isowavTOC->TrackData[i].Address[3], isowavTOC->TrackData[i].Control, isowavTOC->TrackData[i].Filename);
+	else
+	{
+		if (isowavTestISO())
+		{
+			isowavExit();
+			return 1;
+		}
 	}
-	dprintf(_T("    total running time %02i:%02i:%02i\n"), isowavTOC->TrackData[(int)isowavTOC->LastTrack].Address[1], isowavTOC->TrackData[(int)isowavTOC->LastTrack].Address[2], isowavTOC->TrackData[(int)isowavTOC->LastTrack].Address[3]);
 
 	CDEmuStatus = idle;
 	
@@ -413,36 +404,26 @@ static int isowavPlayLBA(int LBA)
 		}
 	}
 
-	if (isowavTrack >= isowavTOC->LastTrack) {
+	if (isowavTrack >= isowavTOC->LastTrack)
 		return 1;
-	}
-
-	bprintf(PRINT_IMPORTANT, _T("    playing track %2i - %s\n"), isowavTrack + 1, isowavTOC->TrackData[isowavTrack].Filename);
 
 	isowavFile = _tfopen(isowavTOC->TrackData[isowavTrack].Filename, _T("rb"));
-	if (isowavFile == NULL) {
+	if (isowavFile == NULL)
 		return 1;
-	}
 
 	if(	_tcsstr(isowavTOC->TrackData[isowavTrack].Filename, _T(".wav")) || _tcsstr(isowavTOC->TrackData[isowavTrack].Filename, _T(".WAV"))) {
 		// is a wav, no need to keep this file pointer
-		if (isowavFile) {
+		if (isowavFile)
+		{
 			fclose(isowavFile);
 			isowavFile = NULL;
 		}
 		
 		if(wav_open(isowavTOC->TrackData[isowavTrack].Filename)) {
 			wav_play();
-		} else {
-			// error creating the WAV stream
+		else // error creating the WAV stream
 			return 1;
-		}
 	}
-
-	//dprintf(_T("*** WAV: wBitsPerSample: %d \n"), wav->g_pStreamingSound->m_pWaveFile->m_pwfx->wBitsPerSample);
-	//dprintf(_T("*** WAV: nAvgBytesPerSec: %d \n"), wav->g_pStreamingSound->m_pWaveFile->m_pwfx->nAvgBytesPerSec);
-	//dprintf(_T("*** WAV: m_dwSize: %d \n"), wav->g_pStreamingSound->m_pWaveFile->m_dwSize);
-	//dprintf(_T("*** WAV: nBlockAlign: %d \n"), wav->g_pStreamingSound->m_pWaveFile->m_pwfx->nBlockAlign);
 
 	isowavLBA = isowavMSFToLBA(isowavTOC->TrackData[isowavTrack].Address);
 	CDEmuStatus = playing;
@@ -476,30 +457,22 @@ static int isowavLoadSector(int LBA, char* pBuffer)
 
 			isowavTrack = track;
 
-			bprintf(PRINT_IMPORTANT, _T("    reading track %2i - %s\n"), isowavTrack + 1, isowavTOC->TrackData[isowavTrack].Filename);
-
 			isowavFile = _tfopen(isowavTOC->TrackData[isowavTrack].Filename, _T("rb"));
-			if (isowavFile == NULL) {
+			if (isowavFile == NULL)
 				return 0;
-			}
 		}
 
-		if (fseek(isowavFile, (LBA - isowavMSFToLBA(isowavTOC->TrackData[isowavTrack].Address)) * 2048, SEEK_SET)) {
-			dprintf(_T("*** couldn't seek\n"));
-
+		if (fseek(isowavFile, (LBA - isowavMSFToLBA(isowavTOC->TrackData[isowavTrack].Address)) * 2048, SEEK_SET))
 			return 0;
-		}
 
 		isowavLBA = (ftell(isowavFile) + 2047) / 2048;
 
 		CDEmuStatus = reading;
 	}
 
-	if (fread(pBuffer, 1, 2048, isowavFile) <= 0) {
-		dprintf(_T("*** couldn't read from file\n"));
-
+	if (fread(pBuffer, 1, 2048, isowavFile) <= 0)
+	{
 		isowavStop();
-
 		return 0;
 	}
 

@@ -73,10 +73,7 @@ struct AY8910
 #define AY_PORTA	(14)
 #define AY_PORTB	(15)
 
-
 static struct AY8910 AYPSG[MAX_8910];		/* array of PSG's */
-
-
 
 static void _AYWriteReg(INT32 n, INT32 r, INT32 v)
 {
@@ -228,26 +225,14 @@ static void _AYWriteReg(INT32 n, INT32 r, INT32 v)
 		{
 			if (PSG->PortAwrite)
 				(*PSG->PortAwrite)(0, PSG->Regs[AY_PORTA]);
-//			else
-//				logerror("PC %04x: warning - write %02x to 8910 #%d Port A\n",activecpu_get_pc(),PSG->Regs[AY_PORTA],n);
 		}
-//		else
-//		{
-//			logerror("warning: write to 8910 #%d Port A set as input - ignored\n",n);
-//		}
 		break;
 	case AY_PORTB:
 		if (PSG->Regs[AY_ENABLE] & 0x80)
 		{
 			if (PSG->PortBwrite)
 				(*PSG->PortBwrite)(0, PSG->Regs[AY_PORTB]);
-//			else
-//				logerror("PC %04x: warning - write %02x to 8910 #%d Port B\n",activecpu_get_pc(),PSG->Regs[AY_PORTB],n);
 		}
-//		else
-//		{
-//			logerror("warning: write to 8910 #%d Port B set as input - ignored\n",n);
-//		}
 		break;
 	}
 }
@@ -256,51 +241,43 @@ static void _AYWriteReg(INT32 n, INT32 r, INT32 v)
 /* write a register on AY8910 chip number 'n' */
 static void AYWriteReg(INT32 chip, INT32 r, INT32 v)
 {
-	if (r > 15) return;
-	if (r < 14)
-	{
-		struct AY8910 *PSG = &AYPSG[chip];
+   if (r > 15) return;
+   if (r < 14)
+   {
+      struct AY8910 *PSG = &AYPSG[chip];
 
-		if (r == AY_ESHAPE || PSG->Regs[r] != v)
-		{
-//			/* update the output buffer before changing the register */
-//			stream_update(PSG->Channel,0);
-			AYStreamUpdate();
-		}
-	}
+      if (r == AY_ESHAPE || PSG->Regs[r] != v)
+      {
+         //			/* update the output buffer before changing the register */
+         //			stream_update(PSG->Channel,0);
+         AYStreamUpdate();
+      }
+   }
 
-	_AYWriteReg(chip,r,v);
+   _AYWriteReg(chip,r,v);
 }
-
-
 
 static UINT8 AYReadReg(INT32 n, INT32 r)
 {
-	struct AY8910 *PSG = &AYPSG[n];
+   struct AY8910 *PSG = &AYPSG[n];
 
 
-	if (r > 15) return 0;
+   if (r > 15) return 0;
 
-	switch (r)
-	{
-	case AY_PORTA:
-//		if ((PSG->Regs[AY_ENABLE] & 0x40) != 0)
-//			logerror("warning: read from 8910 #%d Port A set as output\n",n);
-		/*
-		   even if the port is set as output, we still need to return the external
-		   data. Some games, like kidniki, need this to work.
-		 */
-		if (PSG->PortAread) PSG->Regs[AY_PORTA] = (*PSG->PortAread)(0);
-//		else logerror("PC %04x: warning - read 8910 #%d Port A\n",activecpu_get_pc(),n);
-		break;
-	case AY_PORTB:
-//		if ((PSG->Regs[AY_ENABLE] & 0x80) != 0)
-//			logerror("warning: read from 8910 #%d Port B set as output\n",n);
-		if (PSG->PortBread) PSG->Regs[AY_PORTB] = (*PSG->PortBread)(0);
-//		else logerror("PC %04x: warning - read 8910 #%d Port B\n",activecpu_get_pc(),n);
-		break;
-	}
-	return PSG->Regs[r];
+   switch (r)
+   {
+      case AY_PORTA:
+         /*
+            even if the port is set as output, we still need to return the external
+            data. Some games, like kidniki, need this to work.
+            */
+         if (PSG->PortAread) PSG->Regs[AY_PORTA] = (*PSG->PortAread)(0);
+         break;
+      case AY_PORTB:
+         if (PSG->PortBread) PSG->Regs[AY_PORTB] = (*PSG->PortBread)(0);
+         break;
+   }
+   return PSG->Regs[r];
 }
 
 void AY8910Write(INT32 chip, INT32 a, INT32 data)
