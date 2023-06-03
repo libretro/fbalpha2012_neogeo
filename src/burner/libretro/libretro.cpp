@@ -401,8 +401,6 @@ static bool open_archive(void)
 				BurnDrvGetRomName(&szPossibleName, i, 0);
 				if(!strcmp(szPossibleName, "asia-s3.rom"))
 				{
-					if(index < 0) { index = find_rom_by_name((char*)"uni-bios_3_2.rom", list, count); }
-					if(index < 0) {	index = find_rom_by_crc(0xA4E8B9B3, list, count); }
 					if(index < 0) { index = find_rom_by_name((char*)"uni-bios_3_1.rom", list, count); }
 					if(index < 0) {	index = find_rom_by_crc(0x0C58093F, list, count); }
 					if(index < 0) { index = find_rom_by_name((char*)"uni-bios_3_0.rom", list, count); }
