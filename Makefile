@@ -231,7 +231,7 @@ else ifeq ($(platform),miyoomini)
 	CFLAGS += -falign-functions=1 -falign-jumps=1 -falign-loops=1
 	CFLAGS += -fno-stack-protector -fno-ident -fomit-frame-pointer
 	CFLAGS += -fno-unwind-tables -fno-asynchronous-unwind-tables
-	CFLAGS += -fmerge-all-constants -fno-math-errno -ffast-math 
+	CFLAGS += -fno-math-errno -ffast-math -fsingle-precision-constant
 	CFLAGS += -ftree-vectorize -funswitch-loops -funroll-loops -fno-common
 	CFLAGS += -fdata-sections -ffunction-sections -Wl,-s -Wl,--gc-sections
 	CFLAGS += -marm -march=armv7ve+simd -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
