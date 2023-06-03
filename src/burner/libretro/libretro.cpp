@@ -80,6 +80,7 @@ void retro_set_environment(retro_environment_t cb)
 
 char g_rom_dir[1024];
 char g_save_dir[1024];
+char g_system_dir[1024];
 static bool driver_inited;
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -297,6 +298,36 @@ static int32_t archive_load_rom(uint8_t *dest, int32_t *wrote, int32_t i)
    return 0;
 }
 
+static void locate_archive(std::vector<std::string>& pathList, const char* const romName)
+{
+	static char path[1024];
+
+	// Search rom dir
+	snprintf(path, sizeof(path), "%s%c%s", g_rom_dir, slash, romName);
+	if (ZipOpen(path) == 0)
+	{
+		g_find_list_path.push_back(path);
+		return;
+	}
+	// Search system fba subdirectory (where samples/hiscore are stored)
+	snprintf(path, sizeof(path), "%s%cfba%c%s", g_system_dir, slash, slash, romName);
+	if (ZipOpen(path) == 0)
+	{
+		g_find_list_path.push_back(path);
+		return;
+	}
+	// Search system directory
+	snprintf(path, sizeof(path), "%s%c%s", g_system_dir, slash, romName);
+	if (ZipOpen(path) == 0)
+	{
+		g_find_list_path.push_back(path);
+		return;
+	}
+
+	if (log_cb)
+		log_cb(RETRO_LOG_ERROR, "[FBA] Failed to find archive: %s\n", romName);
+}
+
 // This code is very confusing. The original code is even more confusing :(
 static bool open_archive(void)
 {
@@ -326,25 +357,11 @@ static bool open_archive(void)
 		if (BurnDrvGetZipName(&rom_name, index))
 			continue;
 
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "[FBA] Archive: %s\n", rom_name);
+		if (log_cb)
+			log_cb(RETRO_LOG_INFO, "[FBA] Archive: %s\n", rom_name);
 
-		char path[1024];
-#ifdef _XBOX
-		snprintf(path, sizeof(path), "%s\\%s", g_rom_dir, rom_name);
-#else
-		snprintf(path, sizeof(path), "%s/%s", g_rom_dir, rom_name);
-#endif
-
-		if (ZipOpen(path) != 0)
-		{
-         if (log_cb)
-            log_cb(RETRO_LOG_ERROR, "[FBA] Failed to find archive: %s\n", path);
-			return false;
-		}
+		locate_archive(g_find_list_path, rom_name);
 		ZipClose();
-
-		g_find_list_path.push_back(path);
 	}
 
 	for (unsigned z = 0; z < g_find_list_path.size(); z++)
@@ -356,11 +373,12 @@ static bool open_archive(void)
 			return false;
 		}
 
-		ZipEntry *list = NULL;
-      int32_t count;
-		ZipGetList(&list, &count);
+		if (log_cb)
+			log_cb(RETRO_LOG_INFO, "[FBA] Parsing archive %s.\n", g_find_list_path[z].c_str());
 
-		
+		ZipEntry *list = NULL;
+		int count;
+		ZipGetList(&list, &count);
 
 		// Try to map the ROMs FBA wants to ROMs we find inside our pretty archives ...
 		for (unsigned i = 0; i < g_rom_count; i++)
@@ -850,13 +868,32 @@ bool retro_load_game(const struct retro_game_info *info)
    extract_basename(basename, info->path, sizeof(basename));
    extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
 
-/*   //todo, add a fallback in case save_directory is not defined
    const char *dir = NULL;
+   // If save directory is defined use it, ...
    if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &dir) && dir)
    {
-      snprintf(g_save_dir, sizeof(g_save_dir), "%s", dir);
-      log_cb(RETRO_LOG_ERROR, "Setting save dir to %s\n", g_save_dir);
-   }*/
+      strncpy(g_save_dir, dir, sizeof(g_save_dir));
+      if (log_cb) log_cb(RETRO_LOG_INFO, "Setting save dir to %s\n", g_save_dir);
+   }
+   else
+   {
+      // ... otherwise use rom directory
+      strncpy(g_save_dir, g_rom_dir, sizeof(g_save_dir));
+      if (log_cb) log_cb(RETRO_LOG_ERROR, "Save dir not defined => use roms dir %s\n", g_save_dir);
+   }
+
+   // If system directory is defined use it, ...
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
+   {
+      strncpy(g_system_dir, dir, sizeof(g_system_dir));
+      if (log_cb) log_cb(RETRO_LOG_INFO, "Setting system dir to %s\n", g_system_dir);
+   }
+   else
+   {
+      // ... otherwise use rom directory
+      strncpy(g_system_dir, g_rom_dir, sizeof(g_system_dir));
+      if (log_cb) log_cb(RETRO_LOG_ERROR, "System dir not defined => use roms dir %s\n", g_system_dir);
+   }
 
    unsigned i = BurnDrvGetIndexByName(basename);
    if (i < nBurnDrvCount)
