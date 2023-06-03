@@ -19,11 +19,6 @@ UINT32 nBurnDrvActive = ~0U;	// Which game driver is selected
 UINT32 nBurnDrvSelect[8] = { ~0U, ~0U, ~0U, ~0U, ~0U, ~0U, ~0U, ~0U }; // Which games are selected (i.e. loaded but not necessarily active)
 									
 BOOL bBurnUseMMX;
-#if defined BUILD_A68K
-BOOL bBurnUseASMCPUEmulation = TRUE;
-#else
-BOOL bBurnUseASMCPUEmulation = FALSE;
-#endif
 
 #if defined (FBA_DEBUG)
  clock_t starttime = 0;

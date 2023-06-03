@@ -5,10 +5,6 @@
  #define __fastcall
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "z80/z80.h"
 
 extern INT32 nHasZet;
@@ -65,7 +61,3 @@ void ZetSetInHandler(UINT8 (__fastcall *pHandler)(UINT16));
 void ZetSetOutHandler(void (__fastcall *pHandler)(UINT16, UINT8));
 
 void ZetSetBUSREQLine(INT32 nStatus);
-
-#ifdef __cplusplus
-}
-#endif

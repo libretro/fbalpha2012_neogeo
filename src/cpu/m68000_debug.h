@@ -1,7 +1,3 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum SekRegister
 {
    SEK_REG_D0, SEK_REG_D1, SEK_REG_D2, SEK_REG_D3, SEK_REG_D4, SEK_REG_D5, SEK_REG_D6, SEK_REG_D7,
@@ -30,7 +26,3 @@ INT32 SekDbgGetCPUType(void);
 INT32 SekDbgGetPendingIRQ(void);
 UINT32 SekDbgGetRegister(enum SekRegister nRegister);
 BOOL SekDbgSetRegister(enum SekRegister nRegister, UINT32 nValue);
-
-#ifdef __cplusplus
-}
-#endif

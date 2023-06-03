@@ -264,8 +264,6 @@ static bool bZ80BIOS;
 
 static INT32 /*nNeoCDCyclesIRQ = 0,*/ nNeoCDCyclesIRQPeriod = 0;
 
-static bool bUseAsm68KCoreOldValue = false;
-
 bool IsNeoGeoCD() {
 	return (nNeoSystemType & NEO_SYS_CD);
 }
@@ -3626,18 +3624,6 @@ static INT32 neogeoReset()
    return 0;
 }
 
-static void SwitchToMusashi(void)
-{
-	if (bBurnUseASMCPUEmulation)
-   {
-#if 1 && defined FBA_DEBUG
-		bprintf(PRINT_NORMAL, _T("Switching to Musashi 68000 core\n"));
-#endif
-		bUseAsm68KCoreOldValue = bBurnUseASMCPUEmulation;
-		bBurnUseASMCPUEmulation = false;
-	}
-}
-
 static INT32 NeoInitCommon()
 {
 	BurnSetRefreshRate(NEO_VREFRESH);
@@ -3663,10 +3649,6 @@ static INT32 NeoInitCommon()
 		}
 		memset(AllRAM, 0, nLen);									// Initialise memory
 		RAMIndex();													// Index the allocated memory
-	}
-	
-	if (nNeoSystemType & NEO_SYS_CD) {
-		SwitchToMusashi();
 	}
 
 	SekInit(0, 0x68000);											// Allocate 68000
@@ -4170,17 +4152,6 @@ INT32 NeoExit(void)
 	nCodeSize[0] = 0;
 	
 	nNeoCDZ80ProgWriteWordCancelHack = 0;
-	
-	// Switch back CPU core if needed
-	if (nNeoSystemType & NEO_SYS_CD) {
-		if (bUseAsm68KCoreOldValue) {
-#if 1 && defined FBA_DEBUG
-			bprintf(PRINT_NORMAL, _T("Switching back to A68K core\n"));
-#endif
-			bUseAsm68KCoreOldValue = false;
-			bBurnUseASMCPUEmulation = true;
-		}
-	}
 
 	recursing = false;
 	

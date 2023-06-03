@@ -1,7 +1,6 @@
 DEBUG = 0
 LIBRETRO_OPTIMIZATIONS = 1
 FRONTEND_SUPPORTS_RGB565 = 1
-HAVE_GRIFFIN = 0
 
 ifeq ($(platform),)
    platform = unix
@@ -28,10 +27,9 @@ FBA_CPU_DIR := $(MAIN_FBA_DIR)/cpu
 FBA_LIB_DIR := $(MAIN_FBA_DIR)/dep/libs
 FBA_INTERFACE_DIR := $(MAIN_FBA_DIR)/intf
 FBA_GENERATED_DIR = $(MAIN_FBA_DIR)/dep/generated
-FBA_SCRIPTS_DIR = $(MAIN_FBA_DIR)/dep/scripts
-GRIFFIN_DIR = griffin-libretro
 
 EXTERNAL_ZLIB = 0
+7Z_SUPPORT = 0
 
 TARGET_NAME := fbalpha2012_neogeo
 BURN_BLACKLIST :=
@@ -78,6 +76,8 @@ else
 	CXX +=  -miphoneos-version-min=5.0
 	CFLAGS += -miphoneos-version-min=5.0
 endif
+
+# QNX
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_$(platform).so
    fpic := -fPIC
@@ -88,6 +88,7 @@ else ifeq ($(platform), qnx)
 	AR = qcc -Vgcc_ntoarmv7le
 	PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 
+# PS3
 else ifeq ($(platform), ps3)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
@@ -97,6 +98,8 @@ else ifeq ($(platform), ps3)
    PLATFORM_DEFINES += -D__CELLOS_LV2__
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
+	
+# sncps3
 else ifeq ($(platform), sncps3)
    TARGET := $(TARGET_NAME)_libretro_ps3.a
    CXX	= $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
@@ -106,6 +109,8 @@ else ifeq ($(platform), sncps3)
    PLATFORM_DEFINES += -D__CELLOS_LV2__ -DSN_TARGET_PS3
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
+
+# PS Vita
 else ifeq ($(platform), vita)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = arm-vita-eabi-gcc$(EXE_EXT)
@@ -118,6 +123,8 @@ else ifeq ($(platform), vita)
    CFLAGS += -O3 -mfloat-abi=hard -ffast-math -fsingle-precision-constant
    CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
    CPU_ARCH := arm
+
+# psl1ght
 else ifeq ($(platform), psl1ght)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
@@ -127,6 +134,8 @@ else ifeq ($(platform), psl1ght)
    PLATFORM_DEFINES += -D__CELLOS_LV2__
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
+	
+# Xbox 360
 else ifeq ($(platform), xenon)
    TARGET := $(TARGET_NAME)_libretro_xenon360.a
    CC = xenon-gcc$(EXE_EXT)
@@ -135,6 +144,8 @@ else ifeq ($(platform), xenon)
    ENDIANNESS_DEFINES =  -DMSB_FIRST
    PLATFORM_DEFINES := -D__LIBXENON__ -m32 -D__ppc__
 	STATIC_LINKING = 1
+
+# NGC
 else ifeq ($(platform), ngc)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -145,6 +156,8 @@ else ifeq ($(platform), ngc)
    PLATFORM_DEFINES += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
+	
+# Wii
 else ifeq ($(platform), wii)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -156,6 +169,7 @@ else ifeq ($(platform), wii)
    EXTERNAL_ZLIB = 1
    STATIC_LINKING = 1
 
+# Wii U
 else ifeq ($(platform), wiiu)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -167,6 +181,7 @@ else ifeq ($(platform), wiiu)
    EXTERNAL_ZLIB = 1
    STATIC_LINKING = 1
 
+# 3DS
 else ifeq ($(platform), ctr)
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
    EXTERNAL_ZLIB = 1
@@ -182,6 +197,7 @@ else ifeq ($(platform), ctr)
    BURN_BLACKLIST += $(FBA_BURN_DIR)/burn_memory.c
    FBA_LIBRETRO_DIRS += $(LIBRETRO_DIR)/3ds
 
+# Emscripten
 else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_$(platform).bc
    PLATFORM_DEFINES := -DUSE_FILE32API
@@ -189,7 +205,7 @@ else ifeq ($(platform), emscripten)
    EXTERNAL_ZLIB = 1
 	STATIC_LINKING = 1
 
-# GCw0
+# GCW0
 else ifeq ($(platform), gcw0)
    TARGET := $(TARGET_NAME)_libretro.so
    CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
@@ -202,6 +218,31 @@ else ifeq ($(platform), gcw0)
    CFLAGS += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
    CXXFLAGS += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 
+# MIYOOMINI
+else ifeq ($(platform),miyoomini)
+	TARGET := $(TARGET_NAME)_libretro.so
+	CC = $(CROSS_COMPILE)gcc
+	CPP = $(CROSS_COMPILE)gcc -E
+	CXX = $(CROSS_COMPILE)g++
+	AR = $(CROSS_COMPILE)ar
+	fpic := -fPIC
+	SHARED := -shared -Wl,--version-script=$(LIBRETRO_DIR)/link.T -Wl,--no-undefined
+	CFLAGS += -flto=4 -fipa-pta -fipa-ra -fwhole-program -fuse-linker-plugin
+	CFLAGS += -falign-functions=1 -falign-jumps=1 -falign-loops=1
+	CFLAGS += -fno-stack-protector -fno-ident -fomit-frame-pointer
+	CFLAGS += -fno-unwind-tables -fno-asynchronous-unwind-tables
+	CFLAGS += -fmerge-all-constants -fno-math-errno -ffast-math 
+	CFLAGS += -ftree-vectorize -funswitch-loops -funroll-loops -fno-common
+	CFLAGS += -fdata-sections -ffunction-sections -Wl,-s -Wl,--gc-sections
+	CFLAGS += -marm -march=armv7ve+simd -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
+	CFLAGS += -D_GNU_SOURCE
+	CXXFLAGS += $(CFLAGS) -fno-exceptions -fno-rtti -std=c++98
+	LDFLAGS += -flto=4 -fipa-pta -fipa-ra -fuse-linker-plugin
+	LDFLAGS += -lz -Wl,-s -Wl,--gc-sections 
+	ARCH = arm
+	EXTERNAL_ZLIB = 1
+
+# Windows
 else
    TARGET := $(TARGET_NAME)_libretro.dll
    CC = gcc
@@ -210,181 +251,52 @@ else
    LDFLAGS += -static-libgcc -static-libstdc++
 endif
 
-CC_SYSTEM = gcc
-CXX_SYSTEM = g++
-
-.PHONY: clean generate-files generate-files-clean clean-objs
+.PHONY: clean clean-objs
 
 all: $(TARGET)
 
-BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp \
-	$(FBA_CPU_DIR)/arm7/arm7exec.c \
-	$(FBA_CPU_DIR)/arm7/arm7core.c \
-	$(FBA_CPU_DIR)/hd6309/6309tbl.c \
-	$(FBA_CPU_DIR)/hd6309/6309ops.c \
-	$(FBA_CPU_DIR)/konami/konamtbl.c \
-	$(FBA_CPU_DIR)/konami/konamops.c \
-	$(FBA_CPU_DIR)/m68k/m68k_in.c \
-	$(FBA_CPU_DIR)/m6800/6800ops.c \
-	$(FBA_CPU_DIR)/m6800/6800tbl.c \
-	$(FBA_CPU_DIR)/m6805/6805ops.c \
-	$(FBA_CPU_DIR)/m6809/6809ops.c \
-	$(FBA_CPU_DIR)/m6809/6809tbl.c \
-	$(FBA_CPU_DIR)/sh2/mksh2.cpp \
-	$(FBA_CPU_DIR)/sh2/mksh2-x86.cpp \
-	$(FBA_CPU_DIR)/m68k/m68kmake.c \
-	$(FBA_BURNER_DIR)/wave_writer.cpp \
-	$(FBA_CPU_DIR)/m68k/m68kdasm.c \
-	$(FBA_LIBRETRO_DIR)/menu.cpp \
-	$(FBA_CPU_DIR)/sh2/mksh2.cpp \
-	$(FBA_BURNER_DIR)/sshot.cpp \
-	$(FBA_BURNER_DIR)/conc.cpp \
-	$(FBA_BURNER_DIR)/dat.cpp \
-	$(FBA_BURNER_DIR)/cong.cpp \
-	$(FBA_BURNER_DIR)/image.cpp \
-	$(FBA_BURNER_DIR)/misc.cpp \
-	$(FBA_CPU_DIR)/h6280/tblh6280.c \
-	$(FBA_CPU_DIR)/m6502/t65sc02.c \
-	$(FBA_CPU_DIR)/m6502/t65c02.c \
-	$(FBA_CPU_DIR)/m6502/tdeco16.c \
-	$(FBA_CPU_DIR)/m6502/tn2a03.c \
-	$(FBA_CPU_DIR)/m6502/t6502.c \
-	$(FBA_CPU_DIR)/nec/v25sfr.c \
-	$(FBA_CPU_DIR)/nec/v25instr.c \
-	$(FBA_CPU_DIR)/nec/necinstr.c \
-	$(FBA_BURN_DIR)/drv/capcom/ctv_make.cpp \
-	$(FBA_BURN_DIR)/drv/pgm/pgm_sprite_create.cpp
-
-#ifeq ($(LIBRETRO_OPTIMIZATIONS), 1)
-#BURN_BLACKLIST += $(FBA_BURN_DIR)/drv/capcom/ctv.cpp
-#endif
-
-ifeq ($(HAVE_GRIFFIN), 1)
-GRIFFIN_CXXSRCFILES := $(GRIFFIN_DIR)/cps12.cpp $(GRIFFIN_DIR)/cps3.cpp $(GRIFFIN_DIR)/neogeo.cpp $(GRIFFIN_DIR)/pgm.cpp $(GRIFFIN_DIR)/snes.cpp $(GRIFFIN_DIR)/galaxian.cpp $(GRIFFIN_DIR)/cpu-m68k.cpp
-BURN_BLACKLIST += $(FBA_CPU_DIR)/m68000_intf.cpp
-else
-CPS2_DIR := $(FBA_BURN_DRIVERS_DIR)/capcom
-CPS3_DIR := $(FBA_BURN_DRIVERS_DIR)/cps3
-GALAXIAN_DIR := $(FBA_BURN_DRIVERS_DIR)/galaxian
 NEOGEO_DIR := $(FBA_BURN_DRIVERS_DIR)/neogeo
-PGM_DIR := $(FBA_BURN_DRIVERS_DIR)/pgm
-SNES_DIR := $(FBA_BURN_DRIVERS_DIR)/snes
-M68K_DIR := $(FBA_CPU_DIR)/m68k
-MD_DIR := $(FBA_BURN_DRIVERS_DIR)/megadrive
-PCE_DIR := $(FBA_BURN_DRIVERS_DIR)/pce
-endif
-
-ifeq ($(NO_MD), 1)
-MD_DIR :=
-endif
-
-ifeq ($(NO_PCE), 1)
-PCE_DIR :=
-endif
-
-ifeq ($(NO_CPS), 1)
-BURN_BLACKLIST += $(FBA_BURN_DRIVERS_DIR)/capcom/cps.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps2_crpt.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_config.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_draw.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_mem.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_obj.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_pal.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_run.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_rw.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cps_scr.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cpsr.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cpsrd.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/cpst.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/ctv.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/d_cps1.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/d_cps2.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/fcrash_snd.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/ps.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/ps_m.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/ps_z.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/qs.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/qs_c.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/qs_z.cpp \
-						$(FBA_BURN_DRIVERS_DIR)/capcom/sf2mdt_snd.cpp
-endif
-
-ifeq ($(NO_NEO), 1)
-NEOGEO_DIR :=
-endif
 
 FBA_BURN_DIRS := $(FBA_BURN_DIR) \
 	$(FBA_BURN_DIR)/devices \
 	$(FBA_BURN_DIR)/snd \
-	$(CPS2_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/cave \
-	$(CPS3_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/dataeast \
-	$(GALAXIAN_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/irem \
-	$(FBA_BURN_DRIVERS_DIR)/konami \
-	$(MD_DIR) \
 	$(NEOGEO_DIR) \
-	$(PCE_DIR) \
-	$(PGM_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/pre90s \
-	$(FBA_BURN_DRIVERS_DIR)/psikyo \
-	$(FBA_BURN_DRIVERS_DIR)/pst90s \
-	$(FBA_BURN_DRIVERS_DIR)/sega \
-	$(SNES_DIR) \
-	$(FBA_BURN_DRIVERS_DIR)/taito \
-	$(FBA_BURN_DRIVERS_DIR)/toaplan \
 	$(FBA_BURN_DRIVERS_DIR)
 
 FBA_CPU_DIRS := $(FBA_CPU_DIR) \
-	$(FBA_CPU_DIR)/arm \
-	$(FBA_CPU_DIR)/arm7 \
-	$(FBA_CPU_DIR)/h6280 \
-	$(FBA_CPU_DIR)/hd6309 \
-	$(FBA_CPU_DIR)/i8039 \
-	$(FBA_CPU_DIR)/konami \
-	$(M68K_DIR) \
-	$(FBA_CPU_DIR)/m6502 \
-	$(FBA_CPU_DIR)/m6800 \
-	$(FBA_CPU_DIR)/m6805 \
-	$(FBA_CPU_DIR)/m6809 \
-	$(FBA_CPU_DIR)/nec \
-	$(FBA_CPU_DIR)/pic16c5x \
-	$(FBA_CPU_DIR)/s2650 \
-	$(FBA_CPU_DIR)/sh2 \
+	$(FBA_CPU_DIR)/m68k \
 	$(FBA_CPU_DIR)/z80
-
-FBA_LIB_DIRS := $(FBA_LIB_DIR)/zlib
-
-FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS) $(FBA_BURNER_DIRS) $(FBA_LIBRETRO_DIRS)
-
-
-ifeq ($(EXTERNAL_ZLIB), 1)
-FBA_DEFINES += -DEXTERNAL_ZLIB
-else
-FBA_SRC_DIRS += $(FBA_LIB_DIRS)
-endif
-
-FBA_CXXSRCS := $(GRIFFIN_CXXSRCFILES) $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
-FBA_CXXOBJ := $(FBA_CXXSRCS:.cpp=.o)
-FBA_CSRCS := $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
-FBA_COBJ := $(FBA_CSRCS:.c=.o)
-
-OBJS := $(FBA_COBJ) $(FBA_CXXOBJ)
 
 FBA_DEFINES := -DUSE_SPEEDHACKS -D__LIBRETRO__ \
 	-D__LIBRETRO_OPTIMIZATIONS__ \
 	-DWANT_NEOGEOCD \
 	$(ENDIANNESS_DEFINES) \
 	$(PLATFORM_DEFINES)
-	
-ifneq ($(platform),qnx)
-   FBA_DEFINES += -DINLINE="static inline" -DSH2_INLINE="static inline"
+
+ifneq ($(EXTERNAL_ZLIB), 1)
+FBA_LIB_DIRS += $(FBA_LIB_DIR)/zlib
 endif
 
-INCDIRS := -I$(FBA_BURNER_DIR)/win32 \
-	-I$(LIBRETRO_DIR) \
-	-I$(LIBRETRO_DIR)/tchar \
+ifeq ($(7Z_SUPPORT), 1)
+FBA_DEFINES += -DINCLUDE_7Z_SUPPORT
+else
+BURN_BLACKLIST += $(FBA_BURNER_DIR)/un7z.cpp
+endif
+
+FBA_SRC_DIRS := $(FBA_BURNER_DIR) $(FBA_BURN_DIRS) $(FBA_CPU_DIRS) $(FBA_BURNER_DIRS) $(FBA_LIBRETRO_DIRS) $(FBA_LIB_DIRS)
+
+FBA_CXXSRCS := $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.cpp)))
+FBA_CXXOBJ := $(FBA_CXXSRCS:.cpp=.o)
+FBA_CSRCS := $(filter-out $(BURN_BLACKLIST),$(foreach dir,$(FBA_SRC_DIRS),$(wildcard $(dir)/*.c)))
+FBA_COBJ := $(FBA_CSRCS:.c=.o)
+
+OBJS := $(FBA_COBJ) $(FBA_CXXOBJ)
+
+ifneq ($(platform),qnx)
+   FBA_DEFINES += -DINLINE="static inline"
+endif
+
+INCDIRS := -I$(LIBRETRO_DIR) \
 	-I$(FBA_BURN_DIR) \
 	-I$(MAIN_FBA_DIR)/cpu \
 	-I$(FBA_BURN_DIR)/snd \
@@ -394,18 +306,10 @@ INCDIRS := -I$(FBA_BURNER_DIR)/win32 \
 	-I$(FBA_INTERFACE_DIR)/cd \
 	-I$(FBA_BURNER_DIR) \
 	-I$(FBA_CPU_DIR) \
-	-I$(FBA_CPU_DIR)/i8039 \
 	-I$(FBA_LIB_DIR)/zlib \
-	-I$(FBA_BURN_DIR)/drv/capcom \
-	-I$(FBA_BURN_DIR)/drv/dataeast \
-	-I$(FBA_BURN_DIR)/drv/cave \
-	-I$(FBA_BURN_DIR)/drv/neogeo \
-	-I$(FBA_BURN_DIR)/drv/psikyo \
-	-I$(FBA_BURN_DIR)/drv/sega \
-	-I$(FBA_BURN_DIR)/drv/toaplan \
-	-I$(FBA_BURN_DIR)/drv/taito \
 	-I$(FBA_GENERATED_DIR) \
-	-I$(FBA_LIB_DIR)
+	-I$(FBA_LIB_DIR) \
+	-I$(NEOGEO_DIR)
 
 ifeq ($(LIBRETRO_OPTIMIZATIONS), 1)
 FBA_DEFINES += -D__LIBRETRO_OPTIMIZATIONS__ 
@@ -432,6 +336,8 @@ else
 WARNINGS_DEFINES = -Wno-write-strings
 endif
 
+$(info    FBA_DEFINES is $(FBA_DEFINES))
+
 CFLAGS += $(fpic) $(WARNINGS_DEFINES) $(FBA_DEFINES)
 CXXFLAGS += $(fpic) $(WARNINGS_DEFINES) $(FBA_DEFINES)
 LDFLAGS += $(fpic)
@@ -440,43 +346,6 @@ ifeq ($(FRONTEND_SUPPORTS_RGB565), 1)
 CFLAGS += -DFRONTEND_SUPPORTS_RGB565
 CXXFLAGS += -DFRONTEND_SUPPORTS_RGB565
 endif
-
-ifeq ($(ZLIB_INTERNAL), 0)
-INCDIRS += -I$(FBA_LIB_DIR)
-endif
-
-ifeq ($(LIBRETRO_OPTIMIZATIONS), 1)
-GENERATE_OPTS := -D__LIBRETRO_OPTIMIZATIONS__
-else
-GENERATE_OPTS :=
-endif
-
-PERL = perl$(EXE_EXT)
-M68KMAKE_EXE = m68kmake$(EXE_EXT)
-CTVMAKE_EXE = ctvmake$(EXE_EXT)
-PGM_SPRITE_CREATE_EXE = pgmspritecreate$(EXE_EXT)
-EXE_PREFIX = ./
-
-generate-files-clean:
-	rm -rf $(FBA_GENERATED_DIR)/
-	rm -rf $(FBA_CPU_DIR)/m68k/m68kopac.c
-	rm -rf $(FBA_CPU_DIR)/m68k/m68kopdm.c
-	rm -rf $(FBA_CPU_DIR)/m68k/m68kopnz.c
-	rm -rf $(FBA_CPU_DIR)/m68k/m68kops.c
-	rm -rf $(FBA_CPU_DIR)/m68k/m68kops.h
-
-generate-files:
-	@mkdir -p $(FBA_GENERATED_DIR) 2>/dev/null || /bin/true
-	@echo "Generating $(FBA_GENERATED_DIR)/driverlist.h..."
-	@echo ""
-	$(PERL) $(FBA_SCRIPTS_DIR)/gamelist.pl -o $(FBA_GENERATED_DIR)/driverlist.h -l gamelist.txt $(FBA_BURN_DRIVERS_DIR)/neogeo
-	@echo ""
-	@echo "Generating $(FBA_GENERATED_DIR)/neo_sprite_func.h..."
-	@echo ""
-	@echo "Generating $(FBA_GENERATED_DIR)/neo_sprite_func_table.h..."
-	@echo ""
-	$(PERL) $(FBA_SCRIPTS_DIR)/neo_sprite_func.pl -o $(FBA_GENERATED_DIR)/neo_sprite_func.h $(LIBRETRO_OPTIMIZATIONS)
-	@echo ""
 
 $(TARGET): $(OBJS)
 	@echo "LD $@"
@@ -500,6 +369,3 @@ clean-objs:
 clean:
 	rm -f $(TARGET)
 	rm -f $(OBJS)
-	rm -f $(M68KMAKE_EXE)
-	rm -f $(PGM_SPRITE_CREATE_EXE)
-	rm -f $(CTVMAKE_EXE)

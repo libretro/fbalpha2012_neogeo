@@ -32,45 +32,6 @@ static struct { UINT32 address; INT32 id; } BreakpointFetch[9] = { { 0, 0 }, };
 
 #endif
 
-#if defined (EMU_A68K)
-static void UpdateA68KContext()
-{
-	if (M68000_regs.srh & 20) {		// Supervisor mode
-		M68000_regs.isp = M68000_regs.a[7];
-	} else {						// User mode
-		M68000_regs.usp = M68000_regs.a[7];
-	}
-
-	M68000_regs.sr  = (M68000_regs.srh <<  8) & 0xFF00;	// T, S, M, I
-	M68000_regs.sr |= (M68000_regs.xc  <<  4) & 0x0010;	// X
-	M68000_regs.sr |= (M68000_regs.ccr >>  4) & 0x0008;	// N
-	M68000_regs.sr |= (M68000_regs.ccr >>  4) & 0x0004;	// Z
-	M68000_regs.sr |= (M68000_regs.ccr >> 10) & 0x0002;	// V
-	M68000_regs.sr |= (M68000_regs.ccr      ) & 0x0001;	// C
-}
-
-static UINT32 GetA68KSR()
-{
-	UpdateA68KContext();
-
-	return M68000_regs.sr;
-}
-
-static UINT32 GetA68KISP()
-{
-	UpdateA68KContext();
-
-	return M68000_regs.isp;
-}
-
-static UINT32 GetA68KUSP()
-{
-	UpdateA68KContext();
-
-	return M68000_regs.usp;
-}
-#endif
-
 #if defined (FBA_DEBUG)
 
 inline static void CheckBreakpoint_R(UINT32 a, const UINT32 m)
@@ -79,11 +40,6 @@ inline static void CheckBreakpoint_R(UINT32 a, const UINT32 m)
 
 	for (INT32 i = 0; BreakpointDataRead[i].address; i++) {
 		if ((BreakpointDataRead[i].address & m) == a) {
-
-#ifdef EMU_A68K
-			UpdateA68KContext();
-#endif
-
 			SekDbgBreakpointHandlerRead(a, BreakpointDataRead[i].id);
 			return;
 		}
@@ -96,11 +52,6 @@ inline static void CheckBreakpoint_W(UINT32 a, const UINT32 m)
 
 	for (INT32 i = 0; BreakpointDataWrite[i].address; i++) {
 		if ((BreakpointDataWrite[i].address & m) == a) {
-
-#ifdef EMU_A68K
-			UpdateA68KContext();
-#endif
-
 			SekDbgBreakpointHandlerWrite(a, BreakpointDataWrite[i].id);
 			return;
 		}
@@ -111,11 +62,6 @@ inline static void CheckBreakpoint_PC()
 {
 	for (INT32 i = 0; BreakpointFetch[i].address; i++) {
 		if (BreakpointFetch[i].address == (UINT32)SekGetPC(-1)) {
-
-#ifdef EMU_A68K
-			UpdateA68KContext();
-#endif
-
 			SekDbgBreakpointHandlerFetch(SekGetPC(-1), BreakpointFetch[i].id);
 			return;
 		}
@@ -124,10 +70,6 @@ inline static void CheckBreakpoint_PC()
 
 inline static void SingleStep_PC()
 {
-#ifdef EMU_A68K
-	UpdateA68KContext();
-#endif
-
 	SekDbgBreakpointHandlerFetch(SekGetPC(-1), 0);
 }
 
@@ -504,72 +446,6 @@ void __fastcall WriteLongBP(UINT32 a, UINT32 d)
 
 #endif
 
-// ----------------------------------------------------------------------------
-// A68K variables
-
-#ifdef EMU_A68K
-struct A68KContext* SekRegs[SEK_MAX] = { NULL, };
-#endif
-
-struct A68KInter {
-	void (__fastcall *DebugCallback) ();
-	UINT8  (__fastcall *Read8) (UINT32 a);
-	UINT16 (__fastcall *Read16)(UINT32 a);
-	UINT32   (__fastcall *Read32)(UINT32 a);
-	void (__fastcall *Write8)  (UINT32 a, UINT8 d);
-	void (__fastcall *Write16) (UINT32 a, UINT16 d);
-	void (__fastcall *Write32) (UINT32 a, UINT32 d);
-	void (__fastcall *ChangePc)(UINT32 a);
-	UINT8  (__fastcall *PcRel8) (UINT32 a);
-	UINT16 (__fastcall *PcRel16)(UINT32 a);
-	UINT32   (__fastcall *PcRel32)(UINT32 a);
-	UINT16 (__fastcall *Dir16)(UINT32 a);
-	UINT32   (__fastcall *Dir32)(UINT32 a);
-};
-
-#ifdef EMU_A68K
- UINT8* OP_ROM = NULL;
- UINT8* OP_RAM = NULL;
-
-#ifndef EMU_M68K
- INT32 m68k_ICount = 0;
-#endif
-
- UINT32 mem_amask = 0xFFFFFF;			// 24-bit bus
-#endif
-
- UINT32 mame_debug = 0, cur_mrhard = 0, m68k_illegal_opcode = 0, illegal_op = 0, illegal_pc = 0, opcode_entry = 0;
-
- struct A68KInter a68k_memory_intf;
-
-UINT8  __fastcall A68KRead8 (UINT32 a) { return ReadByte(a);}
-UINT16 __fastcall A68KRead16(UINT32 a) { return ReadWord(a);}
-UINT32   __fastcall A68KRead32(UINT32 a) { return ReadLong(a);}
-UINT8  __fastcall A68KFetch8 (UINT32 a) { return FetchByte(a);}
-UINT16 __fastcall A68KFetch16(UINT32 a) { return FetchWord(a);}
-UINT32   __fastcall A68KFetch32(UINT32 a) { return FetchLong(a);}
-void __fastcall A68KWrite8 (UINT32 a,UINT8 d)  { WriteByte(a,d);}
-void __fastcall A68KWrite16(UINT32 a,UINT16 d) { WriteWord(a,d);}
-void __fastcall A68KWrite32(UINT32 a,UINT32 d)   { WriteLong(a,d);}
-
-#if defined (FBA_DEBUG)
-void __fastcall A68KCheckBreakpoint() { CheckBreakpoint_PC(); }
-void __fastcall A68KSingleStep() { SingleStep_PC(); }
-#endif
-
-#ifdef EMU_A68K
-void __fastcall A68KChangePC(UINT32 pc)
-{
-	pc &= 0xFFFFFF;
-
-	// Adjust OP_ROM to the current bank
-	OP_ROM = FIND_F(pc) - (pc & ~SEK_PAGEM);
-
-	// Set the current bank number
-	M68000_regs.nAsmBank = pc >> SEK_BITS;
-}
-#endif
-
 #ifdef EMU_M68K
 unsigned int __fastcall M68KReadByte(unsigned int a) { return (unsigned int)ReadByte(a); }
 unsigned int __fastcall M68KReadWord(unsigned int a) { return (unsigned int)ReadWord(a); }
@@ -605,45 +481,6 @@ void __fastcall M68KWriteWord(unsigned int a, unsigned int d) { WriteWord(a, d);
 void __fastcall M68KWriteLong(unsigned int a, unsigned int d) { WriteLong(a, d); }
 #endif
 
-#if defined EMU_A68K
-struct A68KInter a68k_inter_normal = {
-	NULL,
-	A68KRead8,
-	A68KRead16,
-	A68KRead32,
-	A68KWrite8,
-	A68KWrite16,
-	A68KWrite32,
-	A68KChangePC,
-	A68KFetch8,
-	A68KFetch16,
-	A68KFetch32,
-	A68KRead16,	// unused
-	A68KRead32,	// unused
-};
-
-#if defined (FBA_DEBUG)
-
-struct A68KInter a68k_inter_breakpoint = {
-	NULL,
-	ReadByteBP,
-	ReadWordBP,
-	ReadLongBP,
-	WriteByteBP,
-	WriteWordBP,
-	WriteLongBP,
-	A68KChangePC,
-	A68KFetch8,
-	A68KFetch16,
-	A68KFetch32,
-	A68KRead16,	// unused
-	A68KRead32,	// unused
-};
-
-#endif
-
-#endif
-
 // ----------------------------------------------------------------------------
 // Memory accesses (non-emu specific)
 
@@ -662,61 +499,6 @@ void SekWriteLong(UINT32 a, UINT32 d) { WriteLong(a, d); }
 void SekWriteByteROM(UINT32 a, UINT8 d) { WriteByteROM(a, d); }
 void SekWriteWordROM(UINT32 a, UINT16 d) { WriteWordROM(a, d); }
 void SekWriteLongROM(UINT32 a, UINT32 d) { WriteLongROM(a, d); }
-
-// ----------------------------------------------------------------------------
-// Callbacks for A68K
-
-#ifdef EMU_A68K
-static INT32 A68KIRQAcknowledge(INT32 nIRQ)
-{
-	if (nSekIRQPending[nSekActive] & SEK_IRQSTATUS_AUTO) {
-		M68000_regs.irq &= 0x78;
-		nSekIRQPending[nSekActive] = 0;
-	}
-
-	nSekIRQPending[nSekActive] = 0;
-	
-	if (pSekExt->IrqCallback) {
-		return pSekExt->IrqCallback(nIRQ);
-	}
-
-	return -1;
-}
-
-static INT32 A68KResetCallback()
-{
-	if (pSekExt->ResetCallback == NULL) {
-		return 0;
-	}
-	return pSekExt->ResetCallback();
-}
-
-static INT32 A68KRTECallback()
-{
-	if (pSekExt->RTECallback == NULL) {
-		return 0;
-	}
-	return pSekExt->RTECallback();
-}
-
-static INT32 A68KCmpCallback(UINT32 val, INT32 reg)
-{
-	if (pSekExt->CmpCallback == NULL) {
-		return 0;
-	}
-	return pSekExt->CmpCallback(val, reg);
-}
-
-static INT32 SekSetup(struct A68KContext* psr)
-{
-	psr->IrqCallback = A68KIRQAcknowledge;
-	psr->ResetCallback = A68KResetCallback;
-	psr->RTECallback = A68KRTECallback;
-	psr->CmpCallback = A68KCmpCallback;
-
-	return 0;
-}
-#endif
 
 // ----------------------------------------------------------------------------
 // Callbacks for Musashi
@@ -758,32 +540,6 @@ void M68KcmpildCallback(unsigned int val, int reg)
 
 // ----------------------------------------------------------------------------
 // Initialisation/exit/reset
-
-#ifdef EMU_A68K
-static INT32 SekInitCPUA68K(INT32 nCount, INT32 nCPUType)
-{
-	if (nCPUType != 0x68000) {
-		return 1;
-	}
-
-	nSekCPUType[nCount] = 0;
-
-	// Allocate emu-specific cpu states
-	SekRegs[nCount] = (struct A68KContext*)malloc(sizeof(struct A68KContext));
-	if (SekRegs[nCount] == NULL) {
-		return 1;
-	}
-
-	// Setup each cpu context
-	memset(SekRegs[nCount], 0, sizeof(struct A68KContext));
-	SekSetup(SekRegs[nCount]);
-
-	// Init cpu emulator
-	M68000_RESET();
-
-	return 0;
-}
-#endif
 
 #ifdef EMU_M68K
 static INT32 SekInitCPUM68K(INT32 nCount, INT32 nCPUType)
@@ -863,10 +619,6 @@ static struct cpu_core_config SekCheatCpuConfig =
 INT32 SekInit(INT32 nCount, INT32 nCPUType)
 {
 	struct SekExt* ps = NULL;
-
-#if !defined BUILD_A68K
-	bBurnUseASMCPUEmulation = FALSE;
-#endif
 
 	if (nSekActive >= 0) {
 		SekClose();
@@ -972,25 +724,12 @@ INT32 SekInit(INT32 nCount, INT32 nCPUType)
 	// Map the normal memory handlers
 	SekDbgDisableBreakpoints();
 
-#ifdef EMU_A68K
-	if (bBurnUseASMCPUEmulation && nCPUType == 0x68000) {
-		if (SekInitCPUA68K(nCount, nCPUType)) {
-			SekExit();
-			return 1;
-		}
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		m68k_init();
 		if (SekInitCPUM68K(nCount, nCPUType)) {
 			SekExit();
 			return 1;
 		}
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 	nSekCycles[nCount] = 0;
@@ -1003,16 +742,6 @@ INT32 SekInit(INT32 nCount, INT32 nCPUType)
 
 	return 0;
 }
-
-#ifdef EMU_A68K
-static void SekCPUExitA68K(INT32 i)
-{
-	if (SekRegs[i]) {
-		free(SekRegs[i]);
-		SekRegs[i] = NULL;
-	}
-}
-#endif
 
 #ifdef EMU_M68K
 static void SekCPUExitM68K(INT32 i)
@@ -1032,10 +761,6 @@ INT32 SekExit()
 
 	// Deallocate cpu extenal data (memory map etc)
 	for (INT32 i = 0; i <= nSekCount; i++) {
-
-#ifdef EMU_A68K
-		SekCPUExitA68K(i);
-#endif
 
 #ifdef EMU_M68K
 		SekCPUExitM68K(i);
@@ -1063,22 +788,8 @@ void SekReset()
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekReset called when no CPU open\n"));
 #endif
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		// A68K has no internal support for resetting the processor, so do what's needed ourselves
-		M68000_regs.a[7] = FetchLong(0);	// Get initial stackpointer (register A7)
-		M68000_regs.pc = FetchLong(4);		// Get initial PC
-		M68000_regs.srh = 0x27;				// start in supervisor state
-		A68KChangePC(M68000_regs.pc);
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		m68k_pulse_reset();
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 }
@@ -1100,21 +811,9 @@ void SekOpen(const INT32 i)
 
 		pSekExt = SekExt[nSekActive];						// Point to cpu context
 
-#ifdef EMU_A68K
-		if (nSekCPUType[nSekActive] == 0) {
-			memcpy(&M68000_regs, SekRegs[nSekActive], sizeof(M68000_regs));
-			A68KChangePC(M68000_regs.pc);
-		} else {
-#endif
-
 #ifdef EMU_M68K
 			m68k_set_context(SekM68KContext[nSekActive]);
 #endif
-
-#ifdef EMU_A68K
-		}
-#endif
-
 		nSekCyclesTotal = nSekCycles[nSekActive];
 	}
 }
@@ -1127,18 +826,8 @@ void SekClose()
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekClose called when no CPU open\n"));
 #endif
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		memcpy(SekRegs[nSekActive], &M68000_regs, sizeof(M68000_regs));
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		m68k_get_context(SekM68KContext[nSekActive]);
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 	nSekCycles[nSekActive] = nSekCyclesTotal;
@@ -1169,41 +858,16 @@ void SekSetIRQLine(const INT32 line, const INT32 status)
 	if (status) {
 		nSekIRQPending[nSekActive] = line | status;
 
-#ifdef EMU_A68K
-		if (nSekCPUType[nSekActive] == 0) {
-			nSekCyclesTotal += (nSekCyclesToDo - nSekCyclesDone) - m68k_ICount;
-			nSekCyclesDone += (nSekCyclesToDo - nSekCyclesDone) - m68k_ICount;
-
-			M68000_regs.irq = line;
-			m68k_ICount = nSekCyclesToDo = -1;					// Force A68K to exit
-		} else {
-#endif
-
 #ifdef EMU_M68K
 			m68k_set_irq(line);
 #endif
-
-#ifdef EMU_A68K
-		}
-#endif
-
 		return;
 	}
 
 	nSekIRQPending[nSekActive] = 0;
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		M68000_regs.irq &= 0x78;
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		m68k_set_irq(0);
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 }
@@ -1216,26 +880,14 @@ void SekRunAdjust(const INT32 nCycles)
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekRunAdjust called when no CPU open\n"));
 #endif
 
-	if (nCycles < 0 && m68k_ICount < -nCycles) {
+	if (nCycles < 0 && -1 < -nCycles) {
 		SekRunEnd();
 		return;
 	}
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		m68k_ICount += nCycles;
-		nSekCyclesToDo += nCycles;
-		nSekCyclesSegment += nCycles;
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		nSekCyclesToDo += nCycles;
 		m68k_modify_timeslice(nCycles);
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 }
@@ -1248,21 +900,8 @@ void SekRunEnd()
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekRunEnd called when no CPU open\n"));
 #endif
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		nSekCyclesTotal += (nSekCyclesToDo - nSekCyclesDone) - m68k_ICount;
-		nSekCyclesDone += (nSekCyclesToDo - nSekCyclesDone) - m68k_ICount;
-		nSekCyclesSegment = nSekCyclesDone;
-		m68k_ICount = nSekCyclesToDo = -1;						// Force A68K to exit
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		m68k_end_timeslice();
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 }
@@ -1275,46 +914,17 @@ INT32 SekRun(const INT32 nCycles)
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekRun called when no CPU open\n"));
 #endif
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		nSekCyclesDone = 0;
-		nSekCyclesSegment = nCycles;
-		do {
-			m68k_ICount = nSekCyclesToDo = nSekCyclesSegment - nSekCyclesDone;
-
-			if (M68000_regs.irq == 0x80) {						// Cpu is in stopped state till interrupt
-				nSekCyclesDone = nSekCyclesSegment;
-				nSekCyclesTotal += nSekCyclesSegment;
-			} else {
-				M68000_RUN();
-				nSekCyclesDone += nSekCyclesToDo - m68k_ICount;
-				nSekCyclesTotal += nSekCyclesToDo - m68k_ICount;
-			}
-		} while (nSekCyclesDone < nSekCyclesSegment);
-
-		nSekCyclesSegment = nSekCyclesDone;
-		nSekCyclesToDo = m68k_ICount = -1;
-		nSekCyclesDone = 0;
-
-		return nSekCyclesSegment;								// Return the number of cycles actually done
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		nSekCyclesToDo = nCycles;
 
 		nSekCyclesSegment = m68k_execute(nCycles);
 
 		nSekCyclesTotal += nSekCyclesSegment;
-		nSekCyclesToDo = m68k_ICount = -1;
+		nSekCyclesToDo = -1;
 
 		return nSekCyclesSegment;
 #else
 		return 0;
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 }
@@ -1335,12 +945,6 @@ void SekDbgDisableBreakpoints()
 		M68KWriteWordDebug = M68KWriteWord;
 		M68KWriteLongDebug = M68KWriteLong;
 #endif
-
-#ifdef EMU_A68K
-	a68k_memory_intf = a68k_inter_normal;
-#endif
-
-	mame_debug = 0;
 }
 
 #if defined (FBA_DEBUG)
@@ -1348,7 +952,6 @@ void SekDbgDisableBreakpoints()
 void SekDbgEnableBreakpoints()
 {
 	if (BreakpointDataRead[0].address || BreakpointDataWrite[0].address || BreakpointFetch[0].address) {
-#if defined FBA_DEBUG && defined EMU_M68K
 		SekDbgDisableBreakpoints();
 
 		if (BreakpointFetch[0].address) {
@@ -1366,18 +969,6 @@ void SekDbgEnableBreakpoints()
 			M68KWriteWordDebug = M68KWriteWordBP;
 			M68KWriteLongDebug = M68KWriteLongBP;
 		}
-#endif
-
-#ifdef EMU_A68K
-		a68k_memory_intf = a68k_inter_breakpoint;
-		if (BreakpointFetch[0].address) {
-			a68k_memory_intf.DebugCallback = A68KCheckBreakpoint;
-			mame_debug = 255;
-		} else {
-			a68k_memory_intf.DebugCallback = NULL;
-			mame_debug = 0;
-		}
-#endif
 	} else {
 		SekDbgDisableBreakpoints();
 	}
@@ -1387,11 +978,6 @@ void SekDbgEnableSingleStep()
 {
 #if defined FBA_DEBUG && defined EMU_M68K
 	m68k_set_instr_hook_callback(M68KSingleStep);
-#endif
-
-#ifdef EMU_A68K
-	a68k_memory_intf.DebugCallback = A68KSingleStep;
-	mame_debug = 254;
 #endif
 }
 
@@ -1697,24 +1283,10 @@ INT32 SekGetPC(INT32 n)
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekGetPC called when no CPU open\n"));
 #endif
 
-#ifdef EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		if (n < 0) {								// Currently active CPU
-		  return M68000_regs.pc;
-		} else {
-			return SekRegs[n]->pc;					// Any CPU
-		}
-	} else {
-#endif
-
 #ifdef EMU_M68K
 		return m68k_get_reg(NULL, M68K_REG_PC);
 #else
 		return 0;
-#endif
-
-#ifdef EMU_A68K
-	}
 #endif
 
 }
@@ -1755,63 +1327,6 @@ UINT32 SekDbgGetRegister(enum SekRegister nRegister)
 	if (!DebugCPU_SekInitted) bprintf(PRINT_ERROR, _T("SekDbgGetRegister called without init\n"));
 	if (nSekActive == -1) bprintf(PRINT_ERROR, _T("SekDbgGetRegister called when no CPU open\n"));
 #endif
-
-#if defined EMU_A68K
-	if (nSekCPUType[nSekActive] == 0) {
-		switch (nRegister) {
-			case SEK_REG_D0:
-				return M68000_regs.d[0];
-			case SEK_REG_D1:
-				return M68000_regs.d[1];
-			case SEK_REG_D2:
-				return M68000_regs.d[2];
-			case SEK_REG_D3:
-				return M68000_regs.d[3];
-			case SEK_REG_D4:
-				return M68000_regs.d[4];
-			case SEK_REG_D5:
-				return M68000_regs.d[5];
-			case SEK_REG_D6:
-				return M68000_regs.d[6];
-			case SEK_REG_D7:
-				return M68000_regs.d[7];
-
-			case SEK_REG_A0:
-				return M68000_regs.a[0];
-			case SEK_REG_A1:
-				return M68000_regs.a[1];
-			case SEK_REG_A2:
-				return M68000_regs.a[2];
-			case SEK_REG_A3:
-				return M68000_regs.a[3];
-			case SEK_REG_A4:
-				return M68000_regs.a[4];
-			case SEK_REG_A5:
-				return M68000_regs.a[5];
-			case SEK_REG_A6:
-				return M68000_regs.a[6];
-			case SEK_REG_A7:
-				return M68000_regs.a[7];
-
-			case SEK_REG_PC:
-				return M68000_regs.pc;
-
-			case SEK_REG_SR:
-				return GetA68KSR();
-
-			case SEK_REG_SP:
-				return M68000_regs.a[7];
-			case SEK_REG_USP:
-				return GetA68KUSP();
-			case SEK_REG_ISP:
-				return GetA68KISP();
-
-			default:
-				return 0;
-		}
-	}
-#endif
-
 	switch (nRegister) {
 		case SEK_REG_D0:
 			return m68k_get_reg(NULL, M68K_REG_D0);
@@ -1909,12 +1424,7 @@ BOOL SekDbgSetRegister(enum SekRegister nRegister, UINT32 nValue)
 			break;
 
 		case SEK_REG_PC:
-			if (nSekCPUType[nSekActive] == 0) {
-#if defined EMU_A68K
-				M68000_regs.pc = nValue;
-				A68KChangePC(M68000_regs.pc);
-#endif
-			} else {
+			if (nSekCPUType[nSekActive] != 0) {
 				m68k_set_reg(M68K_REG_PC, nValue);
 			}
 			SekClose();
@@ -1969,56 +1479,10 @@ INT32 SekScan(INT32 nAction)
 
 	for (INT32 i = 0; i <= nSekCount; i++) {
 		char szName[] = "MC68000 #n";
-#if defined EMU_A68K && defined EMU_M68K
-		INT32 nType = nSekCPUType[i];
-#endif
-
 		szName[9] = '0' + i;
 
 		SCAN_VAR(nSekCPUType[i]);
-      SCAN_VAR(nSekIRQPending[i]); // fix for Gradius 2 s.states -dink feb.3.2015
-
-#if defined EMU_A68K && defined EMU_M68K
-		// Switch to another core if needed
-		if ((nAction & ACB_WRITE) && nType != nSekCPUType[i]) {
-			if (nType != 0 && nType != 0x68000 && nSekCPUType[i] != 0 && nSekCPUType[i] != 0x68000) {
-				continue;
-			}
-
-			if (nSekCPUType[i] == 0x68000) {
-				SekCPUExitA68K(i);
-				if (SekInitCPUM68K(i, 0x68000)) {
-					return 1;
-				}
-			} else {
-				SekCPUExitM68K(i);
-				if (SekInitCPUA68K(i, 0x68000)) {
-					return 1;
-				}
-			}
-		}
-#endif
-
-#ifdef EMU_A68K
-		if (nSekCPUType[i] == 0) {
-			ba.Data = SekRegs[i];
-			ba.nLen = sizeof(A68KContext);
-			ba.szName = szName;
-
-			if (nAction & ACB_READ) {
-				// Blank pointers
-				SekRegs[i]->IrqCallback = NULL;
-				SekRegs[i]->ResetCallback = NULL;
-			}
-
-			BurnAcb(&ba);
-
-			// Re-setup each cpu on read/write
-			if (nAction & ACB_ACCESSMASK) {
-				SekSetup(SekRegs[i]);
-			}
-		} else {
-#endif
+		SCAN_VAR(nSekIRQPending[i]); // fix for Gradius 2 s.states -dink feb.3.2015
 
 #ifdef EMU_M68K
 			if (nSekCPUType[i] != 0) {
@@ -2031,12 +1495,6 @@ INT32 SekScan(INT32 nAction)
 				BurnAcb(&ba);
 			}
 #endif
-
-#ifdef EMU_A68K
-		}
-#endif
-
 	}
-
 	return 0;
 }

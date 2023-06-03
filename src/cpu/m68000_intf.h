@@ -1,17 +1,9 @@
 // 68000 (Sixty Eight K) Interface - header file
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef FASTCALL
  #undef __fastcall
  #define __fastcall
-#endif
-
-#if defined BUILD_A68K
- #define EMU_A68K								// Use A68K Assembler 68000 emulator
 #endif
 
 #define EMU_M68K								// Use Musashi 68000 emulator
@@ -34,39 +26,6 @@ extern "C" {
 
 #if SEK_MAXHANDLER < 1
  #error At least one set of handlers for memory access must be used.
-#endif
-
-#ifdef EMU_A68K
-void __cdecl M68000_RUN(void);
-void __cdecl M68000_RESET(void);
-#endif
-
-#ifdef EMU_A68K
- // The format of the data in a68k.asm (at the _M68000_regs location)
- struct A68KContext {
-	UINT32 d[8], a[8];
-	UINT32 isp, srh, ccr, xc, pc, irq, sr;
-	INT32 (*IrqCallback) (INT32 nIrq);
-	UINT32 ppc;
-	INT32 (*ResetCallback)();
-	INT32 (*RTECallback)();
-	INT32 (*CmpCallback)(UINT32 val, INT32 reg);
-	UINT32 sfc, dfc, usp, vbr;
-	UINT32 nAsmBank, nCpuVersion;
- };
- struct A68KContext M68000_regs;
- extern     struct A68KContext* SekRegs[SEK_MAX];
-
- UINT8* OP_ROM;
- UINT8* OP_RAM;
-
- void __fastcall AsekChangePc(UINT32 pc);
-#endif
-
-#ifdef EMU_M68K
- INT32 nSekM68KContextSize[SEK_MAX];
- INT8* SekM68KContext[SEK_MAX];
- INT32 m68k_ICount;
 #endif
 
 typedef UINT8 (__fastcall *pSekReadByteHandler)(UINT32 a);
@@ -170,11 +129,7 @@ inline static INT32 SekSegmentCycles()
 	if (nSekActive == -1) bprintf(PRINT_ERROR, (TCHAR*)_T("SekSegmentCycles called when no CPU open\n"));
 #endif
 
-#ifdef EMU_M68K
-	return nSekCyclesDone + nSekCyclesToDo - m68k_ICount;
-#else
 	return nSekCyclesDone + nSekCyclesToDo;
-#endif
 }
 
 #if defined FBA_DEBUG
@@ -189,11 +144,7 @@ inline static INT32 SekTotalCycles()
 	if (nSekActive == -1) bprintf(PRINT_ERROR, (TCHAR*)_T("SekTotalCycles called when no CPU open\n"));
 #endif
 
-#ifdef EMU_M68K
-	return nSekCyclesTotal + nSekCyclesToDo - m68k_ICount;
-#else
 	return nSekCyclesTotal + nSekCyclesToDo;
-#endif
 }
 
 inline static INT32 SekCurrentScanline()
@@ -236,7 +187,3 @@ INT32 SekSetCmpCallback(pSekCmpCallback pCallback);
 INT32 SekGetPC(INT32 n);
 
 INT32 SekScan(INT32 nAction);
-
-#ifdef __cplusplus
-}
-#endif

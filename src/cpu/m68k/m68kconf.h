@@ -177,10 +177,6 @@
 
 /* --------------------------- FB Alpha handlers -------------------------- */
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
 #ifndef FASTCALL
  #undef __fastcall
  #define __fastcall
@@ -216,10 +212,6 @@ unsigned int __fastcall M68KReadLong(unsigned int a);
 void __fastcall M68KWriteByte(unsigned int a, unsigned int d);
 void __fastcall M68KWriteWord(unsigned int a, unsigned int d);
 void __fastcall M68KWriteLong(unsigned int a, unsigned int d);
-#endif
-
-#ifdef __cplusplus
- }
 #endif
 
 #define m68ki_remaining_cycles m68k_ICount

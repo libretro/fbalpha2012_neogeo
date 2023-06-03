@@ -1,5 +1,7 @@
 // A module to track if various support devices, cpus, sound modules are in use
 
+#if defined FBA_DEBUG
+
 #include "burnint.h"
 
 UINT8 Debug_BurnTransferInitted;
@@ -127,3 +129,5 @@ void DebugTrackerExit()
 	if (DebugCPU_I8039Initted) 			bprintf(PRINT_ERROR, _T("CPU I8039 Not Exited\n"));
 	if (DebugCPU_SH2Initted) 			bprintf(PRINT_ERROR, _T("CPU SH2 Not Exited\n"));
 }
+
+#endif
