@@ -177,8 +177,6 @@ struct BurnDIPInfo {
 
 // ---------------------------------------------------------------------------
 
-extern BOOL bBurnUseMMX;
-
 extern UINT32 nFramesEmulated;
 extern UINT32 nFramesRendered;
 extern clock_t starttime;					// system time when emulation started and after roms loaded
